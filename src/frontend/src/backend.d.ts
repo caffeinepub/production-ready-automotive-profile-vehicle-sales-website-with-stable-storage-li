@@ -7,6 +7,11 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export interface UserProfile {
+    name: string;
+    email: string;
+    phone: string;
+}
 export interface Promotion {
     id: bigint;
     terms: string;
@@ -15,11 +20,6 @@ export interface Promotion {
     description: string;
     imageUrl: string;
     validUntil: string;
-}
-export interface UserProfile {
-    name: string;
-    email: string;
-    phone: string;
 }
 export interface BlogPost {
     id: bigint;
@@ -110,13 +110,6 @@ export interface TechnicalSpecs {
     dimensions: string;
     engine: string;
 }
-export interface AdminLoginDebugReport {
-    sessionCreated: boolean;
-    error?: string;
-    hashCompareMethod: DebugHashCompareMethod;
-    passwordMatch: boolean;
-    userFound: boolean;
-}
 export interface Interaction {
     itemId: bigint;
     sharesFacebook: bigint;
@@ -133,12 +126,6 @@ export interface Testimonial {
     published: boolean;
     imageUrl: string;
     rating: number;
-}
-export enum DebugHashCompareMethod {
-    textCompare = "textCompare",
-    hybridCompare = "hybridCompare",
-    bytesEqual = "bytesEqual",
-    failed = "failed"
 }
 export enum UserRole {
     admin = "admin",
@@ -160,7 +147,6 @@ export interface backendInterface {
     createPromotion(sessionToken: string, promotion: Promotion): Promise<void>;
     createTestimonial(sessionToken: string, testimonial: Testimonial): Promise<void>;
     createVehicle(sessionToken: string, vehicle: Vehicle): Promise<void>;
-    debugAdminLogin(email: string, password: string, sessionToken: string | null): Promise<AdminLoginDebugReport>;
     deleteBlogPost(sessionToken: string, id: bigint): Promise<void>;
     deleteContact(sessionToken: string, id: bigint): Promise<void>;
     deleteCreditSimulation(sessionToken: string, id: bigint): Promise<void>;
@@ -172,9 +158,9 @@ export interface backendInterface {
     getBlogPosts(): Promise<Array<BlogPost>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getContacts(sessionToken: string): Promise<Array<Contact> | null>;
-    getCreditSimulations(sessionToken: string): Promise<Array<CreditSimulation> | null>;
-    getMediaAssets(sessionToken: string): Promise<Array<MediaAsset> | null>;
+    getContacts(sessionToken: string): Promise<Array<Contact>>;
+    getCreditSimulations(sessionToken: string): Promise<Array<CreditSimulation>>;
+    getMediaAssets(sessionToken: string): Promise<Array<MediaAsset>>;
     getProductInteraction(itemId: bigint): Promise<Interaction | null>;
     getPromotion(id: bigint): Promise<Promotion | null>;
     getPromotions(): Promise<Array<Promotion>>;
@@ -182,14 +168,13 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     getVehicle(id: bigint): Promise<Vehicle | null>;
     getVehicles(): Promise<Array<Vehicle>>;
-    getVisitorStats(sessionToken: string): Promise<VisitorStats | null>;
+    getVisitorStats(sessionToken: string): Promise<VisitorStats>;
     incrementPageView(): Promise<void>;
     incrementVisitor(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     likeProduct(itemId: bigint): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     shareProduct(itemId: bigint, platform: string): Promise<void>;
-    toggleDebugMode(state: boolean): Promise<void>;
     updateBlogPost(sessionToken: string, post: BlogPost): Promise<void>;
     updatePromotion(sessionToken: string, promotion: Promotion): Promise<void>;
     updateTestimonial(sessionToken: string, testimonial: Testimonial): Promise<void>;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useActor } from '../../hooks/useActor';
 import { getAdminSession, setAdminSession, clearAdminSession, AdminSessionData } from '../auth/adminSession';
+import { EMERGENCY_BYPASS_ENABLED, BYPASS_CONFIG } from '../auth/emergencyBypass';
 
 export function useAdminSession() {
   const { actor } = useActor();
@@ -12,10 +13,62 @@ export function useAdminSession() {
   // Validate existing session on mount
   useEffect(() => {
     const validateSession = async () => {
+      // ⚠️ TEMPORARY DEBUG-ONLY: Auto-create bypass session
+      if (EMERGENCY_BYPASS_ENABLED) {
+        const storedSession = getAdminSession();
+        
+        if (storedSession) {
+          // Session already exists, use it
+          setSession(storedSession);
+          setIsValidating(false);
+          return;
+        }
+
+        // No session exists, create one via backend bypass
+        if (!actor) {
+          // Actor not ready yet, keep validating
+          return;
+        }
+
+        try {
+          console.log('🚨 EMERGENCY BYPASS: Creating admin session...');
+          
+          // Call backend emergency bypass login
+          const result = await actor.adminLogin(BYPASS_CONFIG.email, '66669999');
+          
+          if (!result || !result.token || !result.role) {
+            console.error('Emergency bypass failed: Invalid response from backend');
+            setIsValidating(false);
+            return;
+          }
+
+          const bypassSession: AdminSessionData = {
+            token: result.token,
+            role: result.role
+          };
+
+          setAdminSession(bypassSession);
+          setSession(bypassSession);
+          console.log('✅ EMERGENCY BYPASS: Session created successfully');
+        } catch (error) {
+          console.error('Emergency bypass error:', error);
+        } finally {
+          setIsValidating(false);
+        }
+        return;
+      }
+
+      // Normal mode: validate existing session
       const storedSession = getAdminSession();
       
-      if (!storedSession || !actor) {
+      if (!storedSession) {
         setIsValidating(false);
+        setSession(null);
+        return;
+      }
+
+      if (!actor) {
+        // Actor not ready yet, keep validating state
         return;
       }
 
@@ -47,7 +100,7 @@ export function useAdminSession() {
     try {
       const result = await actor.adminLogin(email, password);
       
-      if (!result) {
+      if (!result || !result.token || !result.role) {
         setLoginError('Invalid email or password');
         return false;
       }

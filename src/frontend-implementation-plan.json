@@ -1,6 +1,86 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Relocate Super Admin seeding to init() (frontend-only scope)",
-  "requirements": []
+  "title": "Debug-only emergency bypass for /admin access (frontend-only)",
+  "requirements": [
+    {
+      "id": "REQ-71",
+      "summary": "Add a single debug-only bypass flag that disables AdminGuard redirects and allows direct access to all existing /admin routes.",
+      "acceptanceCriteria": [
+        "When bypass mode is enabled, navigating to `/admin` renders the Admin dashboard without redirecting to `/admin/login`.",
+        "When bypass mode is enabled, all admin CMS routes currently wrapped by `AdminGuard` (e.g. `/admin/vehicles`, `/admin/promotions`, `/admin/testimonials`, `/admin/blog`, `/admin/leads`, `/admin/stats`, `/admin/profile`, `/admin/media`) are accessible without being redirected to `/admin/login`.",
+        "Bypass mode is clearly marked in code comments as temporary/debug-only and can be disabled by flipping a single flag/config (no need to revert multiple files).",
+        "No public (non-`/admin`) routes, layouts, or components are modified."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/admin/auth/emergencyBypass.ts",
+          "operation": "create",
+          "description": "Create a single, clearly-commented temporary/debug-only config export (e.g., one boolean flag) controlling the emergency admin bypass mode so it can be disabled by flipping one value."
+        },
+        {
+          "path": "frontend/src/admin/AdminGuard.tsx",
+          "operation": "modify",
+          "description": "Update AdminGuard to consult the single bypass flag and, when enabled, skip the normal unauthenticated redirect behavior for /admin routes (temporary/debug-only with clear comments). Ensure this change only affects admin routing behavior and does not alter any non-/admin UI."
+        }
+      ]
+    },
+    {
+      "id": "REQ-72",
+      "summary": "When bypass mode is enabled, auto-create and persist a local caffeineAdminSession with role \"Super Admin\" if missing before admin CMS queries run.",
+      "acceptanceCriteria": [
+        "With bypass mode enabled and an empty browser storage state, the app creates a `caffeineAdminSession` entry automatically (using the existing `frontend/src/admin/auth/adminSession.ts` storage format) before admin CMS queries execute.",
+        "The stored session contains `role: \"Super Admin\"` and a non-empty `token` string.",
+        "Reloading the page at any admin route keeps access without re-triggering a login loop."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/admin/hooks/useAdminSession.ts",
+          "operation": "modify",
+          "description": "Add a bypass-enabled bootstrap path: if bypass flag is enabled and no stored session exists, automatically obtain a session and persist it via the existing adminSession storage utilities (role must be \"Super Admin\"; token must be non-empty) before setting isValidating=false, so AdminGuard-protected pages can render and React Query hooks can read the token immediately."
+        },
+        {
+          "path": "frontend/src/admin/auth/adminSession.ts",
+          "operation": "modify",
+          "description": "Add a small helper (or clarify existing utilities via comments) to support the bypass flow reliably persisting `caffeineAdminSession` in the existing format, with explicit temporary/debug-only notes where referenced by the bypass logic."
+        }
+      ]
+    },
+    {
+      "id": "REQ-74",
+      "summary": "When bypass mode is enabled, call the backend emergency bypass login method to obtain a backend-recognized token and store it in caffeineAdminSession.",
+      "acceptanceCriteria": [
+        "With bypass mode enabled, the frontend obtains a token from the backend bypass method and stores it under `caffeineAdminSession` using the existing storage utilities.",
+        "After bypass session creation, visiting admin pages that call admin-protected backend methods (e.g. `getVisitorStats(token)`, `getContacts(token)`, `getMediaAssets(token)`) succeeds without showing \"Admin session required\" errors.",
+        "Disabling bypass mode restores the existing admin auth behavior (AdminGuard redirects unauthenticated users to `/admin/login`)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Extend the frontend backend interface typing to include the temporary/debug-only backend emergency bypass login method used by the admin bypass flow (returning the same session shape used by adminLogin, at least `{ token; role }`)."
+        },
+        {
+          "path": "frontend/src/admin/hooks/useAdminSession.ts",
+          "operation": "modify",
+          "description": "Wire the bypass bootstrap to call the backend emergency bypass login method (when enabled) and store the returned `{ token, role }` in `caffeineAdminSession` using existing storage utilities. Ensure disabling the bypass flag reverts to the current validation + redirect behavior without requiring changes in other files."
+        }
+      ]
+    },
+    {
+      "id": "REQ-75",
+      "summary": "When bypass mode is enabled, automatically redirect /admin/login to /admin (replace navigation) so login UI is skipped during debugging.",
+      "acceptanceCriteria": [
+        "With bypass mode enabled, navigating to `/admin/login` automatically navigates to `/admin` (replace navigation, no loop).",
+        "No redirect behavior changes occur for non-admin routes."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/admin/pages/AdminLoginPage.tsx",
+          "operation": "modify",
+          "description": "Add a bypass-enabled redirect effect: if the emergency bypass flag is enabled, immediately navigate to `/admin` with replace navigation so the login UI is skipped during debugging. Keep changes scoped to this admin-only page."
+        }
+      ]
+    }
+  ]
 }

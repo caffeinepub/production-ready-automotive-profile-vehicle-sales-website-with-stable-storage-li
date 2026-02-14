@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAdminSession } from '../hooks/useAdminSession';
 import { AlertCircle } from 'lucide-react';
+import { EMERGENCY_BYPASS_ENABLED } from '../auth/emergencyBypass';
 
 export default function AdminLoginPage() {
   const { login, isLoggingIn, loginError, isAuthenticated, isValidating } = useAdminSession();
@@ -13,9 +14,17 @@ export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // ⚠️ TEMPORARY DEBUG-ONLY: Redirect to /admin when bypass is enabled
   useEffect(() => {
+    if (EMERGENCY_BYPASS_ENABLED) {
+      console.log('🚨 EMERGENCY BYPASS: Redirecting /admin/login → /admin');
+      navigate({ to: '/admin', replace: true });
+      return;
+    }
+
+    // Normal mode: redirect if already authenticated (after validation completes)
     if (isAuthenticated && !isValidating) {
-      navigate({ to: '/admin' });
+      navigate({ to: '/admin', replace: true });
     }
   }, [isAuthenticated, isValidating, navigate]);
 
@@ -24,9 +33,23 @@ export default function AdminLoginPage() {
     
     const success = await login(email, password);
     if (success) {
-      navigate({ to: '/admin' });
+      // Navigate to admin dashboard after successful login
+      navigate({ to: '/admin', replace: true });
     }
   };
+
+  // ⚠️ TEMPORARY DEBUG-ONLY: Show bypass message while redirecting
+  if (EMERGENCY_BYPASS_ENABLED) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C90010] mx-auto mb-4"></div>
+          <p className="text-lg font-semibold">Emergency Bypass Active</p>
+          <p className="text-sm text-gray-600 mt-2">Redirecting to admin dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isValidating) {
     return (

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 23,
+  "projectStateVersion": 31,
   "summary": "Automotive company profile + vehicle sales website with production-ready backend/frontend separation, stable persistence (upgrade/redeploy safe), live CMS admin panel, media manager, SEO/performance, product & article interactions, and seeded content.",
   "architectural_notes": [
     "Use stable persistence only (no in-memory) and ensure upgrade/redeploy-safe data migrations with auto-restore after redeploy.",
@@ -20,7 +20,9 @@
     "Admin login still fails with 'Invalid Email or Password' for the seeded credentials; suspected mismatch between frontend login payload/flow and backend hashing/session verification.",
     "/admin/auth-debug is not accessible when login fails because it is protected by AdminGuard, blocking diagnosis.",
     "Seeded super admin may not exist in runtime memory at login time due to seeding only occurring in `preupgrade()` and/or reliance on legacy stable-stored hash; requires deterministic seed-on-init/upgrade + rehash using current verifier.",
-    "Potential scope conflict: existing plan mentions seeding on startup and after upgrades; latest decision restricts seeding to `init()` only (no `postupgrade()`), which may leave upgraded canisters without a seeded Super Admin if stable restore does not include it."
+    "Potential scope conflict: existing plan mentions seeding on startup and after upgrades; latest decision restricts seeding to `init()` only (no `postupgrade()`), which may leave upgraded canisters without a seeded Super Admin if stable restore does not include it.",
+    "Admin auth bug: login succeeds but session is not persisted client-side, causing redirect back to login form instead of `/admin` dashboard.",
+    "Login loop prevents accessing /admin dashboard; requires temporary emergency bypass to validate CMS/storage/UI independently of auth."
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -285,6 +287,86 @@
       "title": "Update routing so the Admin Login Debug page at `/admin/auth-debug` is accessible without `AdminGuard`, so users can open the debug tool even when they cannot log in.",
       "reqIds": [
         "REQ-52"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-store-the-returned-admin-session-token-in-localstorage-under-the-key-caffeineadmintoken-without-changing-the-admin-ui-visuals-layout",
+      "title": "Store the returned admin session token in localStorage under the key \"caffeineAdminToken\" (without changing the admin UI visuals/layout).",
+      "reqIds": [
+        "REQ-64"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-redeploy-the-current-backend-and-frontend-to-the-internet-computer-without-introducing-functional-changes-so-the-latest-build-is-live-again",
+      "title": "Redeploy the current backend and frontend to the Internet Computer without introducing functional changes, so the latest build is live again.",
+      "reqIds": [
+        "REQ-65"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-session-storage-implementation-to-store-the-authenticated-session-under-the-single-browser-storage-key-caffeineadminsession-localstorage-and-or-cookie-and-ensure-the-app-reads-writes-only-this-key-for-admin-session-persistence",
+      "title": "Update the admin session storage implementation to store the authenticated session under the single browser storage key `caffeineAdminSession` (localStorage and/or cookie), and ensure the app reads/writes only this key for admin session persistence.",
+      "reqIds": [
+        "REQ-66"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-admin-login-flow-so-that-on-successful-authentication-it-does-not-reload-the-login-page-and-navigates-to-the-admin-dashboard-route-admin-not-admin-login",
+      "title": "Fix the admin login flow so that on successful authentication it does not reload the login page and navigates to the admin dashboard route `/admin` (not `/admin/login`).",
+      "reqIds": [
+        "REQ-67"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-admin-route-guarding-so-that-1-if-a-valid-caffeineadminsession-exists-allow-access-to-admin-routes-2-if-no-session-exists-redirect-to-admin-login-ensure-guard-redirects-are-performed-without-causing-render-time-navigation-loops",
+      "title": "Fix the admin route guarding so that: (1) if a valid `caffeineAdminSession` exists, allow access to `/admin` routes; (2) if no session exists, redirect to `/admin/login`. Ensure guard redirects are performed without causing render-time navigation loops.",
+      "reqIds": [
+        "REQ-68"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-backend-adminlogin-email-password-returns-an-auth-token-session-object-on-success-containing-at-least-token-and-role-and-that-the-frontend-consumes-this-response-to-persist-caffeineadminsession",
+      "title": "Ensure the backend `adminLogin(email, password)` returns an auth token/session object on success (containing at least token and role) and that the frontend consumes this response to persist `caffeineAdminSession`.",
+      "reqIds": [
+        "REQ-69"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-temporary-clearly-marked-emergency-bypass-mode-for-the-admin-area-that-disables-the-normal-authentication-guard-behavior-and-allows-direct-access-to-the-admin-dashboard-route-admin-without-entering-credentials",
+      "title": "Implement a temporary, clearly-marked emergency bypass mode for the admin area that disables the normal authentication guard behavior and allows direct access to the admin dashboard route `/admin` without entering credentials.",
+      "reqIds": [
+        "REQ-71"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-when-bypass-mode-is-enabled-and-no-caffeineadminsession-exists-in-browser-storage-automatically-create-and-persist-an-admin-session-client-side-with-role-super-admin-so-admin-cms-react-query-hooks-can-use-a-token-immediately",
+      "title": "When bypass mode is enabled and no `caffeineAdminSession` exists in browser storage, automatically create and persist an admin session client-side with role = \"Super Admin\" so admin CMS React Query hooks can use a token immediately.",
+      "reqIds": [
+        "REQ-72"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-the-frontend-bypass-flow-to-call-the-backend-bypass-login-method-when-enabled-so-that-the-created-caffeineadminsession-token-is-a-real-backend-recognized-token-and-admin-cms-endpoints-work-end-to-end",
+      "title": "Wire the frontend bypass flow to call the backend bypass login method (when enabled) so that the created `caffeineAdminSession.token` is a real backend-recognized token and admin CMS endpoints work end-to-end.",
+      "reqIds": [
+        "REQ-74"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-when-bypass-mode-is-enabled-redirect-all-admin-traffic-that-would-normally-land-on-the-login-page-to-the-dashboard-admin-so-the-login-ui-is-effectively-skipped-during-debugging",
+      "title": "When bypass mode is enabled, redirect all `/admin/*` traffic that would normally land on the login page to the dashboard (`/admin`) so the login UI is effectively skipped during debugging.",
+      "reqIds": [
+        "REQ-75"
       ],
       "version": 1
     }
@@ -591,6 +673,72 @@
       "summary": "Do not change authentication behavior other than relocating the seeding execution point.\n\n- Do not modify the password hashing function implementation (`hashPassword`).\n- Do not modify admin login verification logic/output semantics (e.g., `adminLogin`, `debugAdminLogin` comparisons and return shapes).\n- Any user-facing text introduced/changed by this change must be in English (no new non-English messages).",
       "reqIds": [
         "REQ-59"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-45",
+      "summary": "Auth login fix: use one shared hash function for both seeding and login verification with hash format SHA256(email + password); ensure seeded admin Status is Active; ensure backend login returns success + session token; persist token in localStorage key `caffeineAdminToken` without modifying UI (backend auth logic only).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-46",
+      "summary": "Update the backend admin password hashing so that seeding and login verification use exactly one shared hashing function with hash format SHA256(email + password), and remove any other/legacy hashing comparisons that could allow mismatches.",
+      "reqIds": [
+        "REQ-60"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-47",
+      "summary": "Ensure the seeded Super Admin record always has status set to \"Active\" and that login is rejected for any admin user whose status is not \"Active\".",
+      "reqIds": [
+        "REQ-61"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-48",
+      "summary": "Ensure the backend always seeds (or upserts) the Super Admin using the same SHA256(email + password) hashing function before any login verification can occur, so that adminLogin works immediately after deploy/upgrade.",
+      "reqIds": [
+        "REQ-62"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-49",
+      "summary": "Ensure backend adminLogin returns a success result that includes a session token on valid credentials, and that the session token is persisted server-side in the admin sessions store for subsequent authorization checks.",
+      "reqIds": [
+        "REQ-63"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-50",
+      "summary": "Fix admin auth session persistence: ensure backend login returns auth token/session object, store it client-side (localStorage or cookie) under key `caffeineAdminSession`, redirect to `/admin` dashboard after successful login (do not reload/login loop), add session guard to allow `/admin` access when session exists otherwise redirect to `/admin/login`, and ensure password verification uses the same hash function as seeded admin; auth system only (no CMS data changes).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-55",
+      "summary": "Ensure admin password verification uses the exact same hashing function as used when seeding the initial admin user, and remove/avoid any mismatched or legacy comparisons that can cause valid seeded credentials to be rejected.",
+      "reqIds": [
+        "REQ-70"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-56",
+      "summary": "Temporary emergency admin access bypass (debug-only): disable AdminGuard for /admin, auto-create Super Admin session if none exists, inject temporary admin record (puadsolihan@gmail.com, role=Super Admin, status=Active) skipping password verification, and redirect all /admin traffic to dashboard; do not modify public frontend; bypass must be clearly marked temporary and removable.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-59",
+      "summary": "Add a backend emergency bypass login path that (a) upserts an Active Super Admin record for email `puadsolihan@gmail.com` and (b) issues a valid admin session token without verifying any password, intended for temporary debugging only.",
+      "reqIds": [
+        "REQ-73"
       ],
       "status": "pending"
     }

@@ -1,12 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Ensure Super Admin seeding runs only on initial canister initialization (init) and never during upgrade hooks.
+**Goal:** Add a temporary, debug-only emergency bypass that grants direct access to the `/admin` dashboard and other admin CMS routes without the normal login flow, using a backend-issued token.
 
 **Planned changes:**
-- Remove any Super Admin/admin seeding logic from `system func preupgrade()` in `backend/main.mo` (remove the entire seeding block, with no conditional seeding checks left behind).
-- Remove the `seedSuperAdmin()` call (and any admin seeding) from `system func postupgrade()` in `backend/main.mo`.
-- Add or update `system func init()` in `backend/main.mo` to run `seedSuperAdmin()` only when `adminUsers.size() == 0`.
-- Keep stable storage save/restore logic unchanged and make no changes to password hashing (`hashPassword`) or login verification behavior.
+- Add a single, easy-to-toggle frontend bypass flag/config that disables `AdminGuard` redirects for all `/admin/*` routes and is clearly marked as temporary/debug-only.
+- When bypass is enabled, ensure visiting `/admin/login` redirects to `/admin` (replace navigation) so the login UI is skipped during debugging.
+- When bypass is enabled and no `caffeineAdminSession` exists, automatically create and persist one in the existing `frontend/src/admin/auth/adminSession.ts` storage format with `role: "Super Admin"` and a non-empty token.
+- Add a backend emergency bypass login method (in `backend/main.mo`) that upserts an Active Super Admin user for `puadsolihan@gmail.com` and issues a valid admin session token without password verification (temporary/debug-only).
+- Wire the frontend bypass session creation flow to call the backend bypass method so the stored token is recognized by backend admin session checks and admin CMS endpoints work end-to-end.
 
-**User-visible outcome:** On fresh deployment, exactly one Super Admin is seeded during initialization; upgrading the canister does not seed or duplicate any Super Admin records.
+**User-visible outcome:** With bypass mode enabled, navigating to `/admin` (or any admin CMS route) opens the admin dashboard and CMS pages without being redirected to `/admin/login`, and admin-protected CMS data loads successfully using an automatically created Super Admin session token.

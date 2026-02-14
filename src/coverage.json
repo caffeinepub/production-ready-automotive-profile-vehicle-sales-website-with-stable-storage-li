@@ -1,41 +1,84 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T09:45:04.867Z",
+  "generatedAt": "2026-02-14T10:38:41.660Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 0,
+    "total": 5,
+    "implemented": 4,
     "items": [
       {
-        "id": "REQ-58",
-        "summary": "Move all Super Admin seeding execution so it runs only during canister initialization (system func init) and never during upgrade lifecycle hooks.\n\n- In `backend/main.mo`, remove any Super Admin/admin seeding code that exists inside `system func preupgrade()` (if present). Remove the entire seeding block and do not leave conditional checks there.\n- In `backend/main.mo`, remove Super Admin seeding from `system func postupgrade()` (currently calls `seedSuperAdmin()`), so `postupgrade()` performs no admin seeding.\n- Add (or open if already present) `system func init()` in `backend/main.mo` and execute the seed logic there:\n  - `if (adminUsers.size() == 0) { seedSuperAdmin(); }`\n- Ensure the seeding runs only once on initial deployment and does not create duplicate Super Admin records on subsequent calls.\n- Keep any stable storage save/restore logic untouched (do not change state serialization/restore behavior).",
+        "id": "REQ-71",
+        "summary": "Implement a temporary, clearly-marked emergency bypass mode for the admin area that disables the normal authentication guard behavior and allows direct access to the admin dashboard route `/admin` without entering credentials.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/admin/auth/emergencyBypass.ts",
+          "frontend/src/admin/AdminGuard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/admin/auth/emergencyBypass.ts",
+          "frontend/src/admin/AdminGuard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-72",
+        "summary": "When bypass mode is enabled and no `caffeineAdminSession` exists in browser storage, automatically create and persist an admin session client-side with role = \"Super Admin\" so admin CMS React Query hooks can use a token immediately.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/admin/hooks/useAdminSession.ts",
+          "frontend/src/admin/auth/adminSession.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/admin/hooks/useAdminSession.ts",
+          "frontend/src/admin/auth/adminSession.ts"
+        ]
+      },
+      {
+        "id": "REQ-73",
+        "summary": "Add a backend emergency bypass login path that (a) upserts an Active Super Admin record for email `puadsolihan@gmail.com` and (b) issues a valid admin session token without verifying any password, intended for temporary debugging only.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-59",
-        "summary": "Do not change authentication behavior other than relocating the seeding execution point.\n\n- Do not modify the password hashing function implementation (`hashPassword`).\n- Do not modify admin login verification logic/output semantics (e.g., `adminLogin`, `debugAdminLogin` comparisons and return shapes).\n- Any user-facing text introduced/changed by this change must be in English (no new non-English messages).",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "id": "REQ-74",
+        "summary": "Wire the frontend bypass flow to call the backend bypass login method (when enabled) so that the created `caffeineAdminSession.token` is a real backend-recognized token and admin CMS endpoints work end-to-end.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/backend.d.ts",
+          "frontend/src/admin/hooks/useAdminSession.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/admin/hooks/useAdminSession.ts"
+        ]
+      },
+      {
+        "id": "REQ-75",
+        "summary": "When bypass mode is enabled, redirect all `/admin/*` traffic that would normally land on the login page to the dashboard (`/admin`) so the login UI is effectively skipped during debugging.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/admin/pages/AdminLoginPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/admin/pages/AdminLoginPage.tsx"
+        ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
+    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
+    "frontend/src/admin/AdminGuard.tsx",
+    "frontend/src/admin/auth/adminSession.ts",
+    "frontend/src/admin/auth/emergencyBypass.ts",
+    "frontend/src/admin/hooks/useAdminSession.ts",
+    "frontend/src/admin/pages/AdminLoginPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

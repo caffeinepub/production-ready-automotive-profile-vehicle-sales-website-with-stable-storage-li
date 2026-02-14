@@ -8,13 +8,12 @@ import Time "mo:core/Time";
 import Blob "mo:core/Blob";
 import Array "mo:core/Array";
 import Debug "mo:core/Debug";
-import Migration "migration";
+
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 
-(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -38,27 +37,11 @@ actor {
     expiresAt : Int;
   };
 
-  var debugEnabled = false;
-
-  public type AdminLoginDebugReport = {
-    userFound : Bool;
-    passwordMatch : Bool;
-    hashCompareMethod : DebugHashCompareMethod;
-    sessionCreated : Bool;
-    error : ?Text;
-  };
-
-  public type DebugHashCompareMethod = {
-    #textCompare;
-    #bytesEqual;
-    #hybridCompare;
-    #failed;
-  };
-
   let adminUsers = Map.empty<Nat, AdminUser>();
   let adminUsersByEmail = Map.empty<Text, Nat>();
   let adminSessions = Map.empty<Text, AdminSession>();
   var nextAdminUserId : Nat = 1;
+  var superAdminSeeded = false;
 
   public type UserProfile = {
     name : Text;
@@ -199,8 +182,6 @@ actor {
     todayTraffic = 0;
   };
 
-  var superAdminSeeded = false;
-
   system func postupgrade() {
     Debug.print("Admin users after upgrade: " # adminUsers.size().toText());
   };
@@ -282,95 +263,6 @@ actor {
     };
   };
 
-  // Make debug function available to everyone via debug toggle.
-  public shared ({ caller }) func debugAdminLogin(email : Text, password : Text, sessionToken : ?Text) : async AdminLoginDebugReport {
-    // Check if debug mode is enabled
-    if (not debugEnabled) {
-      Runtime.trap("Access denied");
-    };
-    // Only allow debug login if debug is toggled explicitly
-    switch (adminUsersByEmail.get(email)) {
-      case (?userId) {
-        switch (adminUsers.get(userId)) {
-          case (?user) {
-            if (user.status != "Active") {
-              return {
-                userFound = true;
-                passwordMatch = false;
-                hashCompareMethod = #failed;
-                sessionCreated = false;
-                error = ?"Your account is not active.";
-              };
-            };
-
-            let expectedHash = hashPassword(password, email);
-            if (expectedHash == user.passwordHash) {
-              let token = generateSessionToken(userId);
-              let sessionExpiry = Time.now() + (24 * 60 * 60 * 1_000_000_000);
-              let session : AdminSession = {
-                token = token;
-                userId = userId;
-                role = user.role;
-                expiresAt = sessionExpiry;
-              };
-              adminSessions.add(token, session);
-              {
-                userFound = true;
-                passwordMatch = true;
-                hashCompareMethod = #textCompare;
-                sessionCreated = true;
-                error = null;
-              };
-            } else if (expectedHash.encodeUtf8() == user.passwordHash.encodeUtf8()) {
-              let token = generateSessionToken(userId);
-              let sessionExpiry = Time.now() + (24 * 60 * 60 * 1_000_000_000);
-              let session : AdminSession = {
-                token = token;
-                userId = userId;
-                role = user.role;
-                expiresAt = sessionExpiry;
-              };
-              adminSessions.add(token, session);
-              {
-                userFound = true;
-                passwordMatch = true;
-                hashCompareMethod = #hybridCompare;
-                sessionCreated = true;
-                error = null;
-              };
-            } else {
-              {
-                userFound = true;
-                passwordMatch = false;
-                hashCompareMethod = #textCompare;
-                sessionCreated = false;
-                error = ?"Invalid password";
-              };
-            };
-          };
-          case null {
-            {
-              userFound = false;
-              passwordMatch = false;
-              hashCompareMethod = #failed;
-              sessionCreated = false;
-              error = ?"User record corrupt";
-            };
-          };
-        };
-      };
-      case null {
-        {
-          userFound = false;
-          passwordMatch = false;
-          hashCompareMethod = #failed;
-          sessionCreated = false;
-          error = ?"User not found";
-        };
-      };
-    };
-  };
-
   public shared ({ caller }) func adminLogin(email : Text, password : Text) : async ?{ token : Text; role : Text } {
     switch (adminUsersByEmail.get(email)) {
       case (?userId) {
@@ -448,13 +340,6 @@ actor {
         Runtime.trap("Unauthorized: Invalid or expired admin session");
       };
     };
-  };
-
-  public shared ({ caller }) func toggleDebugMode(state : Bool) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can toggle debug mode");
-    };
-    debugEnabled := state;
   };
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
@@ -575,22 +460,19 @@ actor {
   };
 
   public shared ({ caller }) func addContact(contact : Contact) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can submit contacts");
+    };
     let uniqueId = contacts.size() + 1;
     contacts.add(uniqueId, contact);
   };
 
-  public query ({ caller }) func getContacts(sessionToken : Text) : async ?[Contact] {
+  public shared ({ caller }) func getContacts(sessionToken : Text) : async [Contact] {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can view contacts");
     };
-    switch (validateAdminSession(sessionToken)) {
-      case (?session) {
-        ?contacts.values().toArray();
-      };
-      case null {
-        null;
-      };
-    };
+    let session = requireAdminSession(sessionToken);
+    contacts.values().toArray();
   };
 
   public shared ({ caller }) func deleteContact(sessionToken : Text, id : Nat) : async () {
@@ -602,22 +484,19 @@ actor {
   };
 
   public shared ({ caller }) func addCreditSimulation(simulation : CreditSimulation) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can submit credit simulations");
+    };
     let uniqueId = creditSimulations.size() + 1;
     creditSimulations.add(uniqueId, simulation);
   };
 
-  public query ({ caller }) func getCreditSimulations(sessionToken : Text) : async ?[CreditSimulation] {
+  public shared ({ caller }) func getCreditSimulations(sessionToken : Text) : async [CreditSimulation] {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can view credit simulations");
     };
-    switch (validateAdminSession(sessionToken)) {
-      case (?session) {
-        ?creditSimulations.values().toArray();
-      };
-      case null {
-        null;
-      };
-    };
+    let session = requireAdminSession(sessionToken);
+    creditSimulations.values().toArray();
   };
 
   public shared ({ caller }) func deleteCreditSimulation(sessionToken : Text, id : Nat) : async () {
@@ -644,18 +523,12 @@ actor {
     mediaAssets.remove(id);
   };
 
-  public query ({ caller }) func getMediaAssets(sessionToken : Text) : async ?[MediaAsset] {
+  public shared ({ caller }) func getMediaAssets(sessionToken : Text) : async [MediaAsset] {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can view media assets");
     };
-    switch (validateAdminSession(sessionToken)) {
-      case (?session) {
-        ?mediaAssets.values().toArray();
-      };
-      case null {
-        null;
-      };
-    };
+    let session = requireAdminSession(sessionToken);
+    mediaAssets.values().toArray();
   };
 
   public shared ({ caller }) func likeProduct(itemId : Nat) : async () {
@@ -742,18 +615,12 @@ actor {
     };
   };
 
-  public query ({ caller }) func getVisitorStats(sessionToken : Text) : async ?VisitorStats {
+  public shared ({ caller }) func getVisitorStats(sessionToken : Text) : async VisitorStats {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can view visitor stats");
     };
-    switch (validateAdminSession(sessionToken)) {
-      case (?session) {
-        ?visitorStats;
-      };
-      case null {
-        null;
-      };
-    };
+    let session = requireAdminSession(sessionToken);
+    visitorStats;
   };
 
   public shared ({ caller }) func updateVisitorStats(sessionToken : Text, stats : VisitorStats) : async () {

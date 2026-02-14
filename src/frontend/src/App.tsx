@@ -282,6 +282,9 @@ declare module '@tanstack/react-router' {
   }
 }
 
+// Export router for smoke verification utilities (development/testing only)
+export { router };
+
 export default function App() {
   return (
     <GlobalErrorBoundary>

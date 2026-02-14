@@ -1,39 +1,68 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T09:45:04.863Z",
-  "summary": "The diff introduces a new backend migration module and wires it into `backend/main.mo`, plus updates `project_state.json`. The provided truncated diff does not include any visible changes to `init()`, `preupgrade()`, `postupgrade()`, or the super-admin seeding logic, so the requested seeding relocation cannot be verified from the evidence shown.",
+  "generatedAt": "2026-02-14T10:38:41.654Z",
+  "summary": "Frontend emergency bypass flag and guard/login-page behavior were added, but the backend emergency bypass login method and true end-to-end token wiring are not evidenced in the provided diff. Several unrelated admin/public changes also appear in the diff summary (e.g., AdminLayout link, App router export, session cookie/legacy migration).",
   "missing_requirements": [
     {
-      "id": "REQ-58",
-      "requirement": "Move all Super Admin seeding execution so it runs only during canister initialization (system func init) and never during upgrade lifecycle hooks (remove from preupgrade/postupgrade, add init guard `if (adminUsers.size() == 0) { seedSuperAdmin(); }`).",
-      "reason": "The truncated `backend/main.mo` excerpt shows imports and type/state declarations but does not show any `system func init()`, nor removal of seeding from `preupgrade()`/`postupgrade()`, nor the requested guard around `seedSuperAdmin()`. With the diff evidence provided, these required changes are not demonstrated.",
+      "id": "REQ-73",
+      "requirement": "Add a backend emergency bypass login path that upserts an Active Super Admin record for email `puadsolihan@gmail.com` and issues a valid admin session token without verifying any password, storing it in `adminSessions`.",
+      "reason": "No dedicated backend bypass method is shown in the `backend/main.mo` diff. The only backend content provided is type/state declarations; there is no evidence of a new method that upserts the user, creates a session token without password verification, and inserts it into `adminSessions`.",
       "evidence": [
-        "backend/main.mo (truncated diff does not show init/preupgrade/postupgrade or seeding changes)"
+        "backend/main.mo (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-74",
+      "requirement": "Wire the frontend bypass flow to call the backend bypass login method (when enabled) so the stored `caffeineAdminSession.token` is backend-recognized and admin CMS endpoints work end-to-end.",
+      "reason": "Frontend bypass flow calls `actor.adminLogin(BYPASS_CONFIG.email, '66669999')` rather than a dedicated backend bypass method. Without evidence that `adminLogin` was modified to bypass password verification (and no bypass method is shown), the token may not be a backend-recognized bypass token. This does not meet the requirement to call a dedicated bypass login path.",
+      "evidence": [
+        "frontend/src/admin/hooks/useAdminSession.ts",
+        "backend/main.mo (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-72",
+      "requirement": "When bypass mode is enabled and no `caffeineAdminSession` exists, automatically create and persist an admin session with `role: \"Super Admin\"` and a non-empty token before admin CMS queries execute.",
+      "reason": "While the hook auto-creates a session when bypass is enabled, it stores `role: result.role` from `adminLogin` and does not enforce/guarantee `role` equals \"Super Admin\". The `BYPASS_CONFIG.role` constant is not used when writing the session.",
+      "evidence": [
+        "frontend/src/admin/hooks/useAdminSession.ts",
+        "frontend/src/admin/auth/emergencyBypass.ts"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Introduced a new migration module and wired it into the main canister actor (`import Migration \"migration\";`, `(with migration = Migration.run)`).",
-      "reason": "The BuildRequest focuses only on relocating Super Admin seeding from upgrade hooks to `init()` and explicitly says to keep stable save/restore logic untouched. Adding a migration module/system is not requested and suggests changes to migration/persistence plumbing beyond seeding relocation.",
+      "description": "Admin session storage expanded to include legacy key migration and cookie persistence (getCookieSession, setting cookies, cleaning legacy keys).",
+      "reason": "The BuildRequest only asked for creating/persisting `caffeineAdminSession` in the existing format for bypass mode; it did not request adding cookie-based persistence or migrating legacy storage keys.",
       "evidence": [
-        "backend/migration.mo",
-        "backend/main.mo (truncated): `import Migration \"migration\";` and `(with migration = Migration.run)`"
+        "frontend/src/admin/auth/adminSession.ts"
       ]
     },
     {
-      "description": "Updated `project_state.json` metadata.",
-      "reason": "No requirement requests changing project state metadata; the scope is limited to backend seeding relocation without frontend/path edits.",
+      "description": "AdminLayout updated to include a new \"Auth Debug Test\" link.",
+      "reason": "Not requested; the bypass should be implemented without adding new CMS UI features unrelated to bypass flow.",
       "evidence": [
-        "project_state.json (modified)"
+        "frontend-file-summaries.txt (frontend/src/admin/AdminLayout.tsx)"
+      ]
+    },
+    {
+      "description": "Public app router/App.tsx changed to export the router instance for smoke verification utilities.",
+      "reason": "Constraint says no public (non-/admin) frontend pages/routes/layouts/components are modified; exporting the router in the main public app entry is not part of the requested bypass behavior.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/App.tsx)"
       ]
     }
   ],
-  "confidence": 0.47,
+  "confidence": 0.7,
   "changed_files": [
     "backend/main.mo",
-    "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/admin/AdminGuard.tsx",
+    "frontend/src/admin/auth/adminSession.ts",
+    "frontend/src/admin/auth/emergencyBypass.ts",
+    "frontend/src/admin/hooks/useAdminSession.ts",
+    "frontend/src/admin/pages/AdminLoginPage.tsx",
     "project_state.json"
   ]
 }

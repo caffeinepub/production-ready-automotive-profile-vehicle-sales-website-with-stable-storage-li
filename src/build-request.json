@@ -1,66 +1,110 @@
 {
   "kind": "build_request",
-  "title": "Relocate Super Admin seeding to init() (remove from preupgrade/postupgrade)",
+  "title": "Temporary emergency admin bypass to force access to /admin dashboard (debug-only)",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-58",
-      "text": "Move all Super Admin seeding execution so it runs only during canister initialization (system func init) and never during upgrade lifecycle hooks.\n\n- In `backend/main.mo`, remove any Super Admin/admin seeding code that exists inside `system func preupgrade()` (if present). Remove the entire seeding block and do not leave conditional checks there.\n- In `backend/main.mo`, remove Super Admin seeding from `system func postupgrade()` (currently calls `seedSuperAdmin()`), so `postupgrade()` performs no admin seeding.\n- Add (or open if already present) `system func init()` in `backend/main.mo` and execute the seed logic there:\n  - `if (adminUsers.size() == 0) { seedSuperAdmin(); }`\n- Ensure the seeding runs only once on initial deployment and does not create duplicate Super Admin records on subsequent calls.\n- Keep any stable storage save/restore logic untouched (do not change state serialization/restore behavior).",
-      "target": "backend",
+      "id": "REQ-71",
+      "text": "Implement a temporary, clearly-marked emergency bypass mode for the admin area that disables the normal authentication guard behavior and allows direct access to the admin dashboard route `/admin` without entering credentials.",
+      "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "Move all Super Admin seeding logic out of preupgrade().",
-          "Create or open the canister initialization function: system func init() {",
-          "Inside init(), insert admin seed logic: if (adminUsers.size() == 0) { seedSuperAdmin(); }",
-          "Do NOT seed admin inside: - preupgrade() - postupgrade() (for now)",
-          "Keep stable storage restore logic untouched.",
-          "Do NOT modify login verification logic. Do NOT modify password hash function. Only relocate seeding execution point."
+          "FORCE ADMIN ACCESS — EMERGENCY BYPASS\n\nGoal:\nGain admin dashboard access without login loop.\n\nActions:\n\n1. Disable authentication guard temporarily.\n\n2. Allow direct access to:\n/admin"
         ]
       },
       "acceptanceCriteria": [
-        "`backend/main.mo` contains `system func init()` that calls `seedSuperAdmin()` only when `adminUsers.size() == 0`.",
-        "`system func postupgrade()` no longer calls `seedSuperAdmin()` (no admin seeding occurs during postupgrade).",
-        "If `system func preupgrade()` contains any admin/super-admin seeding code, that entire seeding block is removed and no conditional seeding checks remain in `preupgrade()`.",
-        "Deploying a fresh canister (empty adminUsers map) results in exactly one Super Admin being present immediately after init completes.",
-        "Reinstalling the canister without stable state (fresh install) seeds the Super Admin; upgrading the canister does not trigger any new seeding via preupgrade/postupgrade."
+        "When bypass mode is enabled, navigating to `/admin` renders the Admin dashboard without redirecting to `/admin/login`.",
+        "When bypass mode is enabled, all admin CMS routes currently wrapped by `AdminGuard` (e.g. `/admin/vehicles`, `/admin/promotions`, `/admin/testimonials`, `/admin/blog`, `/admin/leads`, `/admin/stats`, `/admin/profile`, `/admin/media`) are accessible without being redirected to `/admin/login`.",
+        "Bypass mode is clearly marked in code comments as temporary/debug-only and can be disabled by flipping a single flag/config (no need to revert multiple files).",
+        "No public (non-`/admin`) routes, layouts, or components are modified."
       ]
     },
     {
-      "id": "REQ-59",
-      "text": "Do not change authentication behavior other than relocating the seeding execution point.\n\n- Do not modify the password hashing function implementation (`hashPassword`).\n- Do not modify admin login verification logic/output semantics (e.g., `adminLogin`, `debugAdminLogin` comparisons and return shapes).\n- Any user-facing text introduced/changed by this change must be in English (no new non-English messages).",
+      "id": "REQ-72",
+      "text": "When bypass mode is enabled and no `caffeineAdminSession` exists in browser storage, automatically create and persist an admin session client-side with role = \"Super Admin\" so admin CMS React Query hooks can use a token immediately.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "3. If no session exists:\nAuto-create session with role = Super Admin."
+        ]
+      },
+      "acceptanceCriteria": [
+        "With bypass mode enabled and an empty browser storage state, the app creates a `caffeineAdminSession` entry automatically (using the existing `frontend/src/admin/auth/adminSession.ts` storage format) before admin CMS queries execute.",
+        "The stored session contains `role: \"Super Admin\"` and a non-empty `token` string.",
+        "Reloading the page at any admin route keeps access without re-triggering a login loop."
+      ]
+    },
+    {
+      "id": "REQ-73",
+      "text": "Add a backend emergency bypass login path that (a) upserts an Active Super Admin record for email `puadsolihan@gmail.com` and (b) issues a valid admin session token without verifying any password, intended for temporary debugging only.",
       "target": "backend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "Do NOT modify login verification logic.",
-          "Do NOT modify password hash function.",
-          "Use English for any user-facing text in the build request."
+          "4. Inject temporary admin record:\n\nEmail: puadsolihan@gmail.com\nRole: Super Admin\nStatus: Active\n\nSkip password verification."
         ]
       },
       "acceptanceCriteria": [
-        "`hashPassword` function body is unchanged.",
-        "No changes are made to the logic that compares password hashes during login/debug (other than the absence of upgrade-hook seeding side effects).",
-        "No new non-English user-facing error strings are introduced as part of this change."
+        "Backend exposes a dedicated method for emergency bypass that returns the same session shape as `adminLogin` (at least `{ token; role }`) and stores the created session in the existing `adminSessions` map so `requireAdminSession(token)` succeeds for CMS methods.",
+        "Calling the bypass method results in an admin user record present for `puadsolihan@gmail.com` with `role = \"Super Admin\"` and `status = \"Active\"` (idempotent upsert; no duplicate email entries).",
+        "Bypass method is clearly marked as temporary/debug-only in code comments.",
+        "All user-facing error messages added/changed for this bypass are in English."
+      ]
+    },
+    {
+      "id": "REQ-74",
+      "text": "Wire the frontend bypass flow to call the backend bypass login method (when enabled) so that the created `caffeineAdminSession.token` is a real backend-recognized token and admin CMS endpoints work end-to-end.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Purpose:\nConfirm CMS, storage, and admin UI function first.\nAuth system will be repaired later."
+        ]
+      },
+      "acceptanceCriteria": [
+        "With bypass mode enabled, the frontend obtains a token from the backend bypass method and stores it under `caffeineAdminSession` using the existing storage utilities.",
+        "After bypass session creation, visiting admin pages that call admin-protected backend methods (e.g. `getVisitorStats(token)`, `getContacts(token)`, `getMediaAssets(token)`) succeeds without showing \"Admin session required\" errors.",
+        "Disabling bypass mode restores the existing admin auth behavior (AdminGuard redirects unauthenticated users to `/admin/login`)."
+      ]
+    },
+    {
+      "id": "REQ-75",
+      "text": "When bypass mode is enabled, redirect all `/admin/*` traffic that would normally land on the login page to the dashboard (`/admin`) so the login UI is effectively skipped during debugging.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "5. Redirect all /admin traffic directly to dashboard."
+        ]
+      },
+      "acceptanceCriteria": [
+        "With bypass mode enabled, navigating to `/admin/login` automatically navigates to `/admin` (replace navigation, no loop).",
+        "No redirect behavior changes occur for non-admin routes."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in `backend/main.mo` (no additional backend services).",
-    "Do not seed admins in `preupgrade()` or `postupgrade()` (for now).",
-    "Keep stable storage restore/save logic untouched.",
-    "Do not modify login verification logic or the password hashing function; only relocate seeding execution point.",
-    "Frontend immutable paths must not be edited (not needed for this change)."
+    "Do not modify any public (non-`/admin`) frontend pages, routes, layouts, or UI behavior.",
+    "Keep all Motoko logic within the single backend actor (`backend/main.mo`); do not introduce additional backend services.",
+    "The emergency bypass must be clearly marked as temporary/debug-only and easily removable/disabled.",
+    "Use English for any user-facing text introduced or changed as part of this bypass."
   ],
   "nonGoals": [
-    "Do not change which Super Admin credentials are seeded (email/password/role/status).",
-    "Do not add new admin users, roles, or permissions.",
-    "Do not refactor stable persistence/migration behavior beyond the seeding relocation.",
-    "Do not modify or redesign any frontend admin UI or routing."
+    "Do not permanently fix or redesign the email/password authentication system in this change (bypass is for debugging only).",
+    "Do not add third-party authentication providers or external services.",
+    "Do not change CMS data models, CMS UI features, or public-site content as part of this bypass."
   ],
   "imageRequirements": {
     "required": [],

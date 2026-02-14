@@ -1,4 +1,87 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-implement-a-temporary-clearly-marked-emergency-bypass-mode-for-the-admin-area-that-disables-the-normal-authentication-guard-behavior-and-allows-direct-access-to-the-admin-dashboard-route-admin-without-entering-credentials",
+      "featureTitle": "Implement a temporary, clearly-marked emergency bypass mode for the admin area that disables the normal authentication guard behavior and allows direct access to the admin dashboard route `/admin` without entering credentials.",
+      "files": [
+        "frontend/src/admin/AdminGuard.tsx",
+        "frontend/src/admin/auth/emergencyBypass.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-71"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-when-bypass-mode-is-enabled-and-no-caffeineadminsession-exists-in-browser-storage-automatically-create-and-persist-an-admin-session-client-side-with-role-super-admin-so-admin-cms-react-query-hooks-can-use-a-token-immediately",
+      "featureTitle": "When bypass mode is enabled and no `caffeineAdminSession` exists in browser storage, automatically create and persist an admin session client-side with role = \"Super Admin\" so admin CMS React Query hooks can use a token immediately.",
+      "files": [
+        "frontend/src/admin/auth/adminSession.ts",
+        "frontend/src/admin/hooks/useAdminSession.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-72"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-wire-the-frontend-bypass-flow-to-call-the-backend-bypass-login-method-when-enabled-so-that-the-created-caffeineadminsession-token-is-a-real-backend-recognized-token-and-admin-cms-endpoints-work-end-to-end",
+      "featureTitle": "Wire the frontend bypass flow to call the backend bypass login method (when enabled) so that the created `caffeineAdminSession.token` is a real backend-recognized token and admin CMS endpoints work end-to-end.",
+      "files": [
+        "frontend/src/admin/hooks/useAdminSession.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-74"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-when-bypass-mode-is-enabled-redirect-all-admin-traffic-that-would-normally-land-on-the-login-page-to-the-dashboard-admin-so-the-login-ui-is-effectively-skipped-during-debugging",
+      "featureTitle": "When bypass mode is enabled, redirect all `/admin/*` traffic that would normally land on the login page to the dashboard (`/admin`) so the login UI is effectively skipped during debugging.",
+      "files": [
+        "frontend/src/admin/pages/AdminLoginPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-75"
+      ],
+      "confidence": "high"
+    }
+  ]
 }

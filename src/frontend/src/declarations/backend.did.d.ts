@@ -10,13 +10,6 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface AdminLoginDebugReport {
-  'sessionCreated' : boolean,
-  'error' : [] | [string],
-  'hashCompareMethod' : DebugHashCompareMethod,
-  'passwordMatch' : boolean,
-  'userFound' : boolean,
-}
 export interface BlogPost {
   'id' : bigint,
   'title' : string,
@@ -64,10 +57,6 @@ export interface CreditSimulation {
   'notes' : [] | [string],
   'phoneNumber' : string,
 }
-export type DebugHashCompareMethod = { 'textCompare' : null } |
-  { 'hybridCompare' : null } |
-  { 'bytesEqual' : null } |
-  { 'failed' : null };
 export interface Interaction {
   'itemId' : bigint,
   'sharesFacebook' : bigint,
@@ -189,10 +178,6 @@ export interface _SERVICE {
   'createPromotion' : ActorMethod<[string, Promotion], undefined>,
   'createTestimonial' : ActorMethod<[string, Testimonial], undefined>,
   'createVehicle' : ActorMethod<[string, Vehicle], undefined>,
-  'debugAdminLogin' : ActorMethod<
-    [string, string, [] | [string]],
-    AdminLoginDebugReport
-  >,
   'deleteBlogPost' : ActorMethod<[string, bigint], undefined>,
   'deleteContact' : ActorMethod<[string, bigint], undefined>,
   'deleteCreditSimulation' : ActorMethod<[string, bigint], undefined>,
@@ -204,12 +189,9 @@ export interface _SERVICE {
   'getBlogPosts' : ActorMethod<[], Array<BlogPost>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
-  'getContacts' : ActorMethod<[string], [] | [Array<Contact>]>,
-  'getCreditSimulations' : ActorMethod<
-    [string],
-    [] | [Array<CreditSimulation>]
-  >,
-  'getMediaAssets' : ActorMethod<[string], [] | [Array<MediaAsset>]>,
+  'getContacts' : ActorMethod<[string], Array<Contact>>,
+  'getCreditSimulations' : ActorMethod<[string], Array<CreditSimulation>>,
+  'getMediaAssets' : ActorMethod<[string], Array<MediaAsset>>,
   'getProductInteraction' : ActorMethod<[bigint], [] | [Interaction]>,
   'getPromotion' : ActorMethod<[bigint], [] | [Promotion]>,
   'getPromotions' : ActorMethod<[], Array<Promotion>>,
@@ -217,14 +199,13 @@ export interface _SERVICE {
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'getVehicle' : ActorMethod<[bigint], [] | [Vehicle]>,
   'getVehicles' : ActorMethod<[], Array<Vehicle>>,
-  'getVisitorStats' : ActorMethod<[string], [] | [VisitorStats]>,
+  'getVisitorStats' : ActorMethod<[string], VisitorStats>,
   'incrementPageView' : ActorMethod<[], undefined>,
   'incrementVisitor' : ActorMethod<[], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'likeProduct' : ActorMethod<[bigint], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'shareProduct' : ActorMethod<[bigint, string], undefined>,
-  'toggleDebugMode' : ActorMethod<[boolean], undefined>,
   'updateBlogPost' : ActorMethod<[string, BlogPost], undefined>,
   'updatePromotion' : ActorMethod<[string, Promotion], undefined>,
   'updateTestimonial' : ActorMethod<[string, Testimonial], undefined>,
