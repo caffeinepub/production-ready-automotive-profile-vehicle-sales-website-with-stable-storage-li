@@ -125,6 +125,19 @@ export const Vehicle = IDL.Record({
   'videoUrl' : IDL.Opt(IDL.Text),
   'isCommercial' : IDL.Bool,
 });
+export const DebugHashCompareMethod = IDL.Variant({
+  'textCompare' : IDL.Null,
+  'hybridCompare' : IDL.Null,
+  'bytesEqual' : IDL.Null,
+  'failed' : IDL.Null,
+});
+export const AdminLoginDebugReport = IDL.Record({
+  'sessionCreated' : IDL.Bool,
+  'error' : IDL.Opt(IDL.Text),
+  'hashCompareMethod' : DebugHashCompareMethod,
+  'passwordMatch' : IDL.Bool,
+  'userFound' : IDL.Bool,
+});
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'email' : IDL.Text,
@@ -183,7 +196,7 @@ export const idlService = IDL.Service({
   'adminLogout' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'createAdminUser' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text],
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
       [IDL.Opt(IDL.Nat)],
       [],
     ),
@@ -192,6 +205,11 @@ export const idlService = IDL.Service({
   'createPromotion' : IDL.Func([IDL.Text, Promotion], [], []),
   'createTestimonial' : IDL.Func([IDL.Text, Testimonial], [], []),
   'createVehicle' : IDL.Func([IDL.Text, Vehicle], [], []),
+  'debugAdminLogin' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Opt(IDL.Text)],
+      [AdminLoginDebugReport],
+      [],
+    ),
   'deleteBlogPost' : IDL.Func([IDL.Text, IDL.Nat], [], []),
   'deleteContact' : IDL.Func([IDL.Text, IDL.Nat], [], []),
   'deleteCreditSimulation' : IDL.Func([IDL.Text, IDL.Nat], [], []),
@@ -203,13 +221,17 @@ export const idlService = IDL.Service({
   'getBlogPosts' : IDL.Func([], [IDL.Vec(BlogPost)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-  'getContacts' : IDL.Func([IDL.Text], [IDL.Vec(Contact)], ['query']),
+  'getContacts' : IDL.Func([IDL.Text], [IDL.Opt(IDL.Vec(Contact))], ['query']),
   'getCreditSimulations' : IDL.Func(
       [IDL.Text],
-      [IDL.Vec(CreditSimulation)],
+      [IDL.Opt(IDL.Vec(CreditSimulation))],
       ['query'],
     ),
-  'getMediaAssets' : IDL.Func([IDL.Text], [IDL.Vec(MediaAsset)], ['query']),
+  'getMediaAssets' : IDL.Func(
+      [IDL.Text],
+      [IDL.Opt(IDL.Vec(MediaAsset))],
+      ['query'],
+    ),
   'getProductInteraction' : IDL.Func(
       [IDL.Nat],
       [IDL.Opt(Interaction)],
@@ -225,13 +247,14 @@ export const idlService = IDL.Service({
     ),
   'getVehicle' : IDL.Func([IDL.Nat], [IDL.Opt(Vehicle)], ['query']),
   'getVehicles' : IDL.Func([], [IDL.Vec(Vehicle)], ['query']),
-  'getVisitorStats' : IDL.Func([IDL.Text], [VisitorStats], ['query']),
+  'getVisitorStats' : IDL.Func([IDL.Text], [IDL.Opt(VisitorStats)], ['query']),
   'incrementPageView' : IDL.Func([], [], []),
   'incrementVisitor' : IDL.Func([], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'likeProduct' : IDL.Func([IDL.Nat], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'shareProduct' : IDL.Func([IDL.Nat, IDL.Text], [], []),
+  'toggleDebugMode' : IDL.Func([IDL.Bool], [], []),
   'updateBlogPost' : IDL.Func([IDL.Text, BlogPost], [], []),
   'updatePromotion' : IDL.Func([IDL.Text, Promotion], [], []),
   'updateTestimonial' : IDL.Func([IDL.Text, Testimonial], [], []),
@@ -359,6 +382,19 @@ export const idlFactory = ({ IDL }) => {
     'videoUrl' : IDL.Opt(IDL.Text),
     'isCommercial' : IDL.Bool,
   });
+  const DebugHashCompareMethod = IDL.Variant({
+    'textCompare' : IDL.Null,
+    'hybridCompare' : IDL.Null,
+    'bytesEqual' : IDL.Null,
+    'failed' : IDL.Null,
+  });
+  const AdminLoginDebugReport = IDL.Record({
+    'sessionCreated' : IDL.Bool,
+    'error' : IDL.Opt(IDL.Text),
+    'hashCompareMethod' : DebugHashCompareMethod,
+    'passwordMatch' : IDL.Bool,
+    'userFound' : IDL.Bool,
+  });
   const UserProfile = IDL.Record({
     'name' : IDL.Text,
     'email' : IDL.Text,
@@ -417,7 +453,7 @@ export const idlFactory = ({ IDL }) => {
     'adminLogout' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'createAdminUser' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text],
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
         [IDL.Opt(IDL.Nat)],
         [],
       ),
@@ -426,6 +462,11 @@ export const idlFactory = ({ IDL }) => {
     'createPromotion' : IDL.Func([IDL.Text, Promotion], [], []),
     'createTestimonial' : IDL.Func([IDL.Text, Testimonial], [], []),
     'createVehicle' : IDL.Func([IDL.Text, Vehicle], [], []),
+    'debugAdminLogin' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Opt(IDL.Text)],
+        [AdminLoginDebugReport],
+        [],
+      ),
     'deleteBlogPost' : IDL.Func([IDL.Text, IDL.Nat], [], []),
     'deleteContact' : IDL.Func([IDL.Text, IDL.Nat], [], []),
     'deleteCreditSimulation' : IDL.Func([IDL.Text, IDL.Nat], [], []),
@@ -437,13 +478,21 @@ export const idlFactory = ({ IDL }) => {
     'getBlogPosts' : IDL.Func([], [IDL.Vec(BlogPost)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-    'getContacts' : IDL.Func([IDL.Text], [IDL.Vec(Contact)], ['query']),
-    'getCreditSimulations' : IDL.Func(
+    'getContacts' : IDL.Func(
         [IDL.Text],
-        [IDL.Vec(CreditSimulation)],
+        [IDL.Opt(IDL.Vec(Contact))],
         ['query'],
       ),
-    'getMediaAssets' : IDL.Func([IDL.Text], [IDL.Vec(MediaAsset)], ['query']),
+    'getCreditSimulations' : IDL.Func(
+        [IDL.Text],
+        [IDL.Opt(IDL.Vec(CreditSimulation))],
+        ['query'],
+      ),
+    'getMediaAssets' : IDL.Func(
+        [IDL.Text],
+        [IDL.Opt(IDL.Vec(MediaAsset))],
+        ['query'],
+      ),
     'getProductInteraction' : IDL.Func(
         [IDL.Nat],
         [IDL.Opt(Interaction)],
@@ -459,13 +508,18 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getVehicle' : IDL.Func([IDL.Nat], [IDL.Opt(Vehicle)], ['query']),
     'getVehicles' : IDL.Func([], [IDL.Vec(Vehicle)], ['query']),
-    'getVisitorStats' : IDL.Func([IDL.Text], [VisitorStats], ['query']),
+    'getVisitorStats' : IDL.Func(
+        [IDL.Text],
+        [IDL.Opt(VisitorStats)],
+        ['query'],
+      ),
     'incrementPageView' : IDL.Func([], [], []),
     'incrementVisitor' : IDL.Func([], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'likeProduct' : IDL.Func([IDL.Nat], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'shareProduct' : IDL.Func([IDL.Nat, IDL.Text], [], []),
+    'toggleDebugMode' : IDL.Func([IDL.Bool], [], []),
     'updateBlogPost' : IDL.Func([IDL.Text, BlogPost], [], []),
     'updatePromotion' : IDL.Func([IDL.Text, Promotion], [], []),
     'updateTestimonial' : IDL.Func([IDL.Text, Testimonial], [], []),

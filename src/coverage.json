@@ -1,117 +1,41 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T06:31:40.273Z",
+  "generatedAt": "2026-02-14T09:45:04.867Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 7,
-    "implemented": 2,
+    "total": 2,
+    "implemented": 0,
     "items": [
       {
-        "id": "REQ-38",
-        "summary": "Implement a stable-persisted `adminUsers` collection in the Motoko backend with fields: `id`, `email`, `passwordHash`, `role`, `createdAt`, and ensure it is upgrade-safe (data survives canister redeploy/upgrade).",
+        "id": "REQ-58",
+        "summary": "Move all Super Admin seeding execution so it runs only during canister initialization (system func init) and never during upgrade lifecycle hooks.\n\n- In `backend/main.mo`, remove any Super Admin/admin seeding code that exists inside `system func preupgrade()` (if present). Remove the entire seeding block and do not leave conditional checks there.\n- In `backend/main.mo`, remove Super Admin seeding from `system func postupgrade()` (currently calls `seedSuperAdmin()`), so `postupgrade()` performs no admin seeding.\n- Add (or open if already present) `system func init()` in `backend/main.mo` and execute the seed logic there:\n  - `if (adminUsers.size() == 0) { seedSuperAdmin(); }`\n- Ensure the seeding runs only once on initial deployment and does not create duplicate Super Admin records on subsequent calls.\n- Keep any stable storage save/restore logic untouched (do not change state serialization/restore behavior).",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-39",
-        "summary": "Add password hashing support in the backend for admin user passwords, using a salted, one-way hash and constant-time password verification.",
+        "id": "REQ-59",
+        "summary": "Do not change authentication behavior other than relocating the seeding execution point.\n\n- Do not modify the password hashing function implementation (`hashPassword`).\n- Do not modify admin login verification logic/output semantics (e.g., `adminLogin`, `debugAdminLogin` comparisons and return shapes).\n- Any user-facing text introduced/changed by this change must be in English (no new non-English messages).",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
-      },
-      {
-        "id": "REQ-40",
-        "summary": "Implement an admin login API for email/password authentication that validates the email exists and the provided password matches the stored hash, and returns a secure session token on success.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-41",
-        "summary": "Implement a stable-persisted admin session store in the backend that maps session tokens to an admin user (and role), supports session expiry/invalidations as needed, and survives canister upgrade/redeploy.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-42",
-        "summary": "Protect all admin/CMS backend methods so that any operation used by the /admin UI (e.g., create/update/delete content, viewing leads, media management, visitor stats updates) requires a valid admin session token and enforces authorization based on the admin role.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-43",
-        "summary": "Update the admin-only frontend authentication flow to use email/password login against the new backend login method, store the returned session token client-side (cookie and/or localStorage), and ensure the admin session persists across refreshes and supports logout that destroys the session in the backend. Do not modify any public (non-/admin) pages.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/admin/auth/adminSession.ts",
-          "frontend/src/admin/hooks/useAdminSession.ts",
-          "frontend/src/admin/pages/AdminLoginPage.tsx",
-          "frontend/src/admin/AdminLayout.tsx",
-          "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-          "frontend/src/admin/pages/LeadsAdminPage.tsx",
-          "frontend/src/admin/pages/MediaManagerPage.tsx",
-          "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
-          "frontend/src/admin/pages/VehiclesAdminPage.tsx",
-          "frontend/src/admin/pages/PromotionsAdminPage.tsx",
-          "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
-          "frontend/src/admin/pages/BlogAdminPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/admin/auth/adminSession.ts",
-          "frontend/src/admin/hooks/useAdminSession.ts",
-          "frontend/src/admin/pages/AdminLoginPage.tsx",
-          "frontend/src/admin/AdminLayout.tsx",
-          "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-          "frontend/src/admin/pages/LeadsAdminPage.tsx",
-          "frontend/src/admin/pages/MediaManagerPage.tsx",
-          "frontend/src/admin/pages/VisitorStatsAdminPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-44",
-        "summary": "Replace the current Internet Identity-based admin guard logic with session-token-based guarding for all `/admin` routes so unauthenticated users are redirected to `/admin/login`, and authenticated users without required privileges are blocked with an English 'Access denied' message.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/admin/components/AccessDeniedView.tsx",
-          "frontend/src/admin/AdminGuard.tsx",
-          "frontend/src/App.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/admin/components/AccessDeniedView.tsx",
-          "frontend/src/admin/AdminGuard.tsx"
-        ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/admin/AdminGuard.tsx",
-    "frontend/src/admin/AdminLayout.tsx",
-    "frontend/src/admin/auth/adminSession.ts",
-    "frontend/src/admin/components/AccessDeniedView.tsx",
-    "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-    "frontend/src/admin/hooks/useAdminSession.ts",
-    "frontend/src/admin/pages/AdminLoginPage.tsx",
-    "frontend/src/admin/pages/LeadsAdminPage.tsx",
-    "frontend/src/admin/pages/MediaManagerPage.tsx",
-    "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
-    "frontend/src/components/layout/Footer.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useQueries.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

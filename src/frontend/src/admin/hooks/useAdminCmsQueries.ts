@@ -12,7 +12,9 @@ export function useGetMediaAssets() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.getMediaAssets(token);
+      const result = await actor.getMediaAssets(token);
+      if (result === null) throw new Error('Unauthorized or session expired');
+      return result;
     },
     enabled: !!actor && !isFetching
   });
@@ -61,7 +63,9 @@ export function useGetContacts() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.getContacts(token);
+      const result = await actor.getContacts(token);
+      if (result === null) throw new Error('Unauthorized or session expired');
+      return result;
     },
     enabled: !!actor && !isFetching
   });
@@ -93,7 +97,9 @@ export function useGetCreditSimulations() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.getCreditSimulations(token);
+      const result = await actor.getCreditSimulations(token);
+      if (result === null) throw new Error('Unauthorized or session expired');
+      return result;
     },
     enabled: !!actor && !isFetching
   });
@@ -125,7 +131,9 @@ export function useGetVisitorStats() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.getVisitorStats(token);
+      const result = await actor.getVisitorStats(token);
+      if (result === null) throw new Error('Unauthorized or session expired');
+      return result;
     },
     enabled: !!actor && !isFetching
   });

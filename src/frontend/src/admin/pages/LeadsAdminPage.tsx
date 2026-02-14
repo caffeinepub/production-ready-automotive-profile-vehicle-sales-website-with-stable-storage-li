@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useGetContacts, useGetCreditSimulations, useDeleteContact, useDeleteCreditSimulation } from '../hooks/useAdminCmsQueries';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Search, Trash2 } from 'lucide-react';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
 import type { Contact, CreditSimulation } from '../../backend';
@@ -17,8 +17,8 @@ export default function LeadsAdminPage() {
   
   const [searchContacts, setSearchContacts] = useState('');
   const [searchSimulations, setSearchSimulations] = useState('');
-  const [deleteContactIndex, setDeleteContactIndex] = useState<number | null>(null);
-  const [deleteSimulationIndex, setDeleteSimulationIndex] = useState<number | null>(null);
+  const [deleteContactItem, setDeleteContactItem] = useState<Contact & { id: bigint } | null>(null);
+  const [deleteSimulationItem, setDeleteSimulationItem] = useState<CreditSimulation & { id: bigint } | null>(null);
 
   const filteredContacts = contacts.filter((c) =>
     c.name.toLowerCase().includes(searchContacts.toLowerCase()) ||
@@ -31,183 +31,204 @@ export default function LeadsAdminPage() {
   );
 
   const handleDeleteContact = async () => {
-    if (deleteContactIndex === null) return;
+    if (!deleteContactItem) return;
     
     try {
-      await deleteContact.mutateAsync(BigInt(deleteContactIndex));
+      await deleteContact.mutateAsync(deleteContactItem.id);
       toast.success('Contact deleted successfully');
-      setDeleteContactIndex(null);
-    } catch (error: any) {
+      setDeleteContactItem(null);
+    } catch (error) {
       console.error('Delete error:', error);
-      toast.error(error.message || 'Failed to delete contact');
+      toast.error('Failed to delete contact');
     }
   };
 
   const handleDeleteSimulation = async () => {
-    if (deleteSimulationIndex === null) return;
+    if (!deleteSimulationItem) return;
     
     try {
-      await deleteSimulation.mutateAsync(BigInt(deleteSimulationIndex));
+      await deleteSimulation.mutateAsync(deleteSimulationItem.id);
       toast.success('Credit simulation deleted successfully');
-      setDeleteSimulationIndex(null);
-    } catch (error: any) {
+      setDeleteSimulationItem(null);
+    } catch (error) {
       console.error('Delete error:', error);
-      toast.error(error.message || 'Failed to delete credit simulation');
+      toast.error('Failed to delete credit simulation');
     }
   };
 
   if (contactsError || simulationsError) {
     return (
-      <div className="text-center py-8">
-        <p className="text-red-600">Error loading leads. Please check your authentication.</p>
+      <div className="text-center py-8 text-red-600">
+        Error loading leads: {contactsError instanceof Error ? contactsError.message : simulationsError instanceof Error ? simulationsError.message : 'Unknown error'}
       </div>
     );
   }
 
   return (
     <>
-      <div>
-        <h1 className="text-3xl font-bold mb-8">Leads / Contact Management</h1>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Leads Management</h1>
+          <p className="text-gray-600 mt-2">Manage contact forms and credit simulation requests</p>
+        </div>
 
-        <Tabs defaultValue="contacts" className="w-full">
+        <Tabs defaultValue="contacts" className="space-y-4">
           <TabsList>
             <TabsTrigger value="contacts">Contact Forms ({contacts.length})</TabsTrigger>
             <TabsTrigger value="simulations">Credit Simulations ({simulations.length})</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="contacts" className="mt-6">
-            <div className="space-y-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search contacts..."
-                  value={searchContacts}
-                  onChange={(e) => setSearchContacts(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              {contactsLoading ? (
-                <div className="text-center py-8">Loading...</div>
-              ) : (
-                <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Unit</TableHead>
-                        <TableHead>Message</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredContacts.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={7} className="text-center text-gray-500 py-8">
-                            No contacts available
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        filteredContacts.map((contact, idx) => (
-                          <TableRow key={idx}>
-                            <TableCell>{contact.name}</TableCell>
-                            <TableCell>{contact.email}</TableCell>
-                            <TableCell>{contact.phoneNumber}</TableCell>
-                            <TableCell>{contact.unit}</TableCell>
-                            <TableCell className="max-w-xs truncate">{contact.message}</TableCell>
-                            <TableCell>{contact.date}</TableCell>
-                            <TableCell className="text-right">
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => setDeleteContactIndex(idx)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
+          <TabsContent value="contacts" className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search contacts..."
+                value={searchContacts}
+                onChange={(e) => setSearchContacts(e.target.value)}
+                className="pl-10"
+              />
             </div>
+
+            {contactsLoading ? (
+              <div className="text-center py-8">Loading contacts...</div>
+            ) : (
+              <div className="grid gap-4">
+                {filteredContacts.map((contact, index) => (
+                  <Card key={index}>
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg">{contact.name}</CardTitle>
+                          <p className="text-sm text-gray-500 mt-1">{contact.date}</p>
+                        </div>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setDeleteContactItem({ ...contact, id: BigInt(index) })}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Email</p>
+                          <p className="text-sm">{contact.email}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Phone</p>
+                          <p className="text-sm">{contact.phoneNumber}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Address</p>
+                          <p className="text-sm">{contact.address}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Unit</p>
+                          <p className="text-sm">{contact.unit}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Message</p>
+                        <p className="text-sm">{contact.message}</p>
+                      </div>
+                      {contact.notes && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Notes</p>
+                          <p className="text-sm">{contact.notes}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+                {filteredContacts.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">No contacts found</div>
+                )}
+              </div>
+            )}
           </TabsContent>
 
-          <TabsContent value="simulations" className="mt-6">
-            <div className="space-y-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search simulations..."
-                  value={searchSimulations}
-                  onChange={(e) => setSearchSimulations(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              {simulationsLoading ? (
-                <div className="text-center py-8">Loading...</div>
-              ) : (
-                <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Unit</TableHead>
-                        <TableHead>Down Payment</TableHead>
-                        <TableHead>Tenor</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredSimulations.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={8} className="text-center text-gray-500 py-8">
-                            No credit simulations available
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        filteredSimulations.map((simulation, idx) => (
-                          <TableRow key={idx}>
-                            <TableCell>{simulation.name}</TableCell>
-                            <TableCell>{simulation.email}</TableCell>
-                            <TableCell>{simulation.phoneNumber}</TableCell>
-                            <TableCell>{simulation.unit}</TableCell>
-                            <TableCell>{simulation.downPayment ? `${simulation.downPayment}%` : '-'}</TableCell>
-                            <TableCell>{simulation.tenor ? `${simulation.tenor} months` : '-'}</TableCell>
-                            <TableCell>{simulation.date}</TableCell>
-                            <TableCell className="text-right">
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => setDeleteSimulationIndex(idx)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
+          <TabsContent value="simulations" className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search simulations..."
+                value={searchSimulations}
+                onChange={(e) => setSearchSimulations(e.target.value)}
+                className="pl-10"
+              />
             </div>
+
+            {simulationsLoading ? (
+              <div className="text-center py-8">Loading simulations...</div>
+            ) : (
+              <div className="grid gap-4">
+                {filteredSimulations.map((simulation, index) => (
+                  <Card key={index}>
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg">{simulation.name}</CardTitle>
+                          <p className="text-sm text-gray-500 mt-1">{simulation.date}</p>
+                        </div>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setDeleteSimulationItem({ ...simulation, id: BigInt(index) })}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Email</p>
+                          <p className="text-sm">{simulation.email}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Phone</p>
+                          <p className="text-sm">{simulation.phoneNumber}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Unit</p>
+                          <p className="text-sm">{simulation.unit}</p>
+                        </div>
+                        {simulation.downPayment && (
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Down Payment</p>
+                            <p className="text-sm">Rp {simulation.downPayment.toLocaleString()}</p>
+                          </div>
+                        )}
+                        {simulation.tenor && (
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Tenor</p>
+                            <p className="text-sm">{simulation.tenor} months</p>
+                          </div>
+                        )}
+                      </div>
+                      {simulation.notes && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Notes</p>
+                          <p className="text-sm">{simulation.notes}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+                {filteredSimulations.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">No simulations found</div>
+                )}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
 
       <ConfirmDeleteDialog
-        open={deleteContactIndex !== null}
-        onOpenChange={(open) => !open && setDeleteContactIndex(null)}
+        open={!!deleteContactItem}
+        onOpenChange={(open) => !open && setDeleteContactItem(null)}
         onConfirm={handleDeleteContact}
         title="Delete Contact"
         description="Are you sure you want to delete this contact? This action cannot be undone."
@@ -215,8 +236,8 @@ export default function LeadsAdminPage() {
       />
 
       <ConfirmDeleteDialog
-        open={deleteSimulationIndex !== null}
-        onOpenChange={(open) => !open && setDeleteSimulationIndex(null)}
+        open={!!deleteSimulationItem}
+        onOpenChange={(open) => !open && setDeleteSimulationItem(null)}
         onConfirm={handleDeleteSimulation}
         title="Delete Credit Simulation"
         description="Are you sure you want to delete this credit simulation? This action cannot be undone."

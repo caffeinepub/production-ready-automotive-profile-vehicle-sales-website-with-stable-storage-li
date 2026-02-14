@@ -1,85 +1,39 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T06:31:40.269Z",
-  "summary": "Frontend adds session-token-based admin login (email/password), token storage utilities, an admin guard, and updates admin CMS query hooks to pass a token. However, the diff summary does not provide enough backend evidence to confirm stable persistence, hashing/token security, session validation, and protection of all admin backend methods. Additionally, non-/admin frontend files were modified (Footer and public query hooks), which was not requested and violates the stated constraints.",
+  "generatedAt": "2026-02-14T09:45:04.863Z",
+  "summary": "The diff introduces a new backend migration module and wires it into `backend/main.mo`, plus updates `project_state.json`. The provided truncated diff does not include any visible changes to `init()`, `preupgrade()`, `postupgrade()`, or the super-admin seeding logic, so the requested seeding relocation cannot be verified from the evidence shown.",
   "missing_requirements": [
     {
-      "id": "REQ-38",
-      "requirement": "Implement a stable-persisted `adminUsers` collection in the Motoko backend with fields: `id`, `email`, `passwordHash`, `role`, `createdAt`, upgrade-safe, and provide lookup methods without leaking password hashes.",
-      "reason": "The diff shows new `AdminUser` type and in-memory `Map` collections, but there is no evidence of stable variables and preupgrade/postupgrade handling to make the data survive upgrades, nor any shown backend methods for safe lookup by email without leaking hashes (file content is truncated before any such logic).",
+      "id": "REQ-58",
+      "requirement": "Move all Super Admin seeding execution so it runs only during canister initialization (system func init) and never during upgrade lifecycle hooks (remove from preupgrade/postupgrade, add init guard `if (adminUsers.size() == 0) { seedSuperAdmin(); }`).",
+      "reason": "The truncated `backend/main.mo` excerpt shows imports and type/state declarations but does not show any `system func init()`, nor removal of seeding from `preupgrade()`/`postupgrade()`, nor the requested guard around `seedSuperAdmin()`. With the diff evidence provided, these required changes are not demonstrated.",
       "evidence": [
-        "backend/main.mo (truncated): shows `let adminUsers = Map.empty...` and type definitions but no stable persistence/upgrade hooks are visible"
-      ]
-    },
-    {
-      "id": "REQ-39",
-      "requirement": "Add salted one-way password hashing and constant-time password verification for admin passwords.",
-      "reason": "The diff summary does not show any implemented salted hashing logic, storage format, or constant-time comparison. The backend file is truncated at a comment ('Helper function: Simple passwo...'), so hashing/verification cannot be confirmed.",
-      "evidence": [
-        "backend/main.mo (truncated): no visible hashing/salt/constant-time verification implementation"
-      ]
-    },
-    {
-      "id": "REQ-40",
-      "requirement": "Implement admin login API (email, password) that returns a cryptographically strong session token on success and English errors on failure.",
-      "reason": "Frontend calls `actor.adminLogin(email, password)` and expects `{ token, role }`, but the diff does not show the backend method implementation, its error messages, or token generation strength.",
-      "evidence": [
-        "frontend/src/admin/hooks/useAdminSession.ts: calls `actor.adminLogin(email, password)`",
-        "backend/main.mo (truncated): does not show `adminLogin` implementation or token generation"
-      ]
-    },
-    {
-      "id": "REQ-41",
-      "requirement": "Implement a stable-persisted admin session store mapping tokens to admin identity/role, surviving upgrades, with validation and logout invalidation.",
-      "reason": "The diff shows an `AdminSession` type and an in-memory `Map` for sessions, but no evidence of stable persistence/upgrade hooks, nor visible `adminLogout` implementation and token validation resolver methods.",
-      "evidence": [
-        "backend/main.mo (truncated): shows `let adminSessions = Map.empty<Text, AdminSession>();` but no stable persistence or validation/logout logic is visible",
-        "frontend/src/admin/hooks/useAdminSession.ts: calls `actor.adminLogout(session.token)`"
-      ]
-    },
-    {
-      "id": "REQ-42",
-      "requirement": "Protect all admin/CMS backend methods so admin operations require a valid session token and enforce authorization based on admin role; public site methods remain accessible; rejected requests return English auth-required errors.",
-      "reason": "Frontend was updated to pass a token to many admin methods (e.g., `getVisitorStats(token)`), but the diff does not show backend-side enforcement (token validation, role checks, English error messages) across all admin/CMS backend methods.",
-      "evidence": [
-        "frontend/src/admin/hooks/useAdminCmsQueries.ts (truncated): passes `token` to admin actor methods",
-        "backend/main.mo (truncated): does not show token validation checks for admin methods or role enforcement"
+        "backend/main.mo (truncated diff does not show init/preupgrade/postupgrade or seeding changes)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Modified public (non-/admin) Footer component to include a caffeine.ai referral link and compute `appIdentifier` from `window.location.hostname`.",
-      "reason": "BuildRequest explicitly states not to modify public pages/routes/components; changes must be limited to `/admin` and shared auth utilities. Footer is a public/shared layout component unrelated to admin auth.",
+      "description": "Introduced a new migration module and wired it into the main canister actor (`import Migration \"migration\";`, `(with migration = Migration.run)`).",
+      "reason": "The BuildRequest focuses only on relocating Super Admin seeding from upgrade hooks to `init()` and explicitly says to keep stable save/restore logic untouched. Adding a migration module/system is not requested and suggests changes to migration/persistence plumbing beyond seeding relocation.",
       "evidence": [
-        "frontend/src/components/layout/Footer.tsx"
+        "backend/migration.mo",
+        "backend/main.mo (truncated): `import Migration \"migration\";` and `(with migration = Migration.run)`"
       ]
     },
     {
-      "description": "Modified public query hooks file (non-/admin) despite requirement to avoid changes outside `/admin` area.",
-      "reason": "BuildRequest forbids modifying routes/components/pages outside `/admin` for this change; `frontend/src/hooks/useQueries.ts` is described as public query hooks (no authentication required).",
+      "description": "Updated `project_state.json` metadata.",
+      "reason": "No requirement requests changing project state metadata; the scope is limited to backend seeding relocation without frontend/path edits.",
       "evidence": [
-        "frontend/src/hooks/useQueries.ts (truncated)"
+        "project_state.json (modified)"
       ]
     }
   ],
-  "confidence": 0.74,
+  "confidence": 0.47,
   "changed_files": [
     "backend/main.mo",
-    "frontend-file-summaries.txt",
-    "frontend/src/admin/AdminGuard.tsx",
-    "frontend/src/admin/AdminLayout.tsx",
-    "frontend/src/admin/auth/adminSession.ts",
-    "frontend/src/admin/components/AccessDeniedView.tsx",
-    "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-    "frontend/src/admin/hooks/useAdminSession.ts",
-    "frontend/src/admin/pages/AdminLoginPage.tsx",
-    "frontend/src/admin/pages/LeadsAdminPage.tsx",
-    "frontend/src/admin/pages/MediaManagerPage.tsx",
-    "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
-    "frontend/src/components/layout/Footer.tsx",
-    "frontend/src/hooks/useQueries.ts",
+    "backend/migration.mo",
     "project_state.json"
   ]
 }

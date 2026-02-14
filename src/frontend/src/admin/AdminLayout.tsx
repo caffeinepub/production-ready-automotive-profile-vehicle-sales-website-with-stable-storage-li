@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from '@tanstack/react-router';
 import { useAdminSession } from './hooks/useAdminSession';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Car, FileText, MessageSquare, Star, LayoutDashboard, Image, BarChart, User, LogOut, Truck } from 'lucide-react';
+import { Car, FileText, MessageSquare, Star, LayoutDashboard, Image, BarChart, User, LogOut, Truck, Bug } from 'lucide-react';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -31,7 +31,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { label: 'Leads / Contact', path: '/admin/leads', icon: MessageSquare },
     { label: 'Visitor Statistics', path: '/admin/stats', icon: BarChart },
     { label: 'Media', path: '/admin/media', icon: Image },
-    { label: 'Admin User Profile', path: '/admin/profile', icon: User }
+    { label: 'Admin User Profile', path: '/admin/profile', icon: User },
+    { label: 'Auth Debug Test', path: '/admin/auth-debug', icon: Bug }
   ];
 
   return (

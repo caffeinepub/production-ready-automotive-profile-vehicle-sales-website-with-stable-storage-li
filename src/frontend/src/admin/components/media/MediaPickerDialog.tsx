@@ -20,7 +20,7 @@ interface MediaPickerDialogProps {
 }
 
 export default function MediaPickerDialog({ open, onOpenChange, onSelect, currentUrl }: MediaPickerDialogProps) {
-  const { data: assets = [], isLoading } = useGetMediaAssets();
+  const { data: assets = [], isLoading, error } = useGetMediaAssets();
   const [search, setSearch] = useState('');
   const [selectedUrl, setSelectedUrl] = useState(currentUrl || '');
 
@@ -56,6 +56,10 @@ export default function MediaPickerDialog({ open, onOpenChange, onSelect, curren
 
           {isLoading ? (
             <div className="text-center py-8">Loading media...</div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-600">
+              Error loading media: {error instanceof Error ? error.message : 'Unknown error'}
+            </div>
           ) : (
             <div className="grid grid-cols-4 gap-4 max-h-96 overflow-y-auto">
               {filteredAssets.map((asset) => (
@@ -83,7 +87,7 @@ export default function MediaPickerDialog({ open, onOpenChange, onSelect, curren
             </div>
           )}
 
-          {!isLoading && filteredAssets.length === 0 && (
+          {!isLoading && !error && filteredAssets.length === 0 && (
             <div className="text-center py-8 text-gray-500">No media found</div>
           )}
         </div>

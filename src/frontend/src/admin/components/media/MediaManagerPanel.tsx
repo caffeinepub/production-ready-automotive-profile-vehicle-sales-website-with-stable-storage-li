@@ -8,7 +8,7 @@ import type { MediaAsset } from '../../../backend';
 import { toast } from 'sonner';
 
 export default function MediaManagerPanel() {
-  const { data: assets = [], isLoading } = useGetMediaAssets();
+  const { data: assets = [], isLoading, error } = useGetMediaAssets();
   const deleteMediaAsset = useDeleteMediaAsset();
   const [search, setSearch] = useState('');
   const [deleteItem, setDeleteItem] = useState<MediaAsset | null>(null);
@@ -33,6 +33,14 @@ export default function MediaManagerPanel() {
 
   if (isLoading) {
     return <div className="text-center py-8">Loading media...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8 text-red-600">
+        Error loading media: {error instanceof Error ? error.message : 'Unknown error'}
+      </div>
+    );
   }
 
   return (

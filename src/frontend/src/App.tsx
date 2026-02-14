@@ -24,6 +24,7 @@ import LeadsAdminPage from './admin/pages/LeadsAdminPage';
 import VisitorStatsAdminPage from './admin/pages/VisitorStatsAdminPage';
 import AdminProfilePage from './admin/pages/AdminProfilePage';
 import MediaManagerPage from './admin/pages/MediaManagerPage';
+import AdminLoginDebugPage from './admin/pages/AdminLoginDebugPage';
 
 const rootRoute = createRootRoute({
   component: () => <Outlet />
@@ -243,6 +244,12 @@ const adminMediaRoute = createRoute({
   )
 });
 
+const adminAuthDebugRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/auth-debug',
+  component: AdminLoginDebugPage
+});
+
 const routeTree = rootRoute.addChildren([
   publicRoute,
   passengerVehiclesRoute,
@@ -263,7 +270,8 @@ const routeTree = rootRoute.addChildren([
   adminLeadsRoute,
   adminStatsRoute,
   adminProfileRoute,
-  adminMediaRoute
+  adminMediaRoute,
+  adminAuthDebugRoute
 ]);
 
 const router = createRouter({ routeTree });

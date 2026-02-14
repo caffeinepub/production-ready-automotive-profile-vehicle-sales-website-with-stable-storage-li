@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 13,
+  "projectStateVersion": 23,
   "summary": "Automotive company profile + vehicle sales website with production-ready backend/frontend separation, stable persistence (upgrade/redeploy safe), live CMS admin panel, media manager, SEO/performance, product & article interactions, and seeded content.",
   "architectural_notes": [
     "Use stable persistence only (no in-memory) and ensure upgrade/redeploy-safe data migrations with auto-restore after redeploy.",
@@ -10,13 +10,19 @@
     "TanStack Router: ensure RouterProvider is rendered exactly once (avoid double RouterProvider rendering via both rootRoute component and App.tsx) to prevent production blank screen.",
     "Storage foundation injection scope: backend-only changes for full stable persistence; do NOT modify UI or layout.",
     "Admin CMS system injection scope: implement /admin panel only (CRUD + draft/publish + delete + media upload + multi-admin roles + secure session auth) and do NOT modify any public frontend pages.",
-    "Admin auth scope: implement email/password login with password hashing and secure session token stored in cookie/session; session must persist across refresh, protect all /admin routes, and support logout session invalidation. Do not modify any public frontend pages."
+    "Admin auth scope: implement email/password login with password hashing and secure session token stored in cookie/session; session must persist across refresh, protect all /admin routes, and support logout session invalidation. Do not modify any public frontend pages.",
+    "Seed initial admin user in stable `adminUsers` for email/password auth; keep change scope backend/admin-CMS only (no public/frontend modifications).",
+    "Any debug endpoint/logging for admin auth must be admin-only, must not return password hashes/tokens, and should be removable/disabled for production after verification."
   ],
   "known_issues": [
     "Production/live page shows blank screen after deploy due to frontend crash: project uses `next-themes` ThemeProvider even though frontend is Vite + React (not Next.js), causing app to fail before rendering.",
-    "Draft/live publish still shows white blank screen; likely caused by TanStack Router being rendered twice (RouterProvider in both rootRoute component and App.tsx), triggering an internal error and preventing render."
+    "Draft/live publish still shows white blank screen; likely caused by TanStack Router being rendered twice (RouterProvider in both rootRoute component and App.tsx), triggering an internal error and preventing render.",
+    "Admin login still fails with 'Invalid Email or Password' for the seeded credentials; suspected mismatch between frontend login payload/flow and backend hashing/session verification.",
+    "/admin/auth-debug is not accessible when login fails because it is protected by AdminGuard, blocking diagnosis.",
+    "Seeded super admin may not exist in runtime memory at login time due to seeding only occurring in `preupgrade()` and/or reliance on legacy stable-stored hash; requires deterministic seed-on-init/upgrade + rehash using current verifier.",
+    "Potential scope conflict: existing plan mentions seeding on startup and after upgrades; latest decision restricts seeding to `init()` only (no `postupgrade()`), which may leave upgraded canisters without a seeded Super Admin if stable restore does not include it."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-build-an-admin-authentication-and-authority-system-for-admin-supporting-email-password-login-multi-admin-accounts-and-role-based-access-control-seed-an-initial-super-admin-bound-to-principal-id-7aizr-qwhrg-kuvhe-yekzz-6nj4a-t6yeb-5gnrb-pjpwy-gp2ut-up3m5-3qe-as-owner-with-the-ability-to-manage-other-admins-and-roles",
@@ -265,6 +271,22 @@
         "REQ-44"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-an-admin-only-ui-affordance-to-run-the-login-debug-test-for-the-provided-credentials-and-display-the-debug-output-exactly-as-labeled-user-found-password-match-hash-compare-method-used-session-created-and-error-reason-if-failed-this-ui-must-be-accessible-only-within-the-admin-area-not-public-pages",
+      "title": "Add an admin-only UI affordance to run the login debug test for the provided credentials and display the debug output exactly as labeled: 'User found', 'Password match', 'Hash compare method used', 'Session created', and 'Error reason if failed'. This UI must be accessible only within the /admin area (not public pages).",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-routing-so-the-admin-login-debug-page-at-admin-auth-debug-is-accessible-without-adminguard-so-users-can-open-the-debug-tool-even-when-they-cannot-log-in",
+      "title": "Update routing so the Admin Login Debug page at `/admin/auth-debug` is accessible without `AdminGuard`, so users can open the debug tool even when they cannot log in.",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -447,6 +469,128 @@
       "summary": "Protect all admin/CMS backend methods so that any operation used by the /admin UI (e.g., create/update/delete content, viewing leads, media management, visitor stats updates) requires a valid admin session token and enforces authorization based on the admin role.",
       "reqIds": [
         "REQ-42"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Seed 1 initial Super Admin user in stable `adminUsers` collection (email: puadsolihan@gmail.com, password: 66669999 with hashing only if required by auth system, role: Super Admin, status: Active) and ensure this account can authenticate and access /admin dashboard; backend/admin-CMS only (no frontend changes).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Persist the `adminUsers` collection in stable storage (upgrade/redeploy safe) and ensure the stored data is restored correctly after canister upgrade/redeploy.",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Seed exactly 1 Super Admin record into the `adminUsers` collection with: Email `puadsolihan@gmail.com`, Password `66669999`, Role `Super Admin`, Status `Active`, and `createdAt` set to a timestamp; the seed must be idempotent (must not create duplicates on redeploy/upgrade).",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Ensure the seeded admin user can authenticate via the existing email/password admin login method; do not hash the password unless the current authentication system requires hashing, and if hashing is required then automatically hash `66669999` during seeding in the same format used by the login verifier.",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Enforce admin account Status in authentication/authorization: only admin users with Status `Active` can successfully log in and access admin/CMS protected methods used by the `/admin` dashboard.",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Add a secure admin-auth debug/test capability to validate email/password login for the seeded Super Admin (report user found, password match, hash compare method, session creation, and error reason) without exposing sensitive data.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-34",
+      "summary": "Add a backend debug method to test admin email/password authentication for a given email/password pair and return a structured debug report with: (1) user found yes/no, (2) password match yes/no, (3) hash compare method used, (4) session created yes/no, and (5) error reason if failed. The debug method must not expose the stored password hash or any other sensitive data.",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-35",
+      "summary": "Restrict the new backend admin login debug method so it cannot be called by the public internet. It must only be callable by the seeded owner Principal `7aizr-qwhrg-kuvhe-yekzz-6nj4a-t6yeb-5gnrb-pjpwy-gp2ut-up3m5-3qe` OR by an already-authenticated admin session token (if you choose a token-gated signature). Return an English 'Access denied' error (trap or variant) when unauthorized.",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-36",
+      "summary": "Temporarily allow access to the admin login debug page/route (/admin/auth-debug) without AdminGuard so login failures can be diagnosed when no admin session can be created (must be reversible/disable for production).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-38",
+      "summary": "Make the `/admin/auth-debug` page usable without an admin session by allowing the backend `debugAdminLogin(email, password, sessionToken)` method to run when debug mode is enabled, even if `sessionToken` is null/invalid; keep returning only the existing non-sensitive `AdminLoginDebugReport` fields and keep all user-facing error messages in English.",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-39",
+      "summary": "Add an owner-only backend method to enable/disable debug mode (toggle the existing `debugEnabled` flag) so this \"no-guard\" debug access can be turned off after diagnosis; ensure the flag value persists safely across upgrades according to the project’s migration policy.",
+      "reqIds": [
+        "REQ-54"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-40",
+      "summary": "Move the Super Admin seeding logic out of `system func preupgrade()` and implement a single deterministic seeding path that runs at canister startup and after upgrades, ensuring the Super Admin exists in runtime memory before any login verification can execute.",
+      "reqIds": [
+        "REQ-55"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-41",
+      "summary": "Ensure Super Admin seeding always rebuilds the password hash using the exact same runtime function used in login verification, and do not rely on any legacy/stable-stored hash value for the seeded Super Admin.",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-42",
+      "summary": "After running the seed logic, log the admin user count to the canister console to confirm that admin users loaded/seeded successfully.",
+      "reqIds": [
+        "REQ-57"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-43",
+      "summary": "Move all Super Admin seeding execution so it runs only during canister initialization (system func init) and never during upgrade lifecycle hooks.\n\n- In `backend/main.mo`, remove any Super Admin/admin seeding code that exists inside `system func preupgrade()` (if present). Remove the entire seeding block and do not leave conditional checks there.\n- In `backend/main.mo`, remove Super Admin seeding from `system func postupgrade()` (currently calls `seedSuperAdmin()`), so `postupgrade()` performs no admin seeding.\n- Add (or open if already present) `system func init()` in `backend/main.mo` and execute the seed logic there:\n  - `if (adminUsers.size() == 0) { seedSuperAdmin(); }`\n- Ensure the seeding runs only once on initial deployment and does not create duplicate Super Admin records on subsequent calls.\n- Keep any stable storage save/restore logic untouched (do not change state serialization/restore behavior).",
+      "reqIds": [
+        "REQ-58"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-44",
+      "summary": "Do not change authentication behavior other than relocating the seeding execution point.\n\n- Do not modify the password hashing function implementation (`hashPassword`).\n- Do not modify admin login verification logic/output semantics (e.g., `adminLogin`, `debugAdminLogin` comparisons and return shapes).\n- Any user-facing text introduced/changed by this change must be in English (no new non-English messages).",
+      "reqIds": [
+        "REQ-59"
       ],
       "status": "pending"
     }
