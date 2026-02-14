@@ -1,16 +1,20 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 3,
+  "projectStateVersion": 9,
   "summary": "Automotive company profile + vehicle sales website with production-ready backend/frontend separation, stable persistence (upgrade/redeploy safe), live CMS admin panel, media manager, SEO/performance, product & article interactions, and seeded content.",
   "architectural_notes": [
     "Use stable persistence only (no in-memory) and ensure upgrade/redeploy-safe data migrations with auto-restore after redeploy.",
     "Separate backend and frontend; include persistent media storage in stable storage (not blob URLs).",
     "Admin CMS at /admin with secure authentication and role-based authority.",
-    "Define stable collections for content + interactions (likes/shares/comments) and visitor statistics."
+    "Define stable collections for content + interactions (likes/shares/comments) and visitor statistics.",
+    "TanStack Router: ensure RouterProvider is rendered exactly once (avoid double RouterProvider rendering via both rootRoute component and App.tsx) to prevent production blank screen.",
+    "Storage foundation injection scope: backend-only changes for full stable persistence; do NOT modify UI or layout."
   ],
-  "known_issues": [],
+  "known_issues": [
+    "Production/live page shows blank screen after deploy due to frontend crash: project uses `next-themes` ThemeProvider even though frontend is Vite + React (not Next.js), causing app to fail before rendering.",
+    "Draft/live publish still shows white blank screen; likely caused by TanStack Router being rendered twice (RouterProvider in both rootRoute component and App.tsx), triggering an internal error and preventing render."
+  ],
   "isFixRequest": false,
-  "imageRequirements": "## Required Images\n- Automotive dealer logo mark, minimal and modern (dealer-logo.dim_512x512.png)\n- Homepage main banner slide 1, automotive showroom theme (home-banner-1.dim_1920x720.png)\n- Homepage main banner slide 2, vehicle close-up theme (home-banner-2.dim_1920x720.png)\n- Homepage main banner slide 3, service/after-sales theme (home-banner-3.dim_1920x720.png)\n- Homepage CTA banner background image, dark automotive theme (home-cta-banner.dim_1920x400.png)\n- Passenger vehicle placeholder photo (vehicle-passenger-placeholder.dim_1200x800.png)\n- Commercial vehicle placeholder photo (vehicle-commercial-placeholder.dim_1200x800.png)\n- Blog post placeholder hero image (blog-placeholder.dim_1200x630.png)\n- Testimonial customer placeholder portrait (testimonial-placeholder.dim_600x600.png)",
   "existing_features": [
     {
       "id": "feature-build-an-admin-authentication-and-authority-system-for-admin-supporting-email-password-login-multi-admin-accounts-and-role-based-access-control-seed-an-initial-super-admin-bound-to-principal-id-7aizr-qwhrg-kuvhe-yekzz-6nj4a-t6yeb-5gnrb-pjpwy-gp2ut-up3m5-3qe-as-owner-with-the-ability-to-manage-other-admins-and-roles",
@@ -195,6 +199,30 @@
         "REQ-24"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-remove-the-next-themes-dependency-usage-that-causes-the-vite-react-app-to-crash-before-rendering-and-replace-it-with-a-vite-compatible-approach-that-keeps-the-app-in-the-default-light-theme-using-the-existing-tailwind-css-variables-update-frontend-src-app-tsx-to-no-longer-import-or-render-themeprovider-from-next-themes-and-ensure-the-router-and-toaster-still-render-normally",
+      "title": "Remove the `next-themes` dependency/usage that causes the Vite React app to crash before rendering, and replace it with a Vite-compatible approach that keeps the app in the default light theme (using the existing Tailwind CSS variables). Update `frontend/src/App.tsx` to no longer import or render `ThemeProvider` from `next-themes` and ensure the router and Toaster still render normally.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-minimal-global-runtime-error-fallback-so-that-if-a-top-level-render-error-occurs-in-production-users-see-a-simple-english-message-instead-of-a-fully-blank-screen-and-developers-can-still-see-the-error-in-the-console",
+      "title": "Add a minimal global runtime error fallback so that if a top-level render error occurs in production, users see a simple English message instead of a fully blank screen, and developers can still see the error in the console.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-tanstack-router-setup-so-routerprovider-is-rendered-exactly-once-by-the-app-update-frontend-src-app-tsx-to-remove-the-routerprovider-usage-inside-the-createrootroute-component-and-replace-it-with-the-correct-root-route-rendering-e-g-an-outlet-keep-the-existing-routerprovider-in-the-app-component-as-the-single-router-mount",
+      "title": "Fix the TanStack Router setup so `RouterProvider` is rendered exactly once by the app. Update `frontend/src/App.tsx` to remove the `RouterProvider` usage inside the `createRootRoute` component and replace it with the correct root route rendering (e.g., an outlet). Keep the existing `RouterProvider` in the `App` component as the single router mount.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -275,6 +303,46 @@
       "summary": "Implement a production-ready Motoko backend with upgrade-safe stable persistence for all specified collections: passengerVehicles, commercialVehicles, promotions, testimonials, blogPosts, contacts, creditSimulations, adminUsers, visitorStats, mediaAssets, productLikes, productShares, articleLikes, articleComments. Data must survive canister upgrade, redeploy, and rebuild; implement canister lifecycle-safe storage with automatic restore after redeploy.",
       "reqIds": [
         "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Replace all in-memory collections in `backend/main.mo` with upgrade-safe stable persistence so that data survives draft rebuilds, canister upgrades, and version redeploys.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Create and persist stable collections for the following domain datasets: `passengerVehicles`, `commercialVehicles`, `promotions`, `testimonials`, `blogPosts`, `contacts`, `creditSimulations`, `adminUsers`, `visitorStats`, `mediaAssets`. Ensure the stable schema is explicitly defined and versioned to allow safe future upgrades.",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Create and persist stable interaction collections: `productLikes`, `productShares`, `articleLikes`, `articleComments`. Map or split any existing combined interaction state (e.g., a single `productInteractions` map) into these stable collections without data loss.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Implement upgrade-safe lifecycle hooks and data mapping that automatically saves to stable state on upgrade and restores on deploy/upgrade, including handling schema evolution and backward-compatible decoding from prior in-memory layouts.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Keep the backend public interface compatible with the existing frontend (no UI changes): preserve existing method names and argument/return types where currently used, and add internal mapping so existing endpoints continue to read/write the new stable collections.",
+      "reqIds": [
+        "REQ-32"
       ],
       "status": "pending"
     }

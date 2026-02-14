@@ -1,6 +1,6 @@
-import { RouterProvider, createRouter, createRoute, createRootRoute } from '@tanstack/react-router';
-import { ThemeProvider } from 'next-themes';
+import { RouterProvider, createRouter, createRoute, createRootRoute, Outlet } from '@tanstack/react-router';
 import { Toaster } from '@/components/ui/sonner';
+import GlobalErrorBoundary from './components/GlobalErrorBoundary';
 import PublicLayout from './components/layout/PublicLayout';
 import AdminLayout from './admin/AdminLayout';
 import AdminGuard from './admin/AdminGuard';
@@ -26,7 +26,7 @@ import AdminProfilePage from './admin/pages/AdminProfilePage';
 import MediaManagerPage from './admin/pages/MediaManagerPage';
 
 const rootRoute = createRootRoute({
-  component: () => <RouterProvider router={router} />
+  component: () => <Outlet />
 });
 
 const publicRoute = createRoute({
@@ -276,9 +276,9 @@ declare module '@tanstack/react-router' {
 
 export default function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+    <GlobalErrorBoundary>
       <RouterProvider router={router} />
       <Toaster />
-    </ThemeProvider>
+    </GlobalErrorBoundary>
   );
 }

@@ -7,25 +7,21 @@ import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
-  // Use MixinAuthorization for admin authentication and access control
+  include MixinStorage();
+
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
-  // Media storage
-  include MixinStorage();
-
-  // User Profile Type
   public type UserProfile = {
     name : Text;
     email : Text;
     phone : Text;
   };
 
-  let userProfiles = Map.empty<Principal, UserProfile>();
-
-  // Product Types
   public type Variant = {
     name : Text;
     priceAdjustment : Nat;
@@ -68,9 +64,6 @@ actor {
     commercialFeatures : ?CommercialVehicleFeatures;
   };
 
-  let vehicles = Map.empty<Nat, Vehicle>();
-
-  // Promotions
   public type Promotion = {
     id : Nat;
     title : Text;
@@ -80,9 +73,6 @@ actor {
     imageUrl : Text;
   };
 
-  let promotions = Map.empty<Nat, Promotion>();
-
-  // Testimonials
   public type Testimonial = {
     id : Nat;
     customerName : Text;
@@ -92,9 +82,6 @@ actor {
     imageUrl : Text;
   };
 
-  let testimonials = Map.empty<Nat, Testimonial>();
-
-  // Blog Posts
   public type BlogPost = {
     id : Nat;
     title : Text;
@@ -108,9 +95,6 @@ actor {
     likes : Nat;
   };
 
-  let blogPosts = Map.empty<Nat, BlogPost>();
-
-  // Contacts & Simulations
   public type Contact = {
     name : Text;
     address : Text;
@@ -126,10 +110,6 @@ actor {
 
   public type CreditSimulation = Contact;
 
-  let contacts = Map.empty<Nat, Contact>();
-  let creditSimulations = Map.empty<Nat, CreditSimulation>();
-
-  // Persistent Media Assets
   public type MediaAsset = {
     id : Nat;
     url : Text;
@@ -138,9 +118,6 @@ actor {
     folder : Text;
   };
 
-  let mediaAssets = Map.empty<Nat, MediaAsset>();
-
-  // Product Interactions
   public type Interaction = {
     itemId : Nat;
     likes : Nat;
@@ -150,15 +127,22 @@ actor {
     sharesTwitter : Nat;
   };
 
-  let productInteractions = Map.empty<Nat, Interaction>();
-
-  // Visitor Statistics
   public type VisitorStats = {
     totalVisitors : Nat;
     activeUsers : Nat;
     pageViews : Nat;
     todayTraffic : Nat;
   };
+
+  let userProfiles = Map.empty<Principal, UserProfile>();
+  let vehicles = Map.empty<Nat, Vehicle>();
+  let promotions = Map.empty<Nat, Promotion>();
+  let testimonials = Map.empty<Nat, Testimonial>();
+  let blogPosts = Map.empty<Nat, BlogPost>();
+  let contacts = Map.empty<Nat, Contact>();
+  let creditSimulations = Map.empty<Nat, CreditSimulation>();
+  let mediaAssets = Map.empty<Nat, MediaAsset>();
+  let productInteractions = Map.empty<Nat, Interaction>();
 
   var visitorStats : VisitorStats = {
     totalVisitors = 0;
@@ -167,7 +151,6 @@ actor {
     todayTraffic = 0;
   };
 
-  // User Profile Functions
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view profiles");
@@ -189,7 +172,6 @@ actor {
     userProfiles.add(caller, profile);
   };
 
-  // Vehicle CMS Functions (Admin Only)
   public shared ({ caller }) func createVehicle(vehicle : Vehicle) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can create vehicles");
@@ -211,7 +193,6 @@ actor {
     vehicles.remove(id);
   };
 
-  // Promotion CMS Functions (Admin Only)
   public shared ({ caller }) func createPromotion(promotion : Promotion) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can create promotions");
@@ -233,7 +214,6 @@ actor {
     promotions.remove(id);
   };
 
-  // Testimonial CMS Functions (Admin Only)
   public shared ({ caller }) func createTestimonial(testimonial : Testimonial) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can create testimonials");
@@ -255,7 +235,6 @@ actor {
     testimonials.remove(id);
   };
 
-  // Blog Post CMS Functions (Admin Only)
   public shared ({ caller }) func createBlogPost(post : BlogPost) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can create blog posts");
@@ -277,7 +256,6 @@ actor {
     blogPosts.remove(id);
   };
 
-  // Contact Functions (Public submission, Admin-only retrieval)
   public shared ({ caller }) func addContact(contact : Contact) : async () {
     let uniqueId = contacts.size() + 1;
     contacts.add(uniqueId, contact);
@@ -297,7 +275,6 @@ actor {
     contacts.remove(id);
   };
 
-  // Credit Simulation Functions (Public submission, Admin-only retrieval)
   public shared ({ caller }) func addCreditSimulation(simulation : CreditSimulation) : async () {
     let uniqueId = creditSimulations.size() + 1;
     creditSimulations.add(uniqueId, simulation);
@@ -317,7 +294,6 @@ actor {
     creditSimulations.remove(id);
   };
 
-  // Media Asset Functions (Admin Only)
   public shared ({ caller }) func createMediaAsset(asset : MediaAsset) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can create media assets");
@@ -339,8 +315,10 @@ actor {
     mediaAssets.values().toArray();
   };
 
-  // Product Interaction Functions (Public)
   public shared ({ caller }) func likeProduct(itemId : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can like products");
+    };
     let interaction = productInteractions.get(itemId);
     switch (interaction) {
       case (?existing) {
@@ -369,6 +347,9 @@ actor {
   };
 
   public shared ({ caller }) func shareProduct(itemId : Nat, platform : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can share products");
+    };
     let interaction = productInteractions.get(itemId);
     switch (interaction) {
       case (?existing) {
@@ -400,8 +381,10 @@ actor {
     productInteractions.get(itemId);
   };
 
-  // Visitor Statistics Functions
   public shared ({ caller }) func incrementPageView() : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update analytics");
+    };
     visitorStats := {
       totalVisitors = visitorStats.totalVisitors;
       activeUsers = visitorStats.activeUsers;
@@ -411,6 +394,9 @@ actor {
   };
 
   public shared ({ caller }) func incrementVisitor() : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update analytics");
+    };
     visitorStats := {
       totalVisitors = visitorStats.totalVisitors + 1;
       activeUsers = visitorStats.activeUsers;
@@ -430,7 +416,6 @@ actor {
     visitorStats := stats;
   };
 
-  // Public Data Retrieval Functions (No auth required)
   public query ({ caller }) func getVehicles() : async [Vehicle] {
     vehicles.values().toArray();
   };
