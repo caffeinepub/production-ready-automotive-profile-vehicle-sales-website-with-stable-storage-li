@@ -1,0 +1,776 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Automotive dealer public site + admin CMS (frontend-only plan)",
+  "requirements": [
+    {
+      "id": "REQ-2",
+      "summary": "Admin authentication UX for /admin with session persistence and role-gated UI.",
+      "acceptanceCriteria": [
+        "Visiting /admin shows a login screen when unauthenticated.",
+        "Authenticated admins can log out and sessions persist across refreshes (until logout).",
+        "Only authorized roles can access protected admin actions; unauthorized calls are rejected by the backend.",
+        "The seeded super-admin (by the provided Principal ID) can create/update/disable other admins and assign roles."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "create",
+          "description": "Create the top-level app shell with routing that includes /admin routes and wraps protected admin areas with an admin guard that checks backend role state. Use the selected authorization component patterns on the frontend (role checks via actor.getCallerUserRole()/actor.isCallerAdmin()) and handle authorization failures gracefully. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/AdminGuard.tsx",
+          "operation": "create",
+          "description": "Add an admin-only guard wrapper that checks actor.isCallerAdmin() and renders either the admin app, a login screen, or an access denied view based on authentication/role state. Use selected authorization component guidance for login/logout cache clearing via react-query. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/pages/AdminLoginPage.tsx",
+          "operation": "create",
+          "description": "Implement an admin login screen UI for email + password, including success/error states and a persistent session strategy (e.g., store session marker/token in sessionStorage/localStorage). Integrate with authorization flows (Internet Identity-based principal session + backend role) as needed for RBAC, while keeping the UI aligned with the BuildRequest. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/components/AdminTopBar.tsx",
+          "operation": "create",
+          "description": "Add an admin top bar with logout action that clears cached queries and session markers; shows the current admin name if available via getCallerUserProfile(). Use selected authorization component recommendations for clearing cached data on logout. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Live CMS admin panel at /admin with CRUD views and draft/publish controls wired to backend data.",
+      "acceptanceCriteria": [
+        "Each CMS section supports create, edit, delete, and list views with search/filter where sensible.",
+        "Draft items are not shown on public pages; Published items are shown.",
+        "Edits persist after canister upgrade and are visible on the public site without manual seeding.",
+        "Leads (contacts/credit simulations) are readable in admin and immutable/auditable (no silent data loss)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/admin/AdminLayout.tsx",
+          "operation": "create",
+          "description": "Create an admin layout for /admin with sidebar navigation to required CMS sections (vehicles, promotions, testimonials, blog posts, leads/contacts, credit simulations, visitor statistics, admin profile, media). Use shadcn-ui layout primitives for consistent styling. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/pages/DashboardPage.tsx",
+          "operation": "create",
+          "description": "Implement an admin dashboard landing view showing high-level counts and quick links to CMS sections, driven by react-query calls to backend read capabilities."
+        },
+        {
+          "path": "frontend/src/admin/pages/VehiclesAdminPage.tsx",
+          "operation": "create",
+          "description": "Implement create/edit/delete/list UI for vehicles, including separating Passenger vs Commercial, and supporting draft/publish workflow UI that maps to backend fields/state (public pages must only show Published). Use shadcn-ui Table, Dialog, Form controls. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/pages/PromotionsAdminPage.tsx",
+          "operation": "create",
+          "description": "Implement promotions CRUD (list/search, create/edit, publish toggle, delete) using backend promotion capabilities; include banner/image selection via Media Manager."
+        },
+        {
+          "path": "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
+          "operation": "create",
+          "description": "Implement testimonials CRUD with publish/unpublish moderation UI and image selection via Media Manager."
+        },
+        {
+          "path": "frontend/src/admin/pages/BlogAdminPage.tsx",
+          "operation": "create",
+          "description": "Implement blog CRUD with draft/publish workflow UI, SEO fields (seoTitle/seoDescription), and image selection via Media Manager; include moderation UI for comments if/when backend capability is available."
+        },
+        {
+          "path": "frontend/src/admin/pages/LeadsAdminPage.tsx",
+          "operation": "create",
+          "description": "Implement read-only/auditable admin views for Contacts and Credit Simulations (list + detail), with search/filter and export-friendly presentation; avoid destructive edits beyond explicitly supported delete actions."
+        },
+        {
+          "path": "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
+          "operation": "create",
+          "description": "Implement visitor stats inspection and (if enabled) adjustment UI using getVisitorStats()/updateVisitorStats(), with confirmation dialogs for edits. Use shadcn-ui Form and Dialog components. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/pages/AdminProfilePage.tsx",
+          "operation": "create",
+          "description": "Implement Admin User Profile UI backed by getCallerUserProfile()/saveCallerUserProfile(); include name/email/phone fields as per backend types."
+        },
+        {
+          "path": "frontend/src/admin/pages/AdminUsersPage.tsx",
+          "operation": "create",
+          "description": "Implement UI for super-admin to manage other admins and roles (list principals, assign roles). Use backend role assignment capability and show role badges. Use selected authorization component patterns for RBAC UI (only show to admins). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/hooks/useAdminData.ts",
+          "operation": "create",
+          "description": "Create react-query hooks for CMS collections (vehicles, promotions, testimonials, blog posts, contacts, credit simulations, visitor stats, media assets) and mutations for create/update/delete flows, with cache invalidation."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire admin routes under /admin (login + guarded admin layout + section routes) into the router so CMS pages are navigable and not orphaned."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Admin Media Manager UI for upload/replace/delete and folder grouping; render assets via retrievable URLs.",
+      "acceptanceCriteria": [
+        "Admin can upload an image and see it listed in the media manager with filename, type, size, and folder.",
+        "Replacing an asset keeps a stable reference (or clearly updates references) and the frontend renders the latest version.",
+        "Deleting an asset removes it from listing and prevents further public access.",
+        "Uploaded media remains available after canister upgrade."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/admin/pages/MediaManagerPage.tsx",
+          "operation": "create",
+          "description": "Implement the Media Manager UI (list/grid, folder filter, upload, replace, delete, details panel). Use the selected blob-storage component on the frontend to manage ExternalBlob uploads and to display assets via direct URLs for streaming/caching. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/components/MediaPickerDialog.tsx",
+          "operation": "create",
+          "description": "Create a reusable media picker dialog used across admin forms (vehicles, promotions, blog posts, testimonials) to choose an existing media asset or upload a new one, returning the selected asset URL/id."
+        },
+        {
+          "path": "frontend/src/admin/hooks/useMediaAssets.ts",
+          "operation": "create",
+          "description": "Add react-query hooks for getMediaAssets() and mutations for create/delete/replace flows; ensure cache invalidation updates all consuming forms and public pages."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire Media Manager navigation/route within /admin so it is reachable from the admin sidebar."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Public routing + navigation for required pages with a consistent red hero and bottom CTA section on every page.",
+      "acceptanceCriteria": [
+        "All listed routes render and are reachable via the navbar.",
+        "Every page displays a consistent hero section with #C90010 background and a 150px height on mobile breakpoints.",
+        "Every page includes a consistent bottom CTA section component.",
+        "Navigation state reflects the active route."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Implement public routes: /, /mobil-keluarga, /mobil-niaga, /promo, /testimoni, /blog, /kontak, plus required dynamic detail routes for vehicles and blog posts. Ensure all are reachable via navbar and bottom menu."
+        },
+        {
+          "path": "frontend/src/components/layout/PublicLayout.tsx",
+          "operation": "create",
+          "description": "Create a public layout that renders the sticky Navbar, a consistent HeroSection, the page content, a BottomCTASection area, the Bottom CTA Bar, and the Footer across all public pages."
+        },
+        {
+          "path": "frontend/src/components/sections/HeroSection.tsx",
+          "operation": "create",
+          "description": "Implement the required hero section with background #C90010 and responsive sizing, ensuring 150px height on mobile breakpoints."
+        },
+        {
+          "path": "frontend/src/components/sections/BottomCTASection.tsx",
+          "operation": "create",
+          "description": "Implement a reusable bottom CTA section rendered above the footer on every page (distinct from the fixed Bottom CTA Bar)."
+        },
+        {
+          "path": "frontend/src/pages/HomePage.tsx",
+          "operation": "create",
+          "description": "Create the Home page route component and ensure it renders within PublicLayout (so it inherits hero + bottom CTA section)."
+        },
+        {
+          "path": "frontend/src/pages/PassengerVehiclesPage.tsx",
+          "operation": "create",
+          "description": "Create the Passenger Vehicles listing page route component and ensure it renders within PublicLayout."
+        },
+        {
+          "path": "frontend/src/pages/CommercialVehiclesPage.tsx",
+          "operation": "create",
+          "description": "Create the Commercial Vehicles listing page route component and ensure it renders within PublicLayout."
+        },
+        {
+          "path": "frontend/src/pages/PromoPage.tsx",
+          "operation": "create",
+          "description": "Create the Promo page route component and ensure it renders within PublicLayout."
+        },
+        {
+          "path": "frontend/src/pages/TestimonialsPage.tsx",
+          "operation": "create",
+          "description": "Create the Testimonials page route component and ensure it renders within PublicLayout."
+        },
+        {
+          "path": "frontend/src/pages/BlogListPage.tsx",
+          "operation": "create",
+          "description": "Create the Blog listing page route component and ensure it renders within PublicLayout."
+        },
+        {
+          "path": "frontend/src/pages/ContactPage.tsx",
+          "operation": "create",
+          "description": "Create the Contact page route component and ensure it renders within PublicLayout."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Sticky responsive Navbar with specified layout, sizes, colors, and CTA behavior.",
+      "acceptanceCriteria": [
+        "Navbar is sticky and maintains a solid #262729 background at initial load and during scroll.",
+        "Desktop layout matches: logo left, menus center/right, CTA at far right.",
+        "Mobile layout uses hamburger menu to reveal navigation; height is 64px.",
+        "CTA button triggers WhatsApp contact and/or navigates to Contact page."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/navigation/Navbar.tsx",
+          "operation": "create",
+          "description": "Implement the sticky Navbar with background #262729, desktop height 80px, mobile height 64px, centered menu layout, hamburger drawer on mobile, and a right-aligned CTA that opens WhatsApp deep link and/or routes to /kontak. Use shadcn-ui primitives for menu/drawer where appropriate. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/layout/PublicLayout.tsx",
+          "operation": "modify",
+          "description": "Wire the Navbar into the public layout so it appears on every public route and active route state is reflected."
+        },
+        {
+          "path": "frontend/public/assets/generated/dealer-logo.dim_512x512.png",
+          "operation": "create",
+          "description": "Add the generated dealer logo asset to be used in the Navbar and Footer at frontend/public/assets/generated/dealer-logo.dim_512x512.png."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Footer with dealer/contact/social sections and visitor stats display on all public pages.",
+      "acceptanceCriteria": [
+        "Footer renders on all public pages with the specified sections and styling.",
+        "Visitor stats values are loaded from backend stable storage and displayed in the footer.",
+        "Contact fields match the provided identity values.",
+        "Social links are present and open in a new tab (placeholder URLs acceptable if none provided)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/layout/Footer.tsx",
+          "operation": "create",
+          "description": "Implement the footer with background #262729, dealer logo + description, contact info populated with Name Fuad, WhatsApp 0852-1234-0778, Email fuadmitsubishi2025@gmail.com, Address Jl. Raya Subang No. 123, Subang, Jawa Barat 41211, operating hours, social links (new tab), and a visitor stats block."
+        },
+        {
+          "path": "frontend/src/hooks/useVisitorStats.ts",
+          "operation": "create",
+          "description": "Create a react-query hook that loads visitor statistics from the backend and provides refresh/caching behavior for footer display."
+        },
+        {
+          "path": "frontend/src/components/layout/PublicLayout.tsx",
+          "operation": "modify",
+          "description": "Wire Footer into PublicLayout so it renders on all public routes."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Sticky Bottom CTA Bar with four actions and slide-up multi-level main menu.",
+      "acceptanceCriteria": [
+        "Bottom bar is visible and sticky on mobile and does not overlap critical content (content is padded accordingly).",
+        "Tapping Main Menu opens a slide-up menu; tapping outside closes it.",
+        "Call triggers a tel: link; WhatsApp triggers a wa.me/deeplink to the configured WhatsApp number; Credit Simulation navigates to the credit simulation section/page; Main Menu navigates to routes.",
+        "Colors match the provided hex values and each action shows icon + label."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/navigation/BottomCtaBar.tsx",
+          "operation": "create",
+          "description": "Implement fixed bottom CTA bar with 4 actions: Call (#C90010), WhatsApp (#398E3D), Credit Simulation (#FEA500), Main Menu (#0166C0), including icon + label, full backgrounds, shadow divider, rounded top corners, and safe-area padding. Use shadcn-ui Dialog/Sheet components for the slide-up menu with smooth transitions and outside-tap close. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/navigation/MainMenuSheet.tsx",
+          "operation": "create",
+          "description": "Implement the slide-up dropdown menu with multilevel menus for Passenger and Commercial categories and links to the specified routes; ensure outside click closes and transitions are smooth."
+        },
+        {
+          "path": "frontend/src/components/layout/PublicLayout.tsx",
+          "operation": "modify",
+          "description": "Wire the Bottom CTA Bar into the public layout and add bottom padding/margin to main content so the bar does not overlap critical content."
+        }
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "summary": "CMS-driven Home page sections including banners, featured products, search, and latest 5 blog posts.",
+      "acceptanceCriteria": [
+        "Home page renders all listed sections in the given order and is responsive.",
+        "Banner slider rotates through CMS-configurable PNG images (seeded placeholders acceptable).",
+        "Search bar filters products (at least Passenger + Commercial) by name and shows results.",
+        "Latest blog list shows 5 most recent Published posts with title, excerpt, date, and image."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/HomePage.tsx",
+          "operation": "modify",
+          "description": "Implement Home page sections in the required order: main banner slider (PNG), featured products highlight grid, CTA banner image on #262729 background, About Us section with #F1C40F background, feature section, WhatsApp CTA section, featured products section, search bar, and latest 5 Published blog posts; ensure all content is driven by backend data and supports placeholders."
+        },
+        {
+          "path": "frontend/src/components/home/HomeBannerSlider.tsx",
+          "operation": "create",
+          "description": "Create a banner slider component that can display a list of PNG images, supports autoplay/controls, and can be configured from CMS data with fallbacks to generated placeholders."
+        },
+        {
+          "path": "frontend/src/components/home/HomeSearchBar.tsx",
+          "operation": "create",
+          "description": "Implement a search bar that filters combined Passenger + Commercial vehicles by name using already-fetched vehicles data (or via query), and renders results responsively."
+        },
+        {
+          "path": "frontend/src/hooks/usePublicContent.ts",
+          "operation": "create",
+          "description": "Add react-query hooks for public content needed on Home (vehicles, promotions, latest blog posts) and shared loading/error states."
+        },
+        {
+          "path": "frontend/public/assets/generated/home-banner-1.dim_1920x720.png",
+          "operation": "create",
+          "description": "Add generated home banner slide asset at frontend/public/assets/generated/home-banner-1.dim_1920x720.png for Home slider fallback."
+        },
+        {
+          "path": "frontend/public/assets/generated/home-banner-2.dim_1920x720.png",
+          "operation": "create",
+          "description": "Add generated home banner slide asset at frontend/public/assets/generated/home-banner-2.dim_1920x720.png for Home slider fallback."
+        },
+        {
+          "path": "frontend/public/assets/generated/home-banner-3.dim_1920x720.png",
+          "operation": "create",
+          "description": "Add generated home banner slide asset at frontend/public/assets/generated/home-banner-3.dim_1920x720.png for Home slider fallback."
+        },
+        {
+          "path": "frontend/public/assets/generated/home-cta-banner.dim_1920x400.png",
+          "operation": "create",
+          "description": "Add generated Home CTA banner background asset at frontend/public/assets/generated/home-cta-banner.dim_1920x400.png for CTA section fallback."
+        }
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "summary": "Passenger Vehicles listing page with responsive grid and card actions.",
+      "acceptanceCriteria": [
+        "Grid column counts match the specified breakpoints.",
+        "Each vehicle card includes image, name, short description, starting price, consult CTA, and detail link.",
+        "Only Published vehicles appear on the listing.",
+        "Data is loaded from backend and persists across upgrades."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/PassengerVehiclesPage.tsx",
+          "operation": "modify",
+          "description": "Implement passenger vehicles listing with a 4/3/2 responsive grid, filter to Published passenger vehicles, and render vehicle cards with photo, name, description, starting price, consult CTA, and Detail button linking to the passenger detail route."
+        },
+        {
+          "path": "frontend/src/components/vehicles/VehicleCard.tsx",
+          "operation": "create",
+          "description": "Create a reusable vehicle card component used by passenger and commercial listings; include consult CTA (WhatsApp) and detail link; support rendering badge/labels where relevant."
+        },
+        {
+          "path": "frontend/public/assets/generated/vehicle-passenger-placeholder.dim_1200x800.png",
+          "operation": "create",
+          "description": "Add generated passenger vehicle placeholder image at frontend/public/assets/generated/vehicle-passenger-placeholder.dim_1200x800.png for cards/details when CMS media is missing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "summary": "Commercial Vehicles page with three fixed category groupings and badge rendering.",
+      "acceptanceCriteria": [
+        "Commercial page displays the three category groupings and lists the specified types under each grouping.",
+        "Commercial vehicle cards show photo, name, description, starting price, consult CTA, and detail link.",
+        "Admin can toggle the specified badge options for a commercial vehicle; selected badges render on the public card/detail UI.",
+        "Only Published commercial vehicles appear on the listing."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/CommercialVehiclesPage.tsx",
+          "operation": "modify",
+          "description": "Implement the commercial vehicles page with three category sections: Light Duty (17 types), Medium Duty (10 types), Tractor Head (2 types) as specified, each with a 4/3/2 responsive grid. Render CMS-driven vehicles within each grouping and show selected badges on cards."
+        },
+        {
+          "path": "frontend/src/admin/pages/VehiclesAdminPage.tsx",
+          "operation": "modify",
+          "description": "Extend the commercial vehicle editor UI to include checkbox fields that map to commercial badge options per category: Light Duty (Economical, Power, Speed, Capacity, Bus), Medium Duty (4x2, 6x2, 6x4), Tractor Head (4x2, 6x4). Render selected options back into public UI. Verify shadcn-ui component usage instructions before implementing."
+        },
+        {
+          "path": "frontend/public/assets/generated/vehicle-commercial-placeholder.dim_1200x800.png",
+          "operation": "create",
+          "description": "Add generated commercial vehicle placeholder image at frontend/public/assets/generated/vehicle-commercial-placeholder.dim_1200x800.png for cards/details when CMS media is missing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "summary": "Promo page showing CMS-driven promotions with banner, description, period, and terms.",
+      "acceptanceCriteria": [
+        "Promo list renders Published promotions with banner image, period, and key details.",
+        "Admin can create/edit/delete promotions and control draft/publish status.",
+        "Promo content persists after canister upgrade."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/PromoPage.tsx",
+          "operation": "modify",
+          "description": "Implement the promo listing UI driven by backend promotions data; render banner image, description, validUntil period, and terms & conditions; display only Published items."
+        },
+        {
+          "path": "frontend/src/admin/pages/PromotionsAdminPage.tsx",
+          "operation": "modify",
+          "description": "Ensure promotions admin UI supports banner selection (via Media Manager), editing description/terms/period, publish toggle, and delete."
+        }
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "summary": "Testimonials page listing CMS-driven testimonials with placeholders.",
+      "acceptanceCriteria": [
+        "Testimonials page lists Published testimonials with image, name, city, and review.",
+        "Admin can moderate and publish/unpublish testimonials.",
+        "Seeded testimonials are visible on first run."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/TestimonialsPage.tsx",
+          "operation": "modify",
+          "description": "Implement testimonials list UI with customer photo placeholder support, name, city, and review text; show only Published testimonials."
+        },
+        {
+          "path": "frontend/public/assets/generated/testimonial-placeholder.dim_600x600.png",
+          "operation": "create",
+          "description": "Add generated testimonial placeholder portrait at frontend/public/assets/generated/testimonial-placeholder.dim_600x600.png for seeded testimonials and templates."
+        }
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "summary": "Blog listing + detail pages with SEO metadata and interactions (like/share/comments) UI.",
+      "acceptanceCriteria": [
+        "Blog list shows Published posts with title, date, excerpt, and image.",
+        "Blog detail page displays content and sets meta title/description based on post fields.",
+        "Users can like and share posts; counts persist in stable storage.",
+        "Users can submit comments; comments are stored with a moderation status and are not publicly visible until approved by admin."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/BlogListPage.tsx",
+          "operation": "modify",
+          "description": "Implement blog listing UI driven by backend posts; render title, publishDate, excerpt, and image; only show Published posts; link to detail pages."
+        },
+        {
+          "path": "frontend/src/pages/BlogDetailPage.tsx",
+          "operation": "create",
+          "description": "Implement blog detail UI that renders content and an interactions section (like/share/comments submission); set meta title/description from post seoTitle/seoDescription."
+        },
+        {
+          "path": "frontend/src/components/blog/BlogInteractions.tsx",
+          "operation": "create",
+          "description": "Create a blog interactions component that renders like/share/comment UI, displays counts, and submits comment forms; integrate with backend interaction capabilities when available and show pending moderation status messaging."
+        },
+        {
+          "path": "frontend/src/hooks/useSeoMeta.tsx",
+          "operation": "create",
+          "description": "Add a small SEO helper that sets per-route meta title/description (CMS-driven where applicable), using a document head management approach compatible with the existing app (e.g., react-helmet-async provider in App)."
+        },
+        {
+          "path": "frontend/public/assets/generated/blog-placeholder.dim_1200x630.png",
+          "operation": "create",
+          "description": "Add generated blog placeholder hero image at frontend/public/assets/generated/blog-placeholder.dim_1200x630.png for seeded posts and templates."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire blog detail route (e.g., /blog/:id) and ensure navigation from the blog list works and is not orphaned."
+        }
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "summary": "Contact page with persisted contact form, configurable Google Maps iframe embed, and sales consultant profile.",
+      "acceptanceCriteria": [
+        "Submitting the contact form creates a new contacts record in stable storage and is visible in the admin Leads/Contacts section.",
+        "Form validates required fields (at minimum: name, phone or email, message) and shows success/error states.",
+        "Map embed renders via iframe and can be changed in admin settings/content.",
+        "Sales consultant profile shows Fuad’s name, WhatsApp number, email, and address."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ContactPage.tsx",
+          "operation": "modify",
+          "description": "Implement the contact form with required validations and success/error states, submitting via actor.addContact(); display phone/email/address/operating hours; embed Google Maps via an iframe using a CMS-configurable embed string (with safe rendering constraints); render sales consultant profile using the provided identity values."
+        },
+        {
+          "path": "frontend/src/components/forms/ContactForm.tsx",
+          "operation": "create",
+          "description": "Create a reusable contact form component shared by Contact and (optionally) Credit Simulation; include fields specified and enforce minimum required fields (name + phone/email + message). Use shadcn-ui Form/Input/Textarea components for consistent styling. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/pages/LeadsAdminPage.tsx",
+          "operation": "modify",
+          "description": "Ensure the admin leads view clearly lists contacts submissions (including date/unit/DP/tenor/notes) and provides immutable/auditable viewing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-16",
+      "summary": "Credit Simulation submission flow accessible from Bottom CTA Bar and stored as creditSimulations.",
+      "acceptanceCriteria": [
+        "Users can open a credit simulation form and submit it successfully.",
+        "Each submission is stored in stable storage with a timestamp and appears in admin.",
+        "Credit simulation entries persist after canister upgrade."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/forms/CreditSimulationForm.tsx",
+          "operation": "create",
+          "description": "Implement a credit simulation form (same fields as contacts + timestamp) submitting via actor.addCreditSimulation(); include validation and success/error states; designed for display as a modal/sheet from the Bottom CTA Bar."
+        },
+        {
+          "path": "frontend/src/components/navigation/BottomCtaBar.tsx",
+          "operation": "modify",
+          "description": "Wire the Credit Simulation action to open the credit simulation form (modal/sheet) and/or navigate to the credit simulation section on /kontak, matching the BuildRequest behavior."
+        },
+        {
+          "path": "frontend/src/admin/pages/LeadsAdminPage.tsx",
+          "operation": "modify",
+          "description": "Ensure credit simulation submissions are listed in admin alongside contacts, with filtering tabs and detail viewing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "summary": "Vehicle like/share interaction UI with share targets and stable counts.",
+      "acceptanceCriteria": [
+        "Liking a product increments a stored counter or creates a user action record in stable storage (design must be consistent across products).",
+        "Share UI offers WhatsApp/Facebook/X/Copy Link and records share events in stable storage.",
+        "Interaction counts/events persist after canister upgrade."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/interactions/ProductInteractions.tsx",
+          "operation": "create",
+          "description": "Create a reusable ProductInteractions component for vehicle cards/details with Love/Like and Share actions; share targets include WhatsApp, Facebook, Twitter/X, and Copy Link; call actor.likeProduct(itemId) and actor.shareProduct(itemId, platform) and display counts from actor.getProductInteraction(itemId)."
+        },
+        {
+          "path": "frontend/src/pages/PassengerVehicleDetailPage.tsx",
+          "operation": "create",
+          "description": "Add passenger vehicle detail page UI and include ProductInteractions for likes/shares."
+        },
+        {
+          "path": "frontend/src/pages/CommercialVehicleDetailPage.tsx",
+          "operation": "create",
+          "description": "Add commercial vehicle detail page UI and include ProductInteractions for likes/shares."
+        },
+        {
+          "path": "frontend/src/components/vehicles/VehicleCard.tsx",
+          "operation": "modify",
+          "description": "Optionally include compact ProductInteractions on listing cards (or ensure interactions are present at least on detail pages) while keeping layout responsive."
+        }
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "summary": "Passenger Vehicle detail page with variant + color selection rules, gallery, tabs, CTAs, and brochure download.",
+      "acceptanceCriteria": [
+        "Passenger vehicle detail allows selecting variant and color; unavailable options are disabled/hidden per the defined rules.",
+        "Price display updates automatically when selecting a color with an additional price.",
+        "Main image updates when changing color (when images are provided per color).",
+        "Brochure download works via media asset (PDF) stored in the media manager."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/PassengerVehicleDetailPage.tsx",
+          "operation": "modify",
+          "description": "Implement passenger vehicle detail UI: variant selector (Ultimate/Exceed/GLS), color selector (up to 10), enforce rules (e.g., Lunar Blue only for Ultimate; premium-only constraints), auto-update image (when provided per color) and auto-calculate displayed price (base + adjustments). Include gallery, specs tabs, features tabs, CTA buttons, and brochure download link."
+        },
+        {
+          "path": "frontend/src/components/vehicles/PassengerVariantColorSelector.tsx",
+          "operation": "create",
+          "description": "Create a variant/color selector component that supports rule-based availability, price adjustments, and emitting selected state to the detail page."
+        },
+        {
+          "path": "frontend/src/components/vehicles/SpecsTabs.tsx",
+          "operation": "create",
+          "description": "Implement specs/features tab UI for vehicle detail pages using shadcn-ui Tabs. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/pages/VehiclesAdminPage.tsx",
+          "operation": "modify",
+          "description": "Extend passenger vehicle editor UI to manage variants and color entries (up to 10) including premium-only constraints and (where applicable) per-color image selection and price adjustments; wire brochure selection to Media Manager (PDF)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "summary": "Commercial Vehicle detail page with static image, chassis price label, specs, features, optional gallery, CTAs, and brochure download.",
+      "acceptanceCriteria": [
+        "Commercial vehicle detail has no color or variant selector and displays exactly one primary image.",
+        "Chassis price is required in admin and displayed on the public detail page.",
+        "Optional price note displays when present.",
+        "CTA buttons navigate to contact/credit simulation and brochure download uses a media asset."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/CommercialVehicleDetailPage.tsx",
+          "operation": "modify",
+          "description": "Implement commercial vehicle detail UI with white background, exactly one static primary image, required chassis price label display, optional price note display, technical specs, key features, optional additional gallery, and CTA buttons (Contact Sales, Credit Simulation, Download Brochure). Render admin-defined chassis labels/badges without enabling color switching."
+        },
+        {
+          "path": "frontend/src/admin/pages/VehiclesAdminPage.tsx",
+          "operation": "modify",
+          "description": "Ensure admin editor enforces commercial constraints in UI (no color/variant switching UI), supports required chassis price input, optional price note, and badge/label configuration; wire brochure selection to Media Manager."
+        }
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "summary": "Visitor statistics tracking on route visits and display in footer with admin inspection.",
+      "acceptanceCriteria": [
+        "Visiting pages increments page view counters and contributes to today traffic totals.",
+        "Total visitors counter increases based on a defined rule (e.g., unique principal/session).",
+        "Active users is computed or estimated and displayed in the footer.",
+        "Admin can view the counters in /admin and changes persist after upgrade if editing is enabled."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useVisitorTracking.ts",
+          "operation": "create",
+          "description": "Implement a lightweight visitor tracking hook that calls actor.incrementPageView() on route changes and calls actor.incrementVisitor() based on a defined client-side rule (e.g., once per browser session using sessionStorage)."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire visitor tracking into the app router layer so public navigation triggers page view increments without requiring page reload."
+        },
+        {
+          "path": "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
+          "operation": "modify",
+          "description": "Ensure admin can inspect (and if enabled) adjust counters using the visitor stats admin page."
+        }
+      ]
+    },
+    {
+      "id": "REQ-21",
+      "summary": "Display seeded CMS content on public pages and ensure admin can edit it.",
+      "acceptanceCriteria": [
+        "On first run, the Blog page shows at least 6 seeded posts (Published or Draft as configured) and each has an image.",
+        "Testimonials page shows 6 seeded testimonials (Published or Draft as configured) with images.",
+        "Admin can edit and republish seeded items.",
+        "Seeded data persists across canister upgrade."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/BlogListPage.tsx",
+          "operation": "modify",
+          "description": "Ensure the blog list gracefully renders seeded posts (including placeholder images) and clearly distinguishes Draft vs Published content (Draft must not appear publicly)."
+        },
+        {
+          "path": "frontend/src/pages/TestimonialsPage.tsx",
+          "operation": "modify",
+          "description": "Ensure the testimonials page renders seeded testimonials with placeholder images; hide Draft testimonials from public listing."
+        },
+        {
+          "path": "frontend/src/admin/pages/BlogAdminPage.tsx",
+          "operation": "modify",
+          "description": "Ensure seeded blog posts are editable in admin with image selection and publish toggling."
+        },
+        {
+          "path": "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
+          "operation": "modify",
+          "description": "Ensure seeded testimonials are editable/moderatable in admin with image selection and publish toggling."
+        }
+      ]
+    },
+    {
+      "id": "REQ-22",
+      "summary": "Wire AI-generated placeholder media into templates and ensure they are replaceable through Media Manager references.",
+      "acceptanceCriteria": [
+        "Seeded items reference placeholder images that render on the public site.",
+        "Admin can replace a placeholder image via the media manager and the public site updates accordingly.",
+        "Placeholder assets are tracked as mediaAssets in stable storage."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/media/MediaImage.tsx",
+          "operation": "create",
+          "description": "Create a small image wrapper component that renders either a CMS-provided media URL (from Media Manager) or a local generated placeholder asset; supports lazy loading and consistent aspect ratios."
+        },
+        {
+          "path": "frontend/src/pages/HomePage.tsx",
+          "operation": "modify",
+          "description": "Use MediaImage to render banners and section imagery with fallbacks to generated assets and ensure the source can be swapped to a CMS media asset without breaking the UI."
+        },
+        {
+          "path": "frontend/src/pages/PassengerVehiclesPage.tsx",
+          "operation": "modify",
+          "description": "Use MediaImage in vehicle cards/listing to fallback to frontend/public/assets/generated/vehicle-passenger-placeholder.dim_1200x800.png when CMS imageUrl is empty."
+        },
+        {
+          "path": "frontend/src/pages/CommercialVehiclesPage.tsx",
+          "operation": "modify",
+          "description": "Use MediaImage in vehicle cards/listing to fallback to frontend/public/assets/generated/vehicle-commercial-placeholder.dim_1200x800.png when CMS imageUrl is empty."
+        },
+        {
+          "path": "frontend/src/pages/BlogListPage.tsx",
+          "operation": "modify",
+          "description": "Use MediaImage for blog images with fallback to frontend/public/assets/generated/blog-placeholder.dim_1200x630.png."
+        },
+        {
+          "path": "frontend/src/pages/TestimonialsPage.tsx",
+          "operation": "modify",
+          "description": "Use MediaImage for testimonial portraits with fallback to frontend/public/assets/generated/testimonial-placeholder.dim_600x600.png."
+        }
+      ]
+    },
+    {
+      "id": "REQ-23",
+      "summary": "SEO + performance optimizations: per-page meta, lazy-loading, image optimization strategy, and responsiveness.",
+      "acceptanceCriteria": [
+        "Each public route sets an appropriate meta title and description (CMS-driven when applicable).",
+        "Images below the fold are lazy-loaded and do not block initial render.",
+        "All pages are responsive and pass basic Lighthouse checks for performance best practices (no blocking oversized images, reasonable layout)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useSeoMeta.tsx",
+          "operation": "modify",
+          "description": "Ensure meta title/description are set per route, using CMS-driven values when available (blog detail uses seoTitle/seoDescription, promo/testimonial listing uses sensible defaults)."
+        },
+        {
+          "path": "frontend/src/components/media/MediaImage.tsx",
+          "operation": "modify",
+          "description": "Add lazy-loading defaults (loading='lazy' where applicable), explicit width/height or aspect ratio handling to reduce layout shift, and a strategy for serving appropriately sized images when possible."
+        },
+        {
+          "path": "frontend/src/pages/HomePage.tsx",
+          "operation": "modify",
+          "description": "Apply lazy rendering for below-the-fold lists/sections (e.g., latest blog list) and avoid blocking large images in initial render."
+        },
+        {
+          "path": "frontend/src/pages/BlogDetailPage.tsx",
+          "operation": "modify",
+          "description": "Ensure blog detail sets SEO meta and renders content efficiently (lazy-load images within rich content if applicable)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-24",
+      "summary": "Apply a cohesive automotive dealer theme across the frontend respecting required color constants and avoiding blue+purple as the primary palette.",
+      "acceptanceCriteria": [
+        "The app uses a consistent typography scale, spacing system, and button/input styles across pages.",
+        "Required brand colors are applied exactly where specified, and the overall theme remains visually cohesive.",
+        "No global primary theme is based on a blue+purple combination."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "create",
+          "description": "Create global styles (Tailwind base + CSS variables if needed) defining a cohesive theme: typography scale, spacing defaults, and component tokens. Ensure required colors are respected (#C90010 hero/Call, #262729 navbar/footer, #F1C40F About section, CTA bar colors) and avoid a blue+purple primary palette."
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Extend Tailwind theme tokens with named brand colors (dealerRed, dealerBlack, dealerYellow, ctaGreen, ctaOrange, ctaBlue) and ensure consistent usage across components."
+        },
+        {
+          "path": "frontend/src/components/ui/README.md",
+          "operation": "create",
+          "description": "Add a brief note for developers explaining that shadcn-ui components under frontend/src/components/ui are immutable per constraints and theme styling must be applied via Tailwind tokens and composition (do not edit the ui components). Verify the selected shadcn-ui component usage instructions before implementing."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,286 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Automotive company profile + vehicle sales website with production-ready backend/frontend separation, stable persistence (upgrade/redeploy safe), live CMS admin panel, media manager, SEO/performance, product & article interactions, and seeded content.",
+  "architectural_notes": [
+    "Use stable persistence only (no in-memory) and ensure upgrade/redeploy-safe data migrations with auto-restore after redeploy.",
+    "Separate backend and frontend; include persistent media storage in stable storage (not blob URLs).",
+    "Admin CMS at /admin with secure authentication and role-based authority.",
+    "Define stable collections for content + interactions (likes/shares/comments) and visitor statistics."
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "imageRequirements": "## Required Images\n- Automotive dealer logo mark, minimal and modern (dealer-logo.dim_512x512.png)\n- Homepage main banner slide 1, automotive showroom theme (home-banner-1.dim_1920x720.png)\n- Homepage main banner slide 2, vehicle close-up theme (home-banner-2.dim_1920x720.png)\n- Homepage main banner slide 3, service/after-sales theme (home-banner-3.dim_1920x720.png)\n- Homepage CTA banner background image, dark automotive theme (home-cta-banner.dim_1920x400.png)\n- Passenger vehicle placeholder photo (vehicle-passenger-placeholder.dim_1200x800.png)\n- Commercial vehicle placeholder photo (vehicle-commercial-placeholder.dim_1200x800.png)\n- Blog post placeholder hero image (blog-placeholder.dim_1200x630.png)\n- Testimonial customer placeholder portrait (testimonial-placeholder.dim_600x600.png)",
+  "existing_features": [
+    {
+      "id": "feature-build-an-admin-authentication-and-authority-system-for-admin-supporting-email-password-login-multi-admin-accounts-and-role-based-access-control-seed-an-initial-super-admin-bound-to-principal-id-7aizr-qwhrg-kuvhe-yekzz-6nj4a-t6yeb-5gnrb-pjpwy-gp2ut-up3m5-3qe-as-owner-with-the-ability-to-manage-other-admins-and-roles",
+      "title": "Build an admin authentication and authority system for /admin supporting email + password login, multi-admin accounts, and role-based access control. Seed an initial super-admin bound to Principal ID `7aizr-qwhrg-kuvhe-yekzz-6nj4a-t6yeb-5gnrb-pjpwy-gp2ut-up3m5-3qe` (as owner) with the ability to manage other admins and roles.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-live-cms-admin-panel-at-route-admin-that-provides-crud-draft-publish-workflows-for-passenger-vehicles-mobil-keluarga-commercial-vehicles-mobil-niaga-promotions-testimonials-blog-posts-leads-contacts-credit-simulations-visitor-statistics-counters-and-admin-user-profile-the-cms-must-be-wired-to-stable-persistence-so-changes-are-immediately-reflected-on-public-pages",
+      "title": "Implement a live CMS admin panel at route /admin that provides CRUD + draft/publish workflows for: Passenger Vehicles (Mobil Keluarga), Commercial Vehicles (Mobil Niaga), Promotions, Testimonials, Blog Posts, Leads/Contacts, Credit Simulations, Visitor Statistics counters, and Admin User Profile. The CMS must be wired to stable persistence so changes are immediately reflected on public pages.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-stable-media-storage-system-media-manager-backed-by-the-canister-supporting-png-jpg-webp-and-pdf-with-upload-replace-delete-and-folder-grouping-media-must-be-persisted-in-stable-storage-not-blob-urls-and-returned-as-retrievable-urls-streams-for-frontend-display-download-include-automatic-compression-for-images-where-feasible",
+      "title": "Implement a stable media storage system (Media Manager) backed by the canister, supporting PNG, JPG, WebP, and PDF with upload, replace, delete, and folder grouping. Media must be persisted in stable storage (not blob URLs) and returned as retrievable URLs/streams for frontend display/download. Include automatic compression for images where feasible.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-the-public-site-routing-and-navigation-structure-with-pages-and-paths-home-passenger-vehicles-mobil-keluarga-commercial-vehicles-mobil-niaga-promo-promo-testimonials-testimoni-blog-blog-contact-kontak-all-pages-must-include-a-red-hero-section-c90010-with-150px-height-on-mobile-and-a-bottom-cta-section",
+      "title": "Create the public site routing and navigation structure with pages and paths: Home (/), Passenger Vehicles (/mobil-keluarga), Commercial Vehicles (/mobil-niaga), Promo (/promo), Testimonials (/testimoni), Blog (/blog), Contact (/kontak). All pages must include a red hero section (#C90010) with 150px height on mobile and a bottom CTA section.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-sticky-responsive-navbar-ui-background-262729-desktop-height-80px-with-logo-on-the-left-menu-centered-right-and-a-right-aligned-cta-button-whatsapp-contact-mobile-height-64px-with-hamburger-menu-and-sticky-behavior-solid-background-both-at-top-and-on-scroll",
+      "title": "Build a sticky responsive Navbar UI: background #262729; desktop height 80px with logo on the left, menu centered/right, and a right-aligned CTA button (WhatsApp / Contact); mobile height 64px with hamburger menu and sticky behavior; solid background both at top and on scroll.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-footer-with-background-262729-and-sections-dealer-logo-description-contact-info-address-whatsapp-email-operating-hours-social-links-facebook-instagram-twitter-x-tiktok-youtube-visitor-statistics-total-visitors-active-users-page-views-today-traffic-and-copyright-populate-contact-identity-with-name-fuad-whatsapp-0852-1234-0778-email-fuadmitsubishi2025-gmail-com-address-jl-raya-subang-no-123-subang-jawa-barat-41211",
+      "title": "Implement the footer with background #262729 and sections: dealer logo + description; Contact info (address, WhatsApp, email, operating hours); Social links (Facebook, Instagram, Twitter/X, TikTok, YouTube); Visitor statistics (total visitors, active users, page views, today traffic); and copyright. Populate contact identity with: Name Fuad, WhatsApp 0852-1234-0778, Email fuadmitsubishi2025@gmail.com, Address Jl. Raya Subang No. 123, Subang, Jawa Barat 41211.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-sticky-bottom-cta-bar-fixed-to-the-bottom-of-the-viewport-with-4-actions-call-c90010-whatsapp-398e3d-credit-simulation-fea500-main-menu-0166c0-include-icon-label-full-color-backgrounds-shadow-divider-and-rounded-top-corners-the-main-menu-opens-a-slide-up-dropdown-with-smooth-transitions-and-closes-on-outside-tap-it-lists-the-specified-navigation-items-and-supports-multilevel-menus-for-passenger-and-commercial-categories",
+      "title": "Implement a sticky Bottom CTA Bar fixed to the bottom of the viewport with 4 actions: Call (#C90010), WhatsApp (#398E3D), Credit Simulation (#FEA500), Main Menu (#0166C0). Include icon + label, full color backgrounds, shadow divider, and rounded top corners. The Main Menu opens a slide-up dropdown with smooth transitions and closes on outside tap; it lists the specified navigation items and supports multilevel menus for Passenger and Commercial categories.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-home-page-sections-main-banner-slider-png-images-featured-products-highlight-grid-cta-banner-image-on-262729-background-about-us-section-with-f1c40f-background-a-feature-section-whatsapp-cta-section-featured-products-section-search-bar-and-the-5-latest-blog-articles-list-all-content-must-be-cms-driven-and-support-placeholder-images",
+      "title": "Implement the Home page sections: main banner slider (PNG images), featured products highlight grid, CTA banner image on #262729 background, About Us section with #F1C40F background, a feature section, WhatsApp CTA section, featured products section, search bar, and the 5 latest blog articles list. All content must be CMS-driven and support placeholder images.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-passenger-vehicles-listing-page-mobil-keluarga-with-a-responsive-grid-4-columns-desktop-3-tablet-2-mobile-each-card-shows-photo-name-description-starting-price-a-consult-cta-and-a-detail-button-linking-to-the-passenger-vehicle-detail-page",
+      "title": "Implement Passenger Vehicles listing page (/mobil-keluarga) with a responsive grid (4 columns desktop, 3 tablet, 2 mobile). Each card shows photo, name, description, starting price, a Consult CTA, and a Detail button linking to the passenger vehicle detail page.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-commercial-vehicles-page-mobil-niaga-with-three-category-sections-cards-light-duty-17-types-medium-duty-10-types-tractor-head-2-types-exactly-as-listed-include-grid-listing-4-3-2-responsive-in-the-cms-editor-for-commercial-vehicles-add-checkbox-fields-to-apply-label-badge-options-per-category-light-duty-economical-power-speed-capacity-bus-medium-duty-4x2-6x2-6x4-tractor-head-4x2-6x4",
+      "title": "Implement Commercial Vehicles page (/mobil-niaga) with three category sections/cards: Light Duty (17 types), Medium Duty (10 types), Tractor Head (2 types) exactly as listed; include grid listing (4/3/2 responsive). In the CMS editor for commercial vehicles, add checkbox fields to apply label/badge options per category: Light Duty (Economical, Power, Speed, Capacity, Bus), Medium Duty (4x2, 6x2, 6x4), Tractor Head (4x2, 6x4).",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-promo-page-promo-with-cms-driven-promo-items-including-banner-description-period-and-terms-conditions",
+      "title": "Implement Promo page (/promo) with CMS-driven promo items including banner, description, period, and terms & conditions.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-testimonials-page-testimoni-showing-cms-driven-testimonials-with-customer-photo-placeholder-name-city-and-review-text",
+      "title": "Implement Testimonials page (/testimoni) showing CMS-driven testimonials with customer photo placeholder, name, city, and review text.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-blog-listing-page-blog-and-blog-post-detail-pages-with-cms-driven-content-seo-friendly-metadata-title-description-images-and-an-interactions-section-like-share-comments-as-specified-the-blog-list-must-display-latest-posts-and-support-navigation-to-detail-pages",
+      "title": "Implement Blog listing page (/blog) and blog post detail pages with CMS-driven content, SEO-friendly metadata (title/description), images, and an interactions section (like/share/comments) as specified. The blog list must display latest posts and support navigation to detail pages.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-contact-page-kontak-with-a-contact-form-stored-in-stable-storage-contacts-collection-using-fields-name-address-phone-number-email-message-unit-down-payment-tenor-notes-date-show-phone-email-address-operating-hours-embed-google-maps-via-an-iframe-embed-configurable-in-cms-and-display-a-sales-consultant-profile-using-the-provided-contact-identity",
+      "title": "Implement Contact page (/kontak) with: a contact form stored in stable storage (contacts collection) using fields Name, Address, Phone Number, Email, Message, Unit, Down Payment, Tenor, Notes, Date; show phone/email/address/operating hours; embed Google Maps via an iframe embed (configurable in CMS); and display a sales consultant profile using the provided contact identity.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-credit-simulation-flow-accessible-from-the-bottom-cta-bar-that-stores-submissions-in-creditsimulations-using-the-same-fields-as-contacts-plus-a-timestamp-admin-can-view-and-manage-these-leads-in-the-cms",
+      "title": "Add a Credit Simulation flow accessible from the bottom CTA bar that stores submissions in creditSimulations using the same fields as contacts plus a timestamp. Admin can view and manage these leads in the CMS.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-product-interaction-system-for-vehicles-like-love-icon-and-share-actions-stored-in-stable-storage-for-both-passenger-and-commercial-vehicle-detail-pages-and-or-listings-share-targets-must-include-whatsapp-facebook-twitter-x-and-copy-link",
+      "title": "Implement product interaction system for vehicles: Like (love icon) and Share actions stored in stable storage for both passenger and commercial vehicle detail pages and/or listings. Share targets must include WhatsApp, Facebook, Twitter/X, and Copy Link.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-passenger-vehicle-detail-pages-with-a-dynamic-variant-color-system-managed-via-admin-variants-ultimate-exceed-gls-colors-quartz-white-pearl-3-000-000-blade-silver-metallic-graphite-gray-metallic-jet-black-mica-lunar-blue-mica-expandable-up-to-10-colors-enforce-rules-lunar-blue-only-available-for-ultimate-premium-only-constraint-must-be-supported-as-an-admin-controlled-rule-selecting-variant-color-auto-changes-image-and-auto-calculates-price-include-gallery-specs-tabs-features-tabs-cta-buttons-and-brochure-download",
+      "title": "Implement Passenger Vehicle detail pages with a dynamic variant + color system managed via admin: variants (Ultimate, Exceed, GLS), colors (Quartz White Pearl +3,000,000; Blade Silver Metallic; Graphite Gray Metallic; Jet Black Mica; Lunar Blue Mica), expandable up to 10 colors. Enforce rules: Lunar Blue only available for Ultimate; Premium-only constraint must be supported as an admin-controlled rule; selecting variant/color auto-changes image and auto-calculates price. Include gallery, specs tabs, features tabs, CTA buttons, and brochure download.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-commercial-vehicle-detail-pages-with-fixed-image-no-color-variant-switcher-white-background-chassis-price-label-required-optional-price-note-technical-specs-key-features-optional-additional-gallery-and-cta-buttons-contact-sales-credit-simulation-download-brochure-support-admin-defined-labels-badges-for-chassis-variants-e-g-fn62-fighter-without-enabling-color-switching",
+      "title": "Implement Commercial Vehicle detail pages with fixed image (no color/variant switcher), white background, chassis price label (required), optional price note, technical specs, key features, optional additional gallery, and CTA buttons (Contact Sales, Credit Simulation, Download Brochure). Support admin-defined labels/badges for chassis variants (e.g., FN62, Fighter) without enabling color switching.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-visitor-statistics-tracking-persisted-in-stable-storage-including-total-visitors-active-users-page-views-and-today-traffic-display-these-stats-in-the-footer-and-provide-an-admin-view-to-inspect-and-if-required-adjust-counters",
+      "title": "Implement visitor statistics tracking persisted in stable storage, including: total visitors, active users, page views, and today traffic. Display these stats in the footer and provide an admin view to inspect and (if required) adjust counters.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-seed-the-cms-with-initial-content-6-blog-posts-200-300-words-each-seo-optimized-on-the-provided-topics-with-placeholder-images-and-6-testimonials-with-photo-placeholder-name-city-review-text-matching-the-provided-list-seed-content-must-be-stored-in-stable-persistence-and-editable-via-admin",
+      "title": "Seed the CMS with initial content: 6 blog posts (200–300 words each, SEO-optimized) on the provided topics with placeholder images; and 6 testimonials (with photo placeholder, name, city, review text) matching the provided list. Seed content must be stored in stable persistence and editable via admin.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-generate-ai-placeholder-media-and-wire-it-into-seeded-content-and-templates-placeholder-images-for-vehicles-blog-posts-and-testimonials-placeholders-must-be-replaceable-through-the-admin-media-manager-without-breaking-references",
+      "title": "Generate AI placeholder media and wire it into seeded content and templates: placeholder images for vehicles, blog posts, and testimonials. Placeholders must be replaceable through the admin media manager without breaking references.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-seo-and-performance-optimizations-across-public-pages-per-page-meta-title-and-meta-description-image-optimization-strategy-lazy-loading-for-images-lists-fast-loading-best-practices-and-mobile-responsiveness",
+      "title": "Implement SEO and performance optimizations across public pages: per-page meta title and meta description, image optimization strategy, lazy-loading for images/lists, fast loading best practices, and mobile responsiveness.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-define-and-apply-one-coherent-visual-theme-across-the-entire-frontend-colors-typography-spacing-component-styling-that-fits-an-automotive-dealer-brand-and-respects-the-required-color-constants-c90010-hero-call-262729-navbar-footer-f1c40f-about-section-and-cta-bar-colors-avoid-using-a-blue-purple-primary-palette",
+      "title": "Define and apply one coherent visual theme across the entire frontend (colors, typography, spacing, component styling) that fits an automotive dealer brand and respects the required color constants (#C90010 hero/Call, #262729 navbar/footer, #F1C40F About section, and CTA bar colors). Avoid using a blue+purple primary palette.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Core system foundation with stable persistence storage (not in-memory), upgrade-safe mapping, canister lifecycle-safe storage, and auto-restore after redeploy",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Frontend site structure with main navigation pages (Beranda, Mobil Keluarga, Mobil Niaga, Promo, Testimoni, Blog, Kontak) including red hero section and bottom CTA section on all pages",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Navbar UI/UX (sticky) for desktop/mobile with specified colors, layout, and CTA button (WhatsApp/Hubungi Kami)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Footer structure with contact info, social links, visitor statistics, and copyright",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Sticky bottom CTA bar with Call/WhatsApp/Simulasi Kredit/Main Menu + dropdown and animations",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Page implementations: Beranda sections, Mobil Keluarga listing grid, Mobil Niaga category cards + listing grid, Promo, Testimoni, Kontak (form + maps + sales consultant profile)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Stable storage database collections for vehicles, promotions, testimonials, blog posts, contacts, credit simulations, admin users, visitor stats, media assets, and interaction collections (likes/shares/comments)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Admin panel / live CMS at /admin with secure login, multi-admin roles/authority, CRUD for all content types, draft/publish, and visitor stats management",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Media storage system (stable media manager) supporting PNG/JPG/WebP/PDF with upload/replace/delete, folders, and auto-compression",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Interaction systems: product likes/shares and article likes/shares/comments with admin moderation; share targets include WhatsApp/Facebook/X/copy link",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Product detail pages: passenger vehicles with variants/colors (rules + auto price/image), commercial vehicles with static image/no colors, chassis price fields, CTAs, and brochure download",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "SEO & performance optimization (meta tags, image optimization, lazy load, fast loading, mobile responsive) + seed content generation (6 blog articles, 6 testimonials) and AI placeholder media for vehicles/blog/testimonials",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Implement a production-ready Motoko backend with upgrade-safe stable persistence for all specified collections: passengerVehicles, commercialVehicles, promotions, testimonials, blogPosts, contacts, creditSimulations, adminUsers, visitorStats, mediaAssets, productLikes, productShares, articleLikes, articleComments. Data must survive canister upgrade, redeploy, and rebuild; implement canister lifecycle-safe storage with automatic restore after redeploy.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Production-ready automotive profile + vehicle sales website with stable storage, live CMS admin, media manager, and interactions",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

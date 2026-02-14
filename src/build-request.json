@@ -1,0 +1,494 @@
+{
+  "kind": "build_request",
+  "title": "Production-ready automotive profile + vehicle sales website with stable storage, live CMS admin, media manager, and interactions",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Implement a production-ready Motoko backend with upgrade-safe stable persistence for all specified collections: passengerVehicles, commercialVehicles, promotions, testimonials, blogPosts, contacts, creditSimulations, adminUsers, visitorStats, mediaAssets, productLikes, productShares, articleLikes, articleComments. Data must survive canister upgrade, redeploy, and rebuild; implement canister lifecycle-safe storage with automatic restore after redeploy.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "Use STABLE PERSISTENCE ONLY.\n\nCollections:\n\n• passengerVehicles\n• commercialVehicles\n• promotions\n• testimonials\n• blogPosts\n• contacts\n• creditSimulations\n• adminUsers\n• visitorStats\n• mediaAssets\n\nInteraction collections:\n\n• productLikes\n• productShares\n• articleLikes\n• articleComments\n\nRules:\n\n• Auto‑save stable\n• Upgrade safe\n• Redeploy safe"
+        ]
+      },
+      "acceptanceCriteria": [
+        "After uploading/creating sample records in each collection, a canister upgrade preserves all data and the app continues functioning without manual intervention.",
+        "After redeploy/reinstall (where state is expected to remain via stable structures in the canister lifecycle), records are restored and visible in the UI.",
+        "All collections have typed IDs, createdAt/updatedAt timestamps where applicable, and deterministic serialization in stable storage.",
+        "No content is stored only in in-memory variables without being reflected in stable persistence."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Build an admin authentication and authority system for /admin supporting email + password login, multi-admin accounts, and role-based access control. Seed an initial super-admin bound to Principal ID `7aizr-qwhrg-kuvhe-yekzz-6nj4a-t6yeb-5gnrb-pjpwy-gp2ut-up3m5-3qe` (as owner) with the ability to manage other admins and roles.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "ADMIN PANEL (LIVE CMS)\n\nURL: /admin\n\nLogin:\n\n• Email\n• Password\n• Secure authentication\n\n...\n\n• Multi admin\n• Role authority",
+          "Principal ID: 7aizr-qwhrg-kuvhe-yekzz-6nj4a-t6yeb-5gnrb-pjpwy-gp2ut-up3m5-3qe"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Visiting /admin shows a login screen when unauthenticated.",
+        "Authenticated admins can log out and sessions persist across refreshes (until logout).",
+        "Only authorized roles can access protected admin actions; unauthorized calls are rejected by the backend.",
+        "The seeded super-admin (by the provided Principal ID) can create/update/disable other admins and assign roles."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Implement a live CMS admin panel at route /admin that provides CRUD + draft/publish workflows for: Passenger Vehicles (Mobil Keluarga), Commercial Vehicles (Mobil Niaga), Promotions, Testimonials, Blog Posts, Leads/Contacts, Credit Simulations, Visitor Statistics counters, and Admin User Profile. The CMS must be wired to stable persistence so changes are immediately reflected on public pages.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "Dashboard CRUD:\n\n1. Mobil Keluarga\n\n2. Mobil Niaga\n\n3. Promo\n\n4. Testimoni\n\n5. Blog\n\n6. Leads / Kontak\n\n7. Statistik Pengunjung (all counters)\n\n8. Admin User Profile\n\n\n\nFeatures:\n\n• Upload media\n• Draft / Publish\n• Delete\n• Multi admin\n• Role authority"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each CMS section supports create, edit, delete, and list views with search/filter where sensible.",
+        "Draft items are not shown on public pages; Published items are shown.",
+        "Edits persist after canister upgrade and are visible on the public site without manual seeding.",
+        "Leads (contacts/credit simulations) are readable in admin and immutable/auditable (no silent data loss)."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Implement a stable media storage system (Media Manager) backed by the canister, supporting PNG, JPG, WebP, and PDF with upload, replace, delete, and folder grouping. Media must be persisted in stable storage (not blob URLs) and returned as retrievable URLs/streams for frontend display/download. Include automatic compression for images where feasible.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "MEDIA STORAGE SYSTEM\n\nStable Media Manager.\n\nSupports:\n\n• PNG\n• JPG\n• WebP\n• PDF\n\nFeatures:\n\n• Upload\n• Replace\n• Delete\n• Folder grouping\n• Auto compression\n\nAll media stored in stable storage — NOT blob URL."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin can upload an image and see it listed in the media manager with filename, type, size, and folder.",
+        "Replacing an asset keeps a stable reference (or clearly updates references) and the frontend renders the latest version.",
+        "Deleting an asset removes it from listing and prevents further public access.",
+        "Uploaded media remains available after canister upgrade."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Create the public site routing and navigation structure with pages and paths: Home (/), Passenger Vehicles (/mobil-keluarga), Commercial Vehicles (/mobil-niaga), Promo (/promo), Testimonials (/testimoni), Blog (/blog), Contact (/kontak). All pages must include a red hero section (#C90010) with 150px height on mobile and a bottom CTA section.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "Create main Navigation Bar menus:\n\n1. Beranda → /\n\n\n2. Mobil Keluarga → /mobil-keluarga\n\n\n3. Mobil Niaga → /mobil-niaga\n\n\n4. Promo → /promo\n\n\n5. Testimoni → /testimoni\n\n\n6. Blog → /blog\n\n\n7. Hubungi Kami → /kontak\n\n\n\nAll pages must include:\n\n• Red Hero Section (#C90010)\n• Height: 150px (Mobile)\n• Bottom CTA Section"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All listed routes render and are reachable via the navbar.",
+        "Every page displays a consistent hero section with #C90010 background and a 150px height on mobile breakpoints.",
+        "Every page includes a consistent bottom CTA section component.",
+        "Navigation state reflects the active route."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Build a sticky responsive Navbar UI: background #262729; desktop height 80px with logo on the left, menu centered/right, and a right-aligned CTA button (WhatsApp / Contact); mobile height 64px with hamburger menu and sticky behavior; solid background both at top and on scroll.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "NAVBAR UI / UX\n\nColor: Hitam (#262729)\n\nDesktop:\n\n• Height: 80px\n• Logo left\n• Menu center/right\n• CTA button right (WhatsApp / Hubungi Kami)\n• Sticky navbar\n• Solid background (top & scroll)\n\nMobile:\n\n• Height: 64px\n• Hamburger menu\n• Sticky enabled"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Navbar is sticky and maintains a solid #262729 background at initial load and during scroll.",
+        "Desktop layout matches: logo left, menus center/right, CTA at far right.",
+        "Mobile layout uses hamburger menu to reveal navigation; height is 64px.",
+        "CTA button triggers WhatsApp contact and/or navigates to Contact page."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Implement the footer with background #262729 and sections: dealer logo + description; Contact info (address, WhatsApp, email, operating hours); Social links (Facebook, Instagram, Twitter/X, TikTok, YouTube); Visitor statistics (total visitors, active users, page views, today traffic); and copyright. Populate contact identity with: Name Fuad, WhatsApp 0852-1234-0778, Email fuadmitsubishi2025@gmail.com, Address Jl. Raya Subang No. 123, Subang, Jawa Barat 41211.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "FOOTER STRUCTURE\n\nColor: Hitam (#262729)\n\nContent:\n\n• Logo + dealer description\n• Kontak Kami:\n\nAlamat\n\nWhatsApp\n\nEmail\n\nJam Operasional\n\n\n• Ikuti Kami:\n\nFacebook\n\nInstagram\n\nTwitter/X\n\nTikTok\n\nYouTube\n\n\n• Statistik Pengunjung:\n\nTotal pengunjung\n\nPengguna aktif\n\nPage views\n\nTrafik hari ini\n\n\n• Copyright",
+          "CONTACT IDENTITY\n\nNama: Fuad\nWhatsApp: 0852‑1234‑0778\nEmail: fuadmitsubishi2025@gmail.com\nAlamat: Jl. Raya Subang No. 123, Subang, Jawa Barat 41211"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Footer renders on all public pages with the specified sections and styling.",
+        "Visitor stats values are loaded from backend stable storage and displayed in the footer.",
+        "Contact fields match the provided identity values.",
+        "Social links are present and open in a new tab (placeholder URLs acceptable if none provided)."
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Implement a sticky Bottom CTA Bar fixed to the bottom of the viewport with 4 actions: Call (#C90010), WhatsApp (#398E3D), Credit Simulation (#FEA500), Main Menu (#0166C0). Include icon + label, full color backgrounds, shadow divider, and rounded top corners. The Main Menu opens a slide-up dropdown with smooth transitions and closes on outside tap; it lists the specified navigation items and supports multilevel menus for Passenger and Commercial categories.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "BOTTOM CTA BAR (STICKY)\n\nMenus:\n\n1. Call — Merah #C90010\n\n\n2. WhatsApp — Hijau #398E3D\n\n\n3. Simulasi Kredit — Orange #FEA500\n\n\n4. Main Menu — Biru #0166C0\n\n\n\nFeatures:\n\n• Sticky fixed bottom\n• Icon + label\n• Full color background\n• Shadow divider\n• Rounded top\n\nMain Menu dropdown:\n\n• Beranda\n• Mobil Keluarga (multilevel)\n• Mobil Niaga (multilevel)\n• Promo\n• Testimoni\n• Blog\n• Kontak\n\nAnimation:\n\n• Slide up\n• Smooth transition\n• Close on outside tap"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Bottom bar is visible and sticky on mobile and does not overlap critical content (content is padded accordingly).",
+        "Tapping Main Menu opens a slide-up menu; tapping outside closes it.",
+        "Call triggers a tel: link; WhatsApp triggers a wa.me/deeplink to the configured WhatsApp number; Credit Simulation navigates to the credit simulation section/page; Main Menu navigates to routes.",
+        "Colors match the provided hex values and each action shows icon + label."
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Implement the Home page sections: main banner slider (PNG images), featured products highlight grid, CTA banner image on #262729 background, About Us section with #F1C40F background, a feature section, WhatsApp CTA section, featured products section, search bar, and the 5 latest blog articles list. All content must be CMS-driven and support placeholder images.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "BERANDA\n\n• Main banner slider (PNG)\n• Highlight produk unggulan grid\n• CTA banner PNG (background Hitam (#262729))\n• Tentang Kami (bg kuning #F1C40F)\n• Feature section\n• CTA WhatsApp\n• Produk unggulan\n• Search bar\n• 5 artikel terbaru\n• Footer"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Home page renders all listed sections in the given order and is responsive.",
+        "Banner slider rotates through CMS-configurable PNG images (seeded placeholders acceptable).",
+        "Search bar filters products (at least Passenger + Commercial) by name and shows results.",
+        "Latest blog list shows 5 most recent Published posts with title, excerpt, date, and image."
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "text": "Implement Passenger Vehicles listing page (/mobil-keluarga) with a responsive grid (4 columns desktop, 3 tablet, 2 mobile). Each card shows photo, name, description, starting price, a Consult CTA, and a Detail button linking to the passenger vehicle detail page.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "MOBIL KELUARGA\n\nGrid listing:\n\n• 4 desktop\n• 3 tablet\n• 2 mobile\n\nCard content:\n\n• Foto\n• Nama\n• Deskripsi\n• Harga mulai\n• CTA Konsultasi\n• Tombol Detail"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Grid column counts match the specified breakpoints.",
+        "Each vehicle card includes image, name, short description, starting price, consult CTA, and detail link.",
+        "Only Published vehicles appear on the listing.",
+        "Data is loaded from backend and persists across upgrades."
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "text": "Implement Commercial Vehicles page (/mobil-niaga) with three category sections/cards: Light Duty (17 types), Medium Duty (10 types), Tractor Head (2 types) exactly as listed; include grid listing (4/3/2 responsive). In the CMS editor for commercial vehicles, add checkbox fields to apply label/badge options per category: Light Duty (Economical, Power, Speed, Capacity, Bus), Medium Duty (4x2, 6x2, 6x4), Tractor Head (4x2, 6x4).",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "MOBIL NIAGA STRUCTURE\n\n3 Category Cards:\n\nI. Light Duty — 17 Tipe\n\nCanter FE 71\n...\nCanter FE 84G BC\n\nII. Medium Duty — 10 Tipe\n\nFighter X FM65FM Hi‑Gear\n...\nFighter X FN62FL HD R\n\nIII. Tractor Head — 2 Tipe\n\nFighter X FM65F TH\nFighter X FN62F TH\n\n-\n\nGrid listing:\n\n• 4 desktop\n• 3 tablet\n• 2 mobile\n\n...\n\nAdd cekbox option in editor admin panel for label or badge:\n\n• Light Duty \n\nEconomical\n\nPower\n\nSpeed\n\nCapacity\n\nBus\n\n\n• Medium Duty \n\n4 x 2\n\n6 x 2\n\n6 x 4\n\n\n• Tractor Head \n\n4 x 2\n\n6 x 4"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Commercial page displays the three category groupings and lists the specified types under each grouping.",
+        "Commercial vehicle cards show photo, name, description, starting price, consult CTA, and detail link.",
+        "Admin can toggle the specified badge options for a commercial vehicle; selected badges render on the public card/detail UI.",
+        "Only Published commercial vehicles appear on the listing."
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "text": "Implement Promo page (/promo) with CMS-driven promo items including banner, description, period, and terms & conditions.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "PROMO\n\n• Banner\n• Deskripsi\n• Periode\n• S&K"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Promo list renders Published promotions with banner image, period, and key details.",
+        "Admin can create/edit/delete promotions and control draft/publish status.",
+        "Promo content persists after canister upgrade."
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "text": "Implement Testimonials page (/testimoni) showing CMS-driven testimonials with customer photo placeholder, name, city, and review text.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "TESTIMONI\n\n• Foto customer\n• Nama\n• Kota\n• Review"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Testimonials page lists Published testimonials with image, name, city, and review.",
+        "Admin can moderate and publish/unpublish testimonials.",
+        "Seeded testimonials are visible on first run."
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "text": "Implement Blog listing page (/blog) and blog post detail pages with CMS-driven content, SEO-friendly metadata (title/description), images, and an interactions section (like/share/comments) as specified. The blog list must display latest posts and support navigation to detail pages.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "ARTICLE INTERACTION SYSTEM\n\nIcons:\n\n• Like\n• Share\n• Comment\n\nComment fields:\n\nNama • Email • Komentar • Tanggal • Status\n\nAdmin moderation enabled.",
+          "SEO & PERFORMANCE\n\n• Meta title\n• Meta description\n• Image optimization\n• Lazy load\n• Fast loading\n• Mobile responsive"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Blog list shows Published posts with title, date, excerpt, and image.",
+        "Blog detail page displays content and sets meta title/description based on post fields.",
+        "Users can like and share posts; counts persist in stable storage.",
+        "Users can submit comments; comments are stored with a moderation status and are not publicly visible until approved by admin."
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "text": "Implement Contact page (/kontak) with: a contact form stored in stable storage (contacts collection) using fields Name, Address, Phone Number, Email, Message, Unit, Down Payment, Tenor, Notes, Date; show phone/email/address/operating hours; embed Google Maps via an iframe embed (configurable in CMS); and display a sales consultant profile using the provided contact identity.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "KONTAK\n\n• Form kontak\n• Telepon\n• Email\n• Alamat showroom\n• Jam operasional\n• Google Maps embed\n• Sales consultant profile",
+          "**Contacts → **contacts\n\nFields: Nama • Alamat • No HP • Email • Pesan • Unit • DP • Tenor • Catatan • Tanggal"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Submitting the contact form creates a new contacts record in stable storage and is visible in the admin Leads/Contacts section.",
+        "Form validates required fields (at minimum: name, phone or email, message) and shows success/error states.",
+        "Map embed renders via iframe and can be changed in admin settings/content.",
+        "Sales consultant profile shows Fuad’s name, WhatsApp number, email, and address."
+      ]
+    },
+    {
+      "id": "REQ-16",
+      "text": "Add a Credit Simulation flow accessible from the bottom CTA bar that stores submissions in creditSimulations using the same fields as contacts plus a timestamp. Admin can view and manage these leads in the CMS.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "Simulasi → **creditSimulations\n\nSame fields + timestamp.",
+          "BOTTOM CTA BAR (STICKY)\n\n...\n\n3. Simulasi Kredit — Orange #FEA500"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Users can open a credit simulation form and submit it successfully.",
+        "Each submission is stored in stable storage with a timestamp and appears in admin.",
+        "Credit simulation entries persist after canister upgrade."
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "text": "Implement product interaction system for vehicles: Like (love icon) and Share actions stored in stable storage for both passenger and commercial vehicle detail pages and/or listings. Share targets must include WhatsApp, Facebook, Twitter/X, and Copy Link.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "PRODUCT INTERACTION SYSTEM\n\nIcons:\n\n• Love (Like)\n• Share\n\nStored in stable database.\n\nShare targets:\n\n• WhatsApp\n• Facebook\n• Twitter/X\n• Copy link"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Liking a product increments a stored counter or creates a user action record in stable storage (design must be consistent across products).",
+        "Share UI offers WhatsApp/Facebook/X/Copy Link and records share events in stable storage.",
+        "Interaction counts/events persist after canister upgrade."
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "text": "Implement Passenger Vehicle detail pages with a dynamic variant + color system managed via admin: variants (Ultimate, Exceed, GLS), colors (Quartz White Pearl +3,000,000; Blade Silver Metallic; Graphite Gray Metallic; Jet Black Mica; Lunar Blue Mica), expandable up to 10 colors. Enforce rules: Lunar Blue only available for Ultimate; Premium-only constraint must be supported as an admin-controlled rule; selecting variant/color auto-changes image and auto-calculates price. Include gallery, specs tabs, features tabs, CTA buttons, and brochure download.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "MOBIL KELUARGA\n\nDynamic variant + color system.\n\nVariants: • Ultimate\n• Exceed\n• GLS\n\nColors: • Quartz White Pearl (+3jt)\n• Blade Silver Metallic\n• Graphite Gray Metallic\n• Jet Black Mica\n• Lunar Blue Mica\n\nExpandable up to 10 colors in panel admin. \n\nRules:\n\n• Lunar Blue only Ultimate\n• Premium only Ultimate\n• Image auto change\n• Price auto calculate\n\nIncludes:\n\n• Gallery\n• Specs tabs\n• Features tabs\n• CTA buttons\n• Download brochure"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Passenger vehicle detail allows selecting variant and color; unavailable options are disabled/hidden per the defined rules.",
+        "Price display updates automatically when selecting a color with an additional price.",
+        "Main image updates when changing color (when images are provided per color).",
+        "Brochure download works via media asset (PDF) stored in the media manager."
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "text": "Implement Commercial Vehicle detail pages with fixed image (no color/variant switcher), white background, chassis price label (required), optional price note, technical specs, key features, optional additional gallery, and CTA buttons (Contact Sales, Credit Simulation, Download Brochure). Support admin-defined labels/badges for chassis variants (e.g., FN62, Fighter) without enabling color switching.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "MOBIL NIAGA\n\n1️⃣ Struktur Halaman Detail\n\nElemen wajib:\n\n• Judul Produk / Unit\n• Deskripsi Singkat\n• Gambar Produk (Static / Non‑Interactive)\n• Background putih\n• Label Harga: Harga Chasis\n• Spesifikasi Teknis\n• Fitur Unggulan\n• Galeri Tambahan (opsional)\n\nCTA Buttons:\n\n• Hubungi Sales\n• Simulasi Kredit\n• Download Brosur\n\n2️⃣ Aturan Warna & Varian\n\nKhusus Fuso / Niaga:\n\n❌ Tidak ada pilihan warna\n❌ Tidak ada varian warna\n❌ Tidak ada opsi Premium / Ultimate\n❌ Tidak ada image color switcher\n\nArtinya:\n\n1 Unit = 1 gambar tetap.\n\nJika ada varian sasis (FN62, Fighter, dll) → gunakan label/badge admin.\n\n3️⃣ Sistem Harga\n\nField Admin:\n\n• Harga Chasis (Required)\n• Keterangan Harga (Optional)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Commercial vehicle detail has no color or variant selector and displays exactly one primary image.",
+        "Chassis price is required in admin and displayed on the public detail page.",
+        "Optional price note displays when present.",
+        "CTA buttons navigate to contact/credit simulation and brochure download uses a media asset."
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "text": "Implement visitor statistics tracking persisted in stable storage, including: total visitors, active users, page views, and today traffic. Display these stats in the footer and provide an admin view to inspect and (if required) adjust counters.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "Statistik Pengunjung:\n\nTotal pengunjung\n\nPengguna aktif\n\nPage views\n\nTrafik hari ini",
+          "Dashboard CRUD:\n\n...\n\n7. Statistik Pengunjung (all counters)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Visiting pages increments page view counters and contributes to today traffic totals.",
+        "Total visitors counter increases based on a defined rule (e.g., unique principal/session).",
+        "Active users is computed or estimated and displayed in the footer.",
+        "Admin can view the counters in /admin and changes persist after upgrade if editing is enabled."
+      ]
+    },
+    {
+      "id": "REQ-21",
+      "text": "Seed the CMS with initial content: 6 blog posts (200–300 words each, SEO-optimized) on the provided topics with placeholder images; and 6 testimonials (with photo placeholder, name, city, review text) matching the provided list. Seed content must be stored in stable persistence and editable via admin.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "SEED CONTENT GENERATION\n\n6 Blog Articles\n\nTopics:\n\n1. Keunggulan Mitsubishi untuk keluarga\n\n\n2. Perawatan mobil diesel\n\n\n3. Perbandingan SUV vs MPV\n\n\n4. Teknologi keselamatan Mitsubishi\n\n\n5. Tips memilih mobil niaga\n\n\n6. Tren otomotif Indonesia\n\n\n\nLength: 200–300 words\nSEO optimized\nInclude placeholder images.\n\n---\n\n6 Testimonials\n\n1. Pajero Sport — Personal buyer\n\n\n2. Xpander — Family user\n\n\n3. Xforce — Young professional\n\n\n4. L300 — UMKM bisnis\n\n\n5. Triton — Plantation fleet\n\n\n6. Fuso — Logistics company\n\n\n\nInclude:\n\n• Photo placeholder\n• Name\n• City\n• Review text"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On first run, the Blog page shows at least 6 seeded posts (Published or Draft as configured) and each has an image.",
+        "Testimonials page shows 6 seeded testimonials (Published or Draft as configured) with images.",
+        "Admin can edit and republish seeded items.",
+        "Seeded data persists across canister upgrade."
+      ]
+    },
+    {
+      "id": "REQ-22",
+      "text": "Generate AI placeholder media and wire it into seeded content and templates: placeholder images for vehicles, blog posts, and testimonials. Placeholders must be replaceable through the admin media manager without breaking references.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "AI PLACEHOLDER MEDIA\n\nAuto‑generate placeholder images for:\n\n• Vehicles\n• Blog posts\n• Testimonials\n\nReplaceable via admin."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Seeded items reference placeholder images that render on the public site.",
+        "Admin can replace a placeholder image via the media manager and the public site updates accordingly.",
+        "Placeholder assets are tracked as mediaAssets in stable storage."
+      ]
+    },
+    {
+      "id": "REQ-23",
+      "text": "Implement SEO and performance optimizations across public pages: per-page meta title and meta description, image optimization strategy, lazy-loading for images/lists, fast loading best practices, and mobile responsiveness.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "SEO & PERFORMANCE\n\n• Meta title\n• Meta description\n• Image optimization\n• Lazy load\n• Fast loading\n• Mobile responsive"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each public route sets an appropriate meta title and description (CMS-driven when applicable).",
+        "Images below the fold are lazy-loaded and do not block initial render.",
+        "All pages are responsive and pass basic Lighthouse checks for performance best practices (no blocking oversized images, reasonable layout)."
+      ]
+    },
+    {
+      "id": "REQ-24",
+      "text": "Define and apply one coherent visual theme across the entire frontend (colors, typography, spacing, component styling) that fits an automotive dealer brand and respects the required color constants (#C90010 hero/Call, #262729 navbar/footer, #F1C40F About section, and CTA bar colors). Avoid using a blue+purple primary palette.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "Color: Hitam (#262729)",
+          "Red Hero Section (#C90010)",
+          "Tentang Kami (bg kuning #F1C40F)",
+          "Call — Merah #C90010\n\nWhatsApp — Hijau #398E3D\n\nSimulasi Kredit — Orange #FEA500\n\nMain Menu — Biru #0166C0"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The app uses a consistent typography scale, spacing system, and button/input styles across pages.",
+        "Required brand colors are applied exactly where specified, and the overall theme remains visually cohesive.",
+        "No global primary theme is based on a blue+purple combination."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must be a single Motoko actor (no multi-canister backend architecture).",
+    "All content and media persistence must be stable/upgrade-safe (no in-memory-only storage).",
+    "Do not edit files under frontend immutable paths (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui). Compose using these components/hooks instead.",
+    "Use English for any user-facing text in the build request (admin labels/buttons and public UI can be implemented in English).",
+    "No external databases or off-chain storage providers; persist inside the canister only.",
+    "No third-party authentication providers; if email/password is implemented, it must be handled within the app/backend. (Internet Identity may still be used for principal binding where appropriate.)"
+  ],
+  "nonGoals": [
+    "Integrations with external CMS platforms (e.g., WordPress) or third-party media CDNs.",
+    "Real-time features via WebSockets/push notifications.",
+    "Third-party social media API integrations beyond simple share links.",
+    "Payments processing or checkout flows.",
+    "Maps/geolocation features beyond rendering a configurable Google Maps iframe embed."
+  ],
+  "imageRequirements": {
+    "required": [
+      "Automotive dealer logo mark, minimal and modern (dealer-logo.dim_512x512.png)",
+      "Homepage main banner slide 1, automotive showroom theme (home-banner-1.dim_1920x720.png)",
+      "Homepage main banner slide 2, vehicle close-up theme (home-banner-2.dim_1920x720.png)",
+      "Homepage main banner slide 3, service/after-sales theme (home-banner-3.dim_1920x720.png)",
+      "Homepage CTA banner background image, dark automotive theme (home-cta-banner.dim_1920x400.png)",
+      "Passenger vehicle placeholder photo (vehicle-passenger-placeholder.dim_1200x800.png)",
+      "Commercial vehicle placeholder photo (vehicle-commercial-placeholder.dim_1200x800.png)",
+      "Blog post placeholder hero image (blog-placeholder.dim_1200x630.png)",
+      "Testimonial customer placeholder portrait (testimonial-placeholder.dim_600x600.png)"
+    ],
+    "edits": []
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "frontend/src/pages/HomePage.tsx": "Home page component displaying banner carousel, featured vehicles, search functionality, and latest blog posts with type-safe routing using params.",
+  "frontend/src/pages/BlogListPage.tsx": "Blog listing page component that displays all blog posts in a grid layout with type-safe routing to individual post detail pages using params.",
+  "frontend/src/components/vehicles/VehicleCard.tsx": "Reusable vehicle card component displaying vehicle information with consult CTA and detail link using type-safe routing with params."
+}

@@ -1,0 +1,293 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-14T04:20:29.905Z",
+  "summary": "Diff adds a new Motoko backend actor and a React frontend with public + admin routing, an admin layout/guard using Internet Identity, basic admin pages (mostly placeholders), contact/credit simulation forms, footer with visitor stats, and a mobile bottom CTA bar with a slide-up menu. However, key BuildRequest requirements around stable persistence, email/password admin auth + RBAC, full CMS CRUD with draft/publish, full media manager implementation, detailed public page features (home sections, vehicle pages, blog interactions/comments moderation), SEO/perf, and seeded content/media are not evidenced in the diff.",
+  "missing_requirements": [
+    {
+      "id": "REQ-1",
+      "requirement": "Upgrade-safe stable persistence for all specified collections (passengerVehicles, commercialVehicles, promotions, testimonials, blogPosts, contacts, creditSimulations, adminUsers, visitorStats, mediaAssets, productLikes, productShares, articleLikes, articleComments) with lifecycle-safe restore after upgrade/redeploy.",
+      "reason": "backend/main.mo defines data using in-memory Map.empty(...) and a var visitorStats, but the diff does not show any stable variables, preupgrade/postupgrade hooks, or deterministic stable serialization for the collections listed in REQ-1.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "requirement": "Admin authentication at /admin using email + password, multi-admin accounts, RBAC, and seeded initial super-admin bound to Principal `7aizr-qwhrg-kuvhe-yekzz-6nj4a-t6yeb-5gnrb-pjpwy-gp2ut-up3m5-3qe`.",
+      "reason": "Admin login UI explicitly uses Internet Identity (“Login with Internet Identity”) and there is no evidence of email/password flows, admin account CRUD/disable/roles UI, or seeding the specified super-admin principal in the shown backend code.",
+      "evidence": [
+        "frontend/src/admin/pages/AdminLoginPage.tsx",
+        "backend/main.mo",
+        "frontend/src/admin/AdminGuard.tsx"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "requirement": "Live CMS admin panel at /admin with CRUD + draft/publish workflows for vehicles, promotions, testimonials, blog posts, leads/contacts, credit simulations, visitor stats counters, and admin profile; changes reflected on public pages; leads immutable/auditable.",
+      "reason": "Admin pages for Vehicles/Promotions/Testimonials/Blog/Media/Leads state that full CRUD would be implemented; no create/edit/delete forms, no search/filter, and no draft/publish state is evidenced. Leads admin UI is placeholder-only and does not show auditable/immutable behavior.",
+      "evidence": [
+        "frontend/src/admin/pages/VehiclesAdminPage.tsx",
+        "frontend/src/admin/pages/PromotionsAdminPage.tsx",
+        "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
+        "frontend/src/admin/pages/BlogAdminPage.tsx",
+        "frontend/src/admin/pages/LeadsAdminPage.tsx",
+        "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
+        "frontend/src/admin/pages/AdminProfilePage.tsx"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "requirement": "Stable media storage (PNG/JPG/WebP/PDF) with upload/replace/delete/folders, canister-backed retrieval URLs/streams, persistence across upgrades, and image compression where feasible.",
+      "reason": "MediaManagerPage is a placeholder and does not show upload/replace/delete or folder grouping UI. Backend shows a MediaAsset type and includes a blob-storage mixin, but the diff does not evidence the required CRUD operations, stable persistence across upgrades, or compression behavior.",
+      "evidence": [
+        "frontend/src/admin/pages/MediaManagerPage.tsx",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "requirement": "Public routing for Home, Passenger Vehicles, Commercial Vehicles, Promo, Testimonials, Blog, Contact; every page has a red hero section (#C90010) with 150px height on mobile and a bottom CTA section component; navbar reachable routes and active state.",
+      "reason": "Routes exist in App.tsx and PublicLayout renders HeroSection + BottomCTASection, but the diff does not include evidence that HeroSection meets the required #C90010 and 150px mobile height, or that BottomCTASection matches required behavior. (HeroSection/BottomCTASection implementations are not shown in the provided diff summary.)",
+      "evidence": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/layout/PublicLayout.tsx"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "requirement": "Sticky responsive Navbar with background #262729, desktop height 80px (logo left, menu center/right, CTA right), mobile height 64px with hamburger, solid background on scroll.",
+      "reason": "Navbar component is referenced but not shown; no evidence of required styling/behavior (sticky, heights, layout, CTA) in the diff summary.",
+      "evidence": [
+        "frontend/src/components/layout/PublicLayout.tsx"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "requirement": "Bottom CTA Bar main menu supports multilevel menus for Passenger/Commercial categories; closes on outside tap with smooth transitions; credit simulation navigates to section/page; content padded to avoid overlap.",
+      "reason": "BottomCtaBar and MainMenuSheet implement a simple single-level list (no multilevel passenger/commercial categories). Credit action opens a bottom sheet modal, not navigation to a section/page. Outside-tap behavior and transition requirements are not explicitly evidenced beyond use of Sheet components.",
+      "evidence": [
+        "frontend/src/components/navigation/BottomCtaBar.tsx",
+        "frontend/src/components/navigation/MainMenuSheet.tsx",
+        "frontend/src/components/layout/PublicLayout.tsx"
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "requirement": "Home page sections (banner slider with CMS-configurable PNGs, featured grids, CTA banner, About section #F1C40F, features, WhatsApp CTA, search, 5 latest published blogs) CMS-driven with placeholders.",
+      "reason": "HomePage is referenced but not included; no evidence of the required ordered sections, CMS wiring, banner slider behavior, search filtering, or latest 5 published blogs list.",
+      "evidence": [
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "requirement": "Passenger vehicles listing page (/mobil-keluarga) grid 4/3/2 responsive; cards show photo/name/description/starting price/consult CTA/detail link; only Published; data loaded from backend and persists across upgrades.",
+      "reason": "PassengerVehiclesPage exists by routing only; no evidence of responsive grid, card fields, publish filtering, or backend integration/persistence guarantees.",
+      "evidence": [
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "requirement": "Commercial vehicles page (/mobil-niaga) shows three category sections with exact type lists; admin checkbox badge fields per category; badges render on public UI; only Published.",
+      "reason": "CommercialVehiclesPage and admin vehicles page are referenced, but no evidence of the required category/type lists, badge fields, or published-only filtering is shown in the diff summary.",
+      "evidence": [
+        "frontend/src/App.tsx",
+        "frontend/src/admin/pages/VehiclesAdminPage.tsx",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "requirement": "Promo page shows published promotions with banner/period/terms; admin CRUD + draft/publish; persistence across upgrade.",
+      "reason": "PromoPage exists by route only; PromotionsAdminPage is a placeholder and does not evidence CRUD or draft/publish. Backend Promotion type lacks draft/publish fields in shown snippet.",
+      "evidence": [
+        "frontend/src/App.tsx",
+        "frontend/src/admin/pages/PromotionsAdminPage.tsx",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "requirement": "Testimonials page shows published testimonials; admin moderate publish/unpublish; seed testimonials visible on first run.",
+      "reason": "Testimonials page implementation and seeding are not evidenced; TestimonialsAdminPage is placeholder-only and backend Testimonial type shown has no publish/moderation fields.",
+      "evidence": [
+        "frontend/src/App.tsx",
+        "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "requirement": "Blog list + detail with SEO-friendly metadata, interactions (like/share/comments) persisted, comment moderation with admin approval before public visibility.",
+      "reason": "Blog list/detail pages are referenced but not shown. Backend BlogPost type includes likes/views fields, but no comments collection, moderation status, share tracking, or per-route meta tag setting is evidenced in the diff summary.",
+      "evidence": [
+        "frontend/src/App.tsx",
+        "frontend/src/admin/pages/BlogAdminPage.tsx",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "requirement": "Contact page: contact form with specified fields persisted to contacts; validation requires name + (phone or email) + message; map iframe embed configurable in CMS; show consultant profile with Fuad identity values.",
+      "reason": "ContactForm validates name + phoneNumber + message (does not allow email as alternative to phone). No evidence of Google Maps iframe embed or CMS-configurable map setting. Consultant profile rendering on the Contact page is not evidenced in the diff summary.",
+      "evidence": [
+        "frontend/src/components/forms/ContactForm.tsx",
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "id": "REQ-16",
+      "requirement": "Credit simulation flow accessible from bottom CTA bar that stores submissions with same fields as contacts plus timestamp; admin can view/manage in CMS; persists after upgrade.",
+      "reason": "CreditSimulationForm exists and is opened from BottomCtaBar, but CMS management is not implemented (LeadsAdminPage is placeholder), and backend stable persistence across upgrades is not evidenced.",
+      "evidence": [
+        "frontend/src/components/navigation/BottomCtaBar.tsx",
+        "frontend/src/components/forms/CreditSimulationForm.tsx",
+        "frontend/src/admin/pages/LeadsAdminPage.tsx",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "requirement": "Vehicle interaction system: like + share (WhatsApp/Facebook/X/Copy Link) stored in stable storage for passenger/commercial vehicle pages; persists after upgrade.",
+      "reason": "No evidence of public UI like/share components on vehicle pages or share targets list. Backend defines Interaction counters but no UI wiring and no stable persistence is evidenced.",
+      "evidence": [
+        "backend/main.mo",
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "requirement": "Passenger vehicle detail with variant+color system (variants, colors with price adjustments, rules e.g. Lunar Blue only for Ultimate, premium-only constraint), image switching, auto price calc, gallery, tabs, CTAs, brochure PDF via media manager.",
+      "reason": "PassengerVehicleDetailPage is referenced but not shown; backend Vehicle/Variant types do not evidence the detailed color system, constraints, per-color images, tabs, gallery, or brochure via media manager.",
+      "evidence": [
+        "frontend/src/App.tsx",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "requirement": "Commercial vehicle detail without color/variant selector; required chassis price label; optional price note; specs/features/gallery; CTAs; brochure via media asset; admin-defined chassis badges.",
+      "reason": "CommercialVehicleDetailPage is referenced but not shown; backend Vehicle type has a generic price and commercialFeatures but does not evidence required chassis price vs note fields, badge model, or brochure/media integration behavior.",
+      "evidence": [
+        "frontend/src/App.tsx",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "requirement": "Visitor statistics tracking persisted in stable storage (total visitors, active users, page views, today traffic); page visits increment counters; shown in footer; admin can inspect/adjust.",
+      "reason": "Footer and admin stats page display values, but no evidence of stable persistence or increment logic is shown. visitorStats is a var in backend/main.mo without evidence of upgrade-safe persistence. Visitor tracking hook is referenced but not shown (no proof of increment behavior). Admin page shows read-only stats (no adjust controls evidenced).",
+      "evidence": [
+        "backend/main.mo",
+        "frontend/src/components/layout/Footer.tsx",
+        "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
+        "frontend/src/components/layout/PublicLayout.tsx"
+      ]
+    },
+    {
+      "id": "REQ-21",
+      "requirement": "Seed CMS with 6 blog posts (200–300 words, SEO optimized) and 6 testimonials (with placeholders), stored in stable persistence and editable via admin.",
+      "reason": "No evidence of seeding logic or seeded content in backend or frontend; admin CRUD is not implemented, and persistence is not evidenced.",
+      "evidence": [
+        "backend/main.mo",
+        "frontend/src/admin/pages/BlogAdminPage.tsx",
+        "frontend/src/admin/pages/TestimonialsAdminPage.tsx"
+      ]
+    },
+    {
+      "id": "REQ-22",
+      "requirement": "Generate placeholder media assets and wire into seeded content/templates; replaceable via media manager without breaking references; track as mediaAssets in stable storage.",
+      "reason": "Footer references a generated logo file path, but there is no evidence of canister-backed mediaAssets stable tracking, wiring placeholders into seeded items, or replace behavior via media manager.",
+      "evidence": [
+        "frontend/src/components/layout/Footer.tsx",
+        "frontend/src/admin/pages/MediaManagerPage.tsx",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-23",
+      "requirement": "SEO + performance optimizations: per-page meta title/description (CMS-driven), lazy-loading images, performance best practices, mobile responsiveness.",
+      "reason": "No evidence of meta tag management per route, lazy-loading strategy, or explicit performance optimizations in the shown diff summary.",
+      "evidence": [
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "id": "REQ-24",
+      "requirement": "Coherent visual theme across frontend respecting required brand colors and avoiding a blue+purple primary palette.",
+      "reason": "Admin dashboard stat tiles use multiple bright colors including blue and purple (e.g., bg-blue-500, bg-purple-500), which conflicts with the requirement to avoid a blue+purple primary palette. No global theme system is evidenced beyond component usage.",
+      "evidence": [
+        "frontend/src/admin/pages/DashboardPage.tsx"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Admin authentication implemented via Internet Identity instead of the required email + password admin login system.",
+      "reason": "BuildRequest explicitly requires email/password login for /admin (REQ-2). The diff implements an II-based login screen and guards admin by identity presence and isAdmin query.",
+      "evidence": [
+        "frontend/src/admin/pages/AdminLoginPage.tsx",
+        "frontend/src/admin/AdminGuard.tsx"
+      ]
+    },
+    {
+      "description": "Footer includes a promotional outbound link to caffeine.ai (“Built with ... caffeine.ai”).",
+      "reason": "Not requested by the BuildRequest; adds third-party promotional attribution link in public UI.",
+      "evidence": [
+        "frontend/src/components/layout/Footer.tsx"
+      ]
+    }
+  ],
+  "confidence": 0.74,
+  "changed_files": [
+    "all_files_summary.json",
+    "backend/main.mo",
+    "frontend-file-summaries.txt",
+    "frontend/index.css",
+    "frontend/index.html",
+    "frontend/src/App.tsx",
+    "frontend/src/admin/AdminGuard.tsx",
+    "frontend/src/admin/AdminLayout.tsx",
+    "frontend/src/admin/pages/AdminLoginPage.tsx",
+    "frontend/src/admin/pages/AdminProfilePage.tsx",
+    "frontend/src/admin/pages/BlogAdminPage.tsx",
+    "frontend/src/admin/pages/DashboardPage.tsx",
+    "frontend/src/admin/pages/LeadsAdminPage.tsx",
+    "frontend/src/admin/pages/MediaManagerPage.tsx",
+    "frontend/src/admin/pages/PromotionsAdminPage.tsx",
+    "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
+    "frontend/src/admin/pages/VehiclesAdminPage.tsx",
+    "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
+    "frontend/src/components/forms/ContactForm.tsx",
+    "frontend/src/components/forms/CreditSimulationForm.tsx",
+    "frontend/src/components/layout/Footer.tsx",
+    "frontend/src/components/layout/PublicLayout.tsx",
+    "frontend/src/components/navigation/BottomCtaBar.tsx",
+    "frontend/src/components/navigation/MainMenuSheet.tsx",
+    "frontend/src/components/navigation/Navbar.tsx",
+    "frontend/src/components/sections/BottomCTASection.tsx",
+    "frontend/src/components/sections/HeroSection.tsx",
+    "frontend/src/components/vehicles/VehicleCard.tsx",
+    "frontend/src/hooks/useActor.ts",
+    "frontend/src/hooks/useInternetIdentity.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/hooks/useVisitorTracking.ts",
+    "frontend/src/index.css",
+    "frontend/src/main.tsx",
+    "frontend/src/pages/BlogDetailPage.tsx",
+    "frontend/src/pages/BlogListPage.tsx",
+    "frontend/src/pages/CommercialVehicleDetailPage.tsx",
+    "frontend/src/pages/CommercialVehiclesPage.tsx",
+    "frontend/src/pages/ContactPage.tsx",
+    "frontend/src/pages/HomePage.tsx",
+    "frontend/src/pages/PassengerVehicleDetailPage.tsx",
+    "frontend/src/pages/PassengerVehiclesPage.tsx",
+    "frontend/src/pages/PromoPage.tsx",
+    "frontend/src/pages/TestimonialsPage.tsx",
+    "frontend/src/utils/urlParams.ts",
+    "frontend/tailwind.config.js",
+    "project_state.json"
+  ]
+}
