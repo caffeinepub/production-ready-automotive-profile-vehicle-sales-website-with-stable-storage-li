@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 37,
+  "projectStateVersion": 43,
   "summary": "Automotive company profile + vehicle sales website with production-ready backend/frontend separation, stable persistence (upgrade/redeploy safe), live CMS admin panel, media manager, SEO/performance, product & article interactions, and seeded content.",
   "architectural_notes": [
     "Use stable persistence only (no in-memory) and ensure upgrade/redeploy-safe data migrations with auto-restore after redeploy.",
@@ -26,7 +26,7 @@
     "Media library authorization failure: admin login works but media endpoints return \"Unauthorized: Only admins can view media assets\" due to media service using a different auth source (e.g., principal whitelist) than CMS session auth.",
     "Admin CMS: PassengerVehicles and CommercialVehicles editor buttons both appear active (both red) when one is selected; tab/state styling logic likely incorrect."
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-build-an-admin-authentication-and-authority-system-for-admin-supporting-email-password-login-multi-admin-accounts-and-role-based-access-control-seed-an-initial-super-admin-bound-to-principal-id-7aizr-qwhrg-kuvhe-yekzz-6nj4a-t6yeb-5gnrb-pjpwy-gp2ut-up3m5-3qe-as-owner-with-the-ability-to-manage-other-admins-and-roles",
@@ -433,6 +433,102 @@
       "title": "Restore Admin CMS save and publish functionality for all content editors (Vehicles, Promotions, Testimonials, Blog) so that create/update operations persist successfully and the published/draft toggle changes are saved and reflected in the listing tables after saving.",
       "reqIds": [
         "REQ-86"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-the-visual-design-of-the-admin-cms-layout-admin-to-look-more-modern-and-professional-while-keeping-all-existing-routes-behavior-and-data-wiring-unchanged-this-includes-spacing-typography-colors-and-visual-hierarchy-for-the-main-layout-container-sidebar-navigation-and-content-area-in-frontend-src-admin-adminlayout-tsx",
+      "title": "Improve the visual design of the Admin CMS layout (/admin) to look more modern and professional while keeping all existing routes, behavior, and data wiring unchanged. This includes spacing, typography, colors, and visual hierarchy for the main layout container, sidebar navigation, and content area in `frontend/src/admin/AdminLayout.tsx`.",
+      "reqIds": [
+        "REQ-88"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-polish-the-visual-styling-of-core-admin-cms-building-blocks-used-across-pages-tables-search-input-action-buttons-and-status-badges-without-changing-their-behavior-apply-improvements-primarily-within-frontend-src-admin-components-crudtable-tsx-and-any-directly-related-admin-only-components-it-composes",
+      "title": "Polish the visual styling of core Admin CMS building blocks used across pages—tables, search input, action buttons, and status badges—without changing their behavior. Apply improvements primarily within `frontend/src/admin/components/CrudTable.tsx` and any directly-related admin-only components it composes.",
+      "reqIds": [
+        "REQ-89"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-polish-the-admin-dashboard-page-visuals-frontend-src-admin-pages-dashboardpage-tsx-to-match-a-cohesive-automotive-dealer-admin-theme-including-updating-the-card-look-and-feel-and-replacing-any-blue-purple-heavy-accent-usage-with-a-palette-consistent-with-the-site-s-required-brand-constants-262729-and-c90010-while-keeping-all-data-and-counts-unchanged",
+      "title": "Polish the Admin Dashboard page visuals (`frontend/src/admin/pages/DashboardPage.tsx`) to match a cohesive automotive-dealer admin theme, including updating the card look-and-feel and replacing any blue/purple-heavy accent usage with a palette consistent with the site’s required brand constants (#262729 and #C90010) while keeping all data and counts unchanged.",
+      "reqIds": [
+        "REQ-90"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-polish-the-visual-styling-visual-only-of-admin-cms-top-headers-toolbars-on-key-pages-vehicles-media-manager-promotions-testimonials-blog-leads-visitor-stats-profile-to-be-consistent-aligned-title-subtitle-consistent-spacing-and-consistent-primary-action-button-styling-using-the-existing-brand-red-c90010",
+      "title": "Polish the visual styling (visual-only) of Admin CMS top headers/toolbars on key pages (Vehicles, Media Manager, Promotions, Testimonials, Blog, Leads, Visitor Stats, Profile) to be consistent: aligned title/subtitle, consistent spacing, and consistent primary action button styling using the existing brand red (#C90010).",
+      "reqIds": [
+        "REQ-91"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-cohesive-admin-specific-visual-theme-layer-tailwind-utility-conventions-and-or-admin-scoped-css-variables-classes-that-improves-consistency-across-admin-pages-without-modifying-any-immutable-frontend-paths-and-without-impacting-public-non-admin-pages",
+      "title": "Add a cohesive, admin-specific visual theme layer (Tailwind utility conventions and/or admin-scoped CSS variables/classes) that improves consistency across /admin pages without modifying any immutable frontend paths and without impacting public (non-/admin) pages.",
+      "reqIds": [
+        "REQ-92"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-translate-all-user-visible-text-on-public-non-admin-pages-and-shared-public-components-to-bahasa-indonesia-without-changing-existing-layout-spacing-styling-routing-or-any-admin-panel-ui",
+      "title": "Translate all user-visible text on PUBLIC (non-/admin) pages and shared public components to Bahasa Indonesia, without changing existing layout, spacing, styling, routing, or any admin panel UI.",
+      "reqIds": [
+        "REQ-93"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-aesthetic-icons-next-to-section-title-text-across-every-public-page-including-the-navbar-and-footer-headings-while-preserving-the-current-ui-look-and-feel-and-not-modifying-any-admin-panel-ui",
+      "title": "Add aesthetic icons next to section title text across every PUBLIC page, including the Navbar and Footer headings, while preserving the current UI look-and-feel and not modifying any admin panel UI.",
+      "reqIds": [
+        "REQ-94"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-all-public-facing-icons-currently-implemented-with-lucide-react-and-react-icons-with-heroicons-from-heroicons-react-across-the-public-site-without-modifying-any-admin-ui-or-behavior",
+      "title": "Replace all PUBLIC-facing icons currently implemented with `lucide-react` and `react-icons` with Heroicons (from `@heroicons/react`) across the public site, without modifying any /admin UI or behavior.",
+      "reqIds": [
+        "REQ-95"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-reduce-oversized-title-text-on-mobile-for-public-pages-by-adjusting-mobile-typography-in-shared-public-title-components-and-hero-titles-while-preserving-the-existing-desktop-tablet-styling-and-not-changing-any-admin-ui",
+      "title": "Reduce oversized title text on mobile for PUBLIC pages by adjusting mobile typography in shared public title components and hero titles, while preserving the existing desktop/tablet styling and not changing any admin UI.",
+      "reqIds": [
+        "REQ-96"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-main-banner-slide-homepage-banner-carousel-slider-from-the-public-home-page-without-affecting-the-remaining-home-page-sections-or-cms-driven-data-wiring",
+      "title": "Remove the Main Banner Slide (homepage banner carousel/slider) from the public Home page without affecting the remaining Home page sections or CMS-driven data wiring.",
+      "reqIds": [
+        "REQ-97"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-mobile-bottom-cta-bar-to-be-50px-tall-with-sharp-square-corners-no-rounded-top-corners-keeping-the-same-four-actions-and-color-blocks-and-without-impacting-any-admin-ui",
+      "title": "Update the mobile Bottom CTA Bar to be 50px tall with sharp/square corners (no rounded top corners), keeping the same four actions and color blocks, and without impacting any admin UI.",
+      "reqIds": [
+        "REQ-98"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-reposition-and-restyle-the-bottom-cta-bar-main-menu-dropdown-so-it-appears-directly-above-the-blue-main-menu-box-and-polish-the-visual-styling-of-all-public-dropdown-sheet-menus-to-look-cleaner-and-more-minimal-without-changing-any-admin-panel-ui",
+      "title": "Reposition and restyle the Bottom CTA Bar 'Main Menu' dropdown so it appears directly above the blue 'Main Menu' box, and polish the visual styling of all PUBLIC dropdown/sheet menus to look cleaner and more minimal—without changing any admin panel UI.",
+      "reqIds": [
+        "REQ-99"
       ],
       "version": 1
     }
@@ -862,6 +958,54 @@
       "reqIds": [
         "REQ-87"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-70",
+      "summary": "Improve/beautify the Admin panel UI (visual polish of /admin dashboard and CMS pages) while keeping existing functionality, routes, and data wiring intact; details to be provided by user.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-93",
+      "summary": "Localize all public-facing website text content to Bahasa Indonesia (including header and footer) without changing the existing UI layout/styling and without modifying the admin panel UI",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-94",
+      "summary": "Add aesthetic icons to section title text across every public page (including header and footer) while preserving the current UI look-and-feel; do not modify any admin panel UI",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-95",
+      "summary": "Replace all PUBLIC-facing icons with Heroicons (improve icon design); do not modify admin panel UI",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-96",
+      "summary": "Adjust mobile view typography: reduce oversized title text on mobile across public pages (keep existing UI that already looks good)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-97",
+      "summary": "Home page: remove the Main Banner Slide section (main banner slider) without affecting other Home sections or CMS wiring",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-98",
+      "summary": "Bottom CTA Bar: change height to 50px and use square/sharp corners (minimalist look); keep existing actions and colors",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-99",
+      "summary": "Bottom CTA Bar dropdown: position the dropdown directly above the blue 'Main Menu' box; refine dropdown menu styling to look more aesthetic across all dropdown menus on public site (no admin panel changes)",
+      "reqIds": [],
       "status": "pending"
     }
   ],

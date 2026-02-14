@@ -2,6 +2,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import MediaManagerPanel from '../components/media/MediaManagerPanel';
 import MediaUploadButton from '../components/media/MediaUploadButton';
+import AdminPageHeader from '../components/AdminPageHeader';
 import { useGetMediaAssets } from '../hooks/useAdminCmsQueries';
 
 export default function MediaManagerPage() {
@@ -14,13 +15,11 @@ export default function MediaManagerPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Media Manager</h1>
-          <p className="text-gray-600 mt-1">Upload and manage media assets</p>
-        </div>
-        <MediaUploadButton />
-      </div>
+      <AdminPageHeader
+        title="Media Manager"
+        subtitle="Upload and manage media assets"
+        action={<MediaUploadButton />}
+      />
 
       {isAuthError && (
         <Alert variant="destructive" className="mb-6">

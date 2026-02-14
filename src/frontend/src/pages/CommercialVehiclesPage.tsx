@@ -1,5 +1,7 @@
 import { useGetVehicles } from '../hooks/useQueries';
 import VehicleCard from '../components/vehicles/VehicleCard';
+import SectionTitle from '../components/public/SectionTitle';
+import { Truck } from 'lucide-react';
 
 export default function CommercialVehiclesPage() {
   const { data: vehicles = [], isLoading } = useGetVehicles();
@@ -20,7 +22,7 @@ export default function CommercialVehiclesPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         <div className="container mx-auto px-4 py-12">
-          <div className="text-center">Loading vehicles...</div>
+          <div className="text-center">Memuat kendaraan...</div>
         </div>
       </div>
     );
@@ -30,15 +32,17 @@ export default function CommercialVehiclesPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4 py-12 space-y-16">
         <div className="mb-10">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">Commercial Vehicles</h1>
-          <p className="text-lg text-gray-600">Professional vehicles built for your business needs</p>
+          <SectionTitle icon={Truck} className="mb-4">
+            Mobil Niaga
+          </SectionTitle>
+          <p className="text-base md:text-lg text-gray-600">Kendaraan profesional yang dibangun untuk kebutuhan bisnis Anda</p>
         </div>
 
         {lightDuty.length > 0 && (
           <section>
             <div className="mb-6">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Light Duty</h2>
-              <p className="text-gray-600">Efficient and versatile light commercial vehicles</p>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Ringan</h2>
+              <p className="text-gray-600">Kendaraan niaga ringan yang efisien dan serbaguna</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {lightDuty.map((vehicle) => (
@@ -51,8 +55,8 @@ export default function CommercialVehiclesPage() {
         {mediumDuty.length > 0 && (
           <section>
             <div className="mb-6">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Medium Duty</h2>
-              <p className="text-gray-600">Powerful medium-duty trucks for demanding tasks</p>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Sedang</h2>
+              <p className="text-gray-600">Truk tugas sedang yang tangguh untuk pekerjaan berat</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {mediumDuty.map((vehicle) => (
@@ -65,8 +69,8 @@ export default function CommercialVehiclesPage() {
         {tractorHead.length > 0 && (
           <section>
             <div className="mb-6">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Tractor Head</h2>
-              <p className="text-gray-600">Heavy-duty tractor heads for long-haul operations</p>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Kepala Traktor</h2>
+              <p className="text-gray-600">Kepala traktor tugas berat untuk operasi jarak jauh</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {tractorHead.map((vehicle) => (
@@ -78,7 +82,7 @@ export default function CommercialVehiclesPage() {
 
         {commercialVehicles.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-gray-500 text-lg">No commercial vehicles available at the moment.</p>
+            <p className="text-gray-500 text-lg">Tidak ada mobil niaga tersedia saat ini.</p>
           </div>
         )}
       </div>

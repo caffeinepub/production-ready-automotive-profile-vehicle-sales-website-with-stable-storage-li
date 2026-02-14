@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react';
 import CrudTable from '../components/CrudTable';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
 import VehicleFormDialog from '../components/VehicleFormDialog';
+import AdminPageHeader from '../components/AdminPageHeader';
 import type { Vehicle } from '../../backend';
 import { toast } from 'sonner';
 import { useSearch } from '@tanstack/react-router';
@@ -99,24 +100,22 @@ export default function VehiclesAdminPage() {
   return (
     <>
       <div>
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">
-              {category === 'passenger' ? 'Passenger Vehicles' : 'Commercial Vehicles'}
-            </h1>
-            <p className="text-gray-600 mt-1">Manage {category} vehicles</p>
-          </div>
-          <Button 
-            className="bg-[#C90010] hover:bg-[#a00010]"
-            onClick={() => {
-              setEditItem(null);
-              setShowForm(true);
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Vehicle
-          </Button>
-        </div>
+        <AdminPageHeader
+          title={category === 'passenger' ? 'Passenger Vehicles' : 'Commercial Vehicles'}
+          subtitle={`Manage ${category} vehicles`}
+          action={
+            <Button 
+              className="admin-btn-primary"
+              onClick={() => {
+                setEditItem(null);
+                setShowForm(true);
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Vehicle
+            </Button>
+          }
+        />
 
         <CrudTable
           data={filteredVehicles}

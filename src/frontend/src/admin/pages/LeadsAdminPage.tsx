@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Trash2 } from 'lucide-react';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
+import AdminPageHeader from '../components/AdminPageHeader';
 import type { Contact, CreditSimulation } from '../../backend';
 import { toast } from 'sonner';
 
@@ -67,10 +68,10 @@ export default function LeadsAdminPage() {
   return (
     <>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Leads Management</h1>
-          <p className="text-gray-600 mt-2">Manage contact forms and credit simulation requests</p>
-        </div>
+        <AdminPageHeader
+          title="Leads Management"
+          subtitle="Manage contact forms and credit simulation requests"
+        />
 
         <Tabs defaultValue="contacts" className="space-y-4">
           <TabsList>
@@ -85,7 +86,7 @@ export default function LeadsAdminPage() {
                 placeholder="Search contacts..."
                 value={searchContacts}
                 onChange={(e) => setSearchContacts(e.target.value)}
-                className="pl-10"
+                className="admin-search-input pl-10"
               />
             </div>
 
@@ -94,56 +95,44 @@ export default function LeadsAdminPage() {
             ) : (
               <div className="grid gap-4">
                 {filteredContacts.map((contact, index) => (
-                  <Card key={index}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="text-lg">{contact.name}</CardTitle>
-                          <p className="text-sm text-gray-500 mt-1">{contact.date}</p>
-                        </div>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => setDeleteContactItem({ ...contact, id: BigInt(index) })}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                  <Card key={index} className="admin-stat-card">
+                    <CardHeader className="flex flex-row items-start justify-between">
+                      <div>
+                        <CardTitle className="text-lg">{contact.name}</CardTitle>
+                        <p className="text-sm text-gray-600 mt-1">{contact.email}</p>
                       </div>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setDeleteContactItem({ ...contact, id: BigInt(index) })}
+                        className="admin-action-btn"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <p className="text-sm font-medium text-gray-600">Email</p>
-                          <p className="text-sm">{contact.email}</p>
+                          <span className="font-medium">Phone:</span> {contact.phoneNumber}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-600">Phone</p>
-                          <p className="text-sm">{contact.phoneNumber}</p>
+                          <span className="font-medium">Unit:</span> {contact.unit}
+                        </div>
+                        <div className="col-span-2">
+                          <span className="font-medium">Address:</span> {contact.address}
+                        </div>
+                        <div className="col-span-2">
+                          <span className="font-medium">Message:</span> {contact.message}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-600">Address</p>
-                          <p className="text-sm">{contact.address}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Unit</p>
-                          <p className="text-sm">{contact.unit}</p>
+                          <span className="font-medium">Date:</span> {contact.date}
                         </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Message</p>
-                        <p className="text-sm">{contact.message}</p>
-                      </div>
-                      {contact.notes && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Notes</p>
-                          <p className="text-sm">{contact.notes}</p>
-                        </div>
-                      )}
                     </CardContent>
                   </Card>
                 ))}
                 {filteredContacts.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">No contacts found</div>
+                  <div className="admin-empty-state">No contacts found</div>
                 )}
               </div>
             )}
@@ -156,7 +145,7 @@ export default function LeadsAdminPage() {
                 placeholder="Search simulations..."
                 value={searchSimulations}
                 onChange={(e) => setSearchSimulations(e.target.value)}
-                className="pl-10"
+                className="admin-search-input pl-10"
               />
             </div>
 
@@ -165,60 +154,56 @@ export default function LeadsAdminPage() {
             ) : (
               <div className="grid gap-4">
                 {filteredSimulations.map((simulation, index) => (
-                  <Card key={index}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="text-lg">{simulation.name}</CardTitle>
-                          <p className="text-sm text-gray-500 mt-1">{simulation.date}</p>
-                        </div>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => setDeleteSimulationItem({ ...simulation, id: BigInt(index) })}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                  <Card key={index} className="admin-stat-card">
+                    <CardHeader className="flex flex-row items-start justify-between">
+                      <div>
+                        <CardTitle className="text-lg">{simulation.name}</CardTitle>
+                        <p className="text-sm text-gray-600 mt-1">{simulation.email}</p>
                       </div>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setDeleteSimulationItem({ ...simulation, id: BigInt(index) })}
+                        className="admin-action-btn"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <p className="text-sm font-medium text-gray-600">Email</p>
-                          <p className="text-sm">{simulation.email}</p>
+                          <span className="font-medium">Phone:</span> {simulation.phoneNumber}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-600">Phone</p>
-                          <p className="text-sm">{simulation.phoneNumber}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Unit</p>
-                          <p className="text-sm">{simulation.unit}</p>
+                          <span className="font-medium">Unit:</span> {simulation.unit}
                         </div>
                         {simulation.downPayment && (
                           <div>
-                            <p className="text-sm font-medium text-gray-600">Down Payment</p>
-                            <p className="text-sm">Rp {simulation.downPayment.toLocaleString()}</p>
+                            <span className="font-medium">Down Payment:</span> Rp {simulation.downPayment.toLocaleString()}
                           </div>
                         )}
                         {simulation.tenor && (
                           <div>
-                            <p className="text-sm font-medium text-gray-600">Tenor</p>
-                            <p className="text-sm">{simulation.tenor} months</p>
+                            <span className="font-medium">Tenor:</span> {Number(simulation.tenor)} months
                           </div>
                         )}
-                      </div>
-                      {simulation.notes && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Notes</p>
-                          <p className="text-sm">{simulation.notes}</p>
+                        <div className="col-span-2">
+                          <span className="font-medium">Address:</span> {simulation.address}
                         </div>
-                      )}
+                        {simulation.notes && (
+                          <div className="col-span-2">
+                            <span className="font-medium">Notes:</span> {simulation.notes}
+                          </div>
+                        )}
+                        <div>
+                          <span className="font-medium">Date:</span> {simulation.date}
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
                 {filteredSimulations.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">No simulations found</div>
+                  <div className="admin-empty-state">No simulations found</div>
                 )}
               </div>
             )}

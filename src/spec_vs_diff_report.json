@@ -1,68 +1,93 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T14:42:27.073Z",
-  "summary": "Diff primarily updates Admin frontend React Query hooks and admin pages/components to normalize unauthorized/session-expired handling (treating null/false as auth failure) and to improve media listing/picker UX and error messaging. Backend changes required by the BuildRequest (safe unauthorized responses without traps + Debug.print diagnostics across many methods) are not clearly evidenced in the truncated backend/main.mo diff summary. The diff also introduces an unrequested “emergency bypass” auto-login path in the admin session hook.",
+  "generatedAt": "2026-02-14T16:28:44.282Z",
+  "summary": "Diff implements some public UI tweaks (Bottom CTA bar height to 50px and a Popover-based menu), and HomePage appears to no longer render a banner carousel. However, the icon refresh to Heroicons was not done (Lucide is still widely used), and multiple admin files were modified despite the explicit constraint not to touch `frontend/src/admin/**`. Additional non-requested refactors/features were introduced (router export, error boundary, admin visual polish).",
   "missing_requirements": [
     {
-      "id": "REQ-84",
-      "requirement": "Backend admin authorization error handling must not trap on invalid/expired sessions; it must return a safe unauthorized value consistently across listed admin CMS methods (media, content CRUD, contacts, credit simulations, visitor stats).",
-      "reason": "The diff summary does not show any concrete backend changes implementing non-trapping unauthorized returns across the specified methods. The only visible backend snippet is type/structure/imports and is truncated before any relevant authorization/method implementations.",
+      "id": "REQ-95",
+      "requirement": "Replace all PUBLIC-facing icons currently implemented with `lucide-react` and `react-icons` with Heroicons (from `@heroicons/react`) across the public site.",
+      "reason": "Public components/pages in the diff still import and use `lucide-react` icons (and SectionTitle still types `LucideIcon`), with no evidence of `@heroicons/react` usage. This does not satisfy the Heroicons replacement requirement.",
       "evidence": [
-        "backend/main.mo (truncated)"
+        "frontend/src/components/navigation/BottomCtaBar.tsx",
+        "frontend/src/components/navigation/MainMenuSheet.tsx",
+        "frontend/src/components/navigation/Navbar.tsx",
+        "frontend/src/components/public/SectionTitle.tsx",
+        "frontend/src/components/sections/BottomCTASection.tsx",
+        "frontend/src/components/sections/HeroSection.tsx",
+        "frontend/src/pages/HomePage.tsx",
+        "frontend/src/pages/ContactPage.tsx",
+        "frontend/src/pages/PromoPage.tsx",
+        "frontend/src/pages/CommercialVehiclesPage.tsx",
+        "frontend/src/pages/PassengerVehiclesPage.tsx",
+        "frontend/src/pages/CommercialVehicleDetailPage.tsx",
+        "frontend/src/pages/PassengerVehicleDetailPage.tsx"
       ]
     },
     {
-      "id": "REQ-87",
-      "requirement": "Add minimal backend-side diagnostic logging (Debug.print) for session-validation-related admin CMS mutation failures and media asset listing failures (method name + English reason; no sensitive data).",
-      "reason": "No Debug.print statements or logging behavior related to admin session validation failures or media listing failures are visible in the provided backend diff summary (backend file is truncated).",
+      "id": "REQ-98",
+      "requirement": "Update the mobile Bottom CTA Bar to be 50px tall with sharp/square corners (no rounded top corners), keeping the same four actions and color blocks.",
+      "reason": "Height is set via inline style `{ height: '50px' }`, but the credit simulation sheet still uses `rounded-t-2xl`, and the diff is truncated before confirming whether any top-corner rounding remains on the bar container in all states. Evidence is insufficient to confirm full compliance on corners across the whole Bottom CTA experience.",
       "evidence": [
-        "backend/main.mo (truncated)"
+        "frontend/src/components/navigation/BottomCtaBar.tsx"
       ]
     },
     {
-      "id": "REQ-86",
-      "requirement": "Restore Admin CMS save and publish functionality for Vehicles, Promotions, Testimonials, Blog so create/update persists and published/draft toggles save and reflect in listing tables.",
-      "reason": "The diff shows UI-level error handling/toasts and useMutation wrappers, but does not provide evidence that backend persistence and published/draft saving/regression are fixed end-to-end. The relevant mutation hook implementations are truncated and backend create/update implementations are not shown.",
+      "id": "REQ-99",
+      "requirement": "Reposition and restyle the Bottom CTA Bar 'Main Menu' dropdown so it appears directly above the blue 'Main Menu' box (aligned horizontally with that button), and polish public dropdown/sheet menus.",
+      "reason": "Bottom CTA menu uses a Popover with `side=\"top\"` but `align=\"end\"` plus `mr-2` suggests a right-offset alignment rather than clearly being horizontally aligned to the blue button itself. Also, the Navbar sheet styling changes are present but still use `lucide-react` icons and there is no clear, comprehensive “public dropdown/sheet menu polish” beyond the CTA popover (diff is limited/truncated).",
       "evidence": [
-        "frontend/src/admin/hooks/useAdminCmsQueries.ts (truncated)",
-        "backend/main.mo (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-85",
-      "requirement": "Ensure Admin Media Manager listing and editor Media Picker can load/display existing media assets end-to-end using the existing caffeineAdminSession token, without storage-key changes.",
-      "reason": "Frontend changes show improved loading/error/empty-state handling and token use, but the diff summary does not provide evidence of backend-side fixes needed to ensure assets actually load successfully when logged in (e.g., backend auth behavior and correct non-trapping responses).",
-      "evidence": [
-        "frontend/src/admin/hooks/useAdminCmsQueries.ts (truncated)",
-        "frontend/src/admin/components/media/MediaManagerPanel.tsx (truncated)",
-        "frontend/src/admin/components/media/MediaPickerDialog.tsx (truncated)",
-        "backend/main.mo (truncated)"
+        "frontend/src/components/navigation/BottomCtaBar.tsx",
+        "frontend/src/components/navigation/Navbar.tsx"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Emergency bypass auto-creation of an admin session (including hardcoded password usage) controlled by EMERGENCY_BYPASS_ENABLED/BYPASS_CONFIG, with console logs indicating bypass behavior.",
-      "reason": "BuildRequest did not request adding a bypass mode or any new authentication-related capability; non-goals explicitly say not to introduce new authentication providers or change auth strategy beyond fixing the regression.",
+      "description": "Modified admin panel UI components and pages (visual polish/refactors) under `frontend/src/admin/**` despite an explicit constraint to not modify any admin UI/routes/components/behavior.",
+      "reason": "BuildRequest explicitly forbids changing anything under `frontend/src/admin/**`, but the diff summary lists many modified admin files.",
       "evidence": [
-        "frontend/src/admin/hooks/useAdminSession.ts (truncated)"
+        "frontend-file-summaries.txt (entries for frontend/src/admin/AdminLayout.tsx, frontend/src/admin/components/CrudTable.tsx, frontend/src/admin/components/ConfirmDeleteDialog.tsx, frontend/src/admin/components/media/MediaUploadButton.tsx, frontend/src/admin/components/media/MediaPickerDialog.tsx, frontend/src/admin/components/media/MediaManagerPanel.tsx, frontend/src/admin/hooks/useAdminCmsQueries.ts, frontend/src/admin/pages/MediaManagerPage.tsx, frontend/src/admin/pages/VehiclesAdminPage.tsx, frontend/src/admin/components/VehicleFormDialog.tsx, frontend/src/admin/pages/PromotionsAdminPage.tsx, frontend/src/admin/components/PromotionFormDialog.tsx, frontend/src/admin/pages/TestimonialsAdminPage.tsx, frontend/src/admin/components/TestimonialFormDialog.tsx)"
+      ]
+    },
+    {
+      "description": "Exporting the TanStack router instance from `frontend/src/App.tsx` for “smoke verification utilities”.",
+      "reason": "Not requested (request is UI-only: icons/typography/banner removal/CTA bar/menu polish) and risks touching routing-related code, which the constraints discourage changing.",
+      "evidence": [
+        "frontend-file-summaries.txt (entry for frontend/src/App.tsx)"
+      ]
+    },
+    {
+      "description": "Added/modified a top-level `GlobalErrorBoundary` component to show a fallback message.",
+      "reason": "Not part of the requested UI refresh scope (icons/typography/home banner removal/bottom CTA/menu polish).",
+      "evidence": [
+        "frontend-file-summaries.txt (entry for frontend/src/components/GlobalErrorBoundary.tsx)"
+      ]
+    },
+    {
+      "description": "Introduced/modified `MainMenuSheet` component using a bottom sheet with rounded top corners.",
+      "reason": "Not requested; also conflicts with the requirement to avoid generic full-width bottom sheets for the Bottom CTA 'Main Menu' dropdown (even if not wired, it's an extra menu implementation outside scope).",
+      "evidence": [
+        "frontend/src/components/navigation/MainMenuSheet.tsx"
       ]
     }
   ],
-  "confidence": 0.64,
+  "confidence": 0.78,
   "changed_files": [
-    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/admin/components/media/MediaManagerPanel.tsx",
-    "frontend/src/admin/components/media/MediaPickerDialog.tsx",
-    "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-    "frontend/src/admin/hooks/useAdminSession.ts",
-    "frontend/src/admin/pages/BlogAdminPage.tsx",
-    "frontend/src/admin/pages/MediaManagerPage.tsx",
-    "frontend/src/admin/pages/PromotionsAdminPage.tsx",
-    "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
-    "frontend/src/admin/pages/VehiclesAdminPage.tsx",
+    "frontend/src/components/navigation/BottomCtaBar.tsx",
+    "frontend/src/components/navigation/MainMenuSheet.tsx",
+    "frontend/src/components/navigation/Navbar.tsx",
+    "frontend/src/components/public/SectionTitle.tsx",
+    "frontend/src/components/sections/BottomCTASection.tsx",
+    "frontend/src/components/sections/HeroSection.tsx",
+    "frontend/src/pages/CommercialVehicleDetailPage.tsx",
+    "frontend/src/pages/CommercialVehiclesPage.tsx",
+    "frontend/src/pages/ContactPage.tsx",
+    "frontend/src/pages/HomePage.tsx",
+    "frontend/src/pages/PassengerVehicleDetailPage.tsx",
+    "frontend/src/pages/PassengerVehiclesPage.tsx",
+    "frontend/src/pages/PromoPage.tsx",
     "project_state.json"
   ]
 }

@@ -1,95 +1,130 @@
 {
   "kind": "build_request",
-  "title": "Fix Admin CMS regression: media not visible in editors and save/publish failing",
-  "priority": "high",
+  "title": "Public UI icon refresh (Heroicons), mobile typography tweaks, and Bottom CTA bar/menu polish",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-84",
-      "text": "Fix backend admin authorization error handling so Admin CMS and Media Manager operations do not trap on invalid/expired sessions, and instead return a safe unauthorized response that the current React Query hooks can handle (so the UI can show session-expired messaging and continue functioning after re-login). Apply this consistently to admin CMS methods used by the admin UI, including: getMediaAssets/createMediaAsset/deleteMediaAsset, create/update/delete Vehicle/Promotion/Testimonial/BlogPost, getContacts/deleteContact, getCreditSimulations/deleteCreditSimulation, getVisitorStats/updateVisitorStats.",
-      "target": "backend",
+      "id": "REQ-95",
+      "text": "Replace all PUBLIC-facing icons currently implemented with `lucide-react` and `react-icons` with Heroicons (from `@heroicons/react`) across the public site, without modifying any /admin UI or behavior.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-4"
         ],
         "quotes": [
-          "Media belum bisa muncul di editor, malah sekarang jadi tidak bisa simpan dan publish"
+          "Saya mau Rubah semua icon menggunakan Heroicons... Jangan merubah tampilan admin panel."
         ]
       },
       "acceptanceCriteria": [
-        "When calling admin CMS methods with an invalid/expired token, the backend returns an unauthorized value (e.g., null/err variant) instead of trapping with a canister error.",
-        "With a valid token, all admin CMS methods listed in this requirement succeed without trapping.",
-        "No new non-English user-facing text is introduced by backend errors; any string messages returned must be English."
+        "All public pages and shared public components use Heroicons instead of `lucide-react` and `react-icons` (e.g., Navbar, Footer, SectionTitle, Bottom CTA Bar, Home sections, and other public pages listed in feature_evidence.json).",
+        "No files under `frontend/src/admin/**` are changed.",
+        "No public routing, data wiring, or functionality changes occur; only icon components are swapped.",
+        "Build succeeds with Heroicons installed and no remaining imports from `lucide-react`/`react-icons` in public components."
       ]
     },
     {
-      "id": "REQ-85",
-      "text": "Ensure the Admin Media Manager asset listing and editor Media Picker can successfully load and display existing media assets end-to-end (list, search, select) using the existing session token stored under `caffeineAdminSession`, without requiring any frontend storage-key changes.",
-      "target": "both",
+      "id": "REQ-96",
+      "text": "Reduce oversized title text on mobile for PUBLIC pages by adjusting mobile typography in shared public title components and hero titles, while preserving the existing desktop/tablet styling and not changing any admin UI.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-4"
         ],
         "quotes": [
-          "Media belum bisa muncul di editor"
+          "judul text pada mobile view terlalu besar"
         ]
       },
       "acceptanceCriteria": [
-        "If media assets exist in canister storage, they appear in `/admin/media` and in MediaPicker dialogs used by editors (Vehicle/Promotion/Testimonial/Blog).",
-        "If no media assets exist, the existing empty-state UI remains visible (e.g., “No media yet.”) and no unhandled exceptions occur.",
-        "Media list loading does not fail due to authorization when the user is logged in and a valid `caffeineAdminSession.token` exists."
+        "`frontend/src/components/public/SectionTitle.tsx` uses smaller heading sizing on mobile (e.g., mobile < current `text-3xl`) while keeping equal or near-current sizing on md+ breakpoints.",
+        "`frontend/src/components/sections/HeroSection.tsx` mobile title sizing is reduced to be visually balanced (current `text-3xl`), while md+ remains strong/heroic.",
+        "No layout structure changes are introduced beyond typography scaling (no reflow-heavy redesign)."
       ]
     },
     {
-      "id": "REQ-86",
-      "text": "Restore Admin CMS save and publish functionality for all content editors (Vehicles, Promotions, Testimonials, Blog) so that create/update operations persist successfully and the published/draft toggle changes are saved and reflected in the listing tables after saving.",
-      "target": "both",
+      "id": "REQ-97",
+      "text": "Remove the Main Banner Slide (homepage banner carousel/slider) from the public Home page without affecting the remaining Home page sections or CMS-driven data wiring.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-4"
         ],
         "quotes": [
-          "malah sekarang jadi tidak bisa simpan dan publish"
+          "hapus Main Banner Slide di halaman utama"
         ]
       },
       "acceptanceCriteria": [
-        "From each admin management page (Vehicles, Promotions, Testimonials, Blog), creating a new item and saving succeeds without errors and the item appears in the table.",
-        "Editing an existing item and saving persists changes and the table updates after save (via existing React Query invalidation).",
-        "Toggling Published/Draft and saving persists and the status badge in the CRUD table updates accordingly.",
-        "If the session is missing/expired, the UI shows the existing English session-required/session-expired messaging instead of silently failing."
+        "The carousel/banner slider section is no longer rendered on `frontend/src/pages/HomePage.tsx`.",
+        "Featured vehicles, CTA banner image section, About section, Search section, and Latest blog section remain present and functional.",
+        "No backend changes are required; no CMS data model changes are introduced."
       ]
     },
     {
-      "id": "REQ-87",
-      "text": "Add minimal, backend-side diagnostic logging (console Debug.print) for admin CMS mutation failures related to session validation (invalid/expired token) and for media asset listing failures, to make future deployment issues easier to diagnose without changing any public or admin UI.",
-      "target": "backend",
+      "id": "REQ-98",
+      "text": "Update the mobile Bottom CTA Bar to be 50px tall with sharp/square corners (no rounded top corners), keeping the same four actions and color blocks, and without impacting any admin UI.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5",
-          "msg-8"
+          "msg-4"
         ],
         "quotes": [
-          "malah sekarang jadi tidak bisa simpan dan publish",
-          "Kenapa gagal, ok tray again"
+          "ubah tinggi Bottom CTA bar menjadi 50px dengan sudut siku atau kotak"
         ]
       },
       "acceptanceCriteria": [
-        "When an admin CMS call is rejected due to missing/invalid/expired session token, a single-line debug log is emitted indicating the method name and rejection reason (English).",
-        "No sensitive data is logged (no passwords, no full tokens; token may be truncated or omitted)."
+        "`frontend/src/components/navigation/BottomCtaBar.tsx` renders at exactly 50px height on mobile (replacing current `h-16`).",
+        "Bottom bar container and button corners are square (remove rounded top corners currently applied).",
+        "All four actions remain: Call, WhatsApp, Credit Simulation, Main Menu; existing colors remain (#C90010, #398E3D, #FEA500, #0166C0).",
+        "Tap targets remain usable at 50px height (icons/text scaled appropriately without truncation)."
+      ]
+    },
+    {
+      "id": "REQ-99",
+      "text": "Reposition and restyle the Bottom CTA Bar 'Main Menu' dropdown so it appears directly above the blue 'Main Menu' box, and polish the visual styling of all PUBLIC dropdown/sheet menus to look cleaner and more minimal—without changing any admin panel UI.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "Menu dropdown pada Bottom cta bar letakkan tepat diatas kotak biru. Perbaiki tampilan semua menu dropdown agar lebih cantik dan estetik. Jangan merubah tampilan admin panel."
+        ]
+      },
+      "acceptanceCriteria": [
+        "When the user taps the blue 'Main Menu' action in the Bottom CTA Bar, the menu panel opens positioned directly above the blue box (aligned horizontally with that button), not as a generic full-width bottom sheet.",
+        "The menu dropdown closes on outside tap and on navigation item click, and animations/transitions remain smooth.",
+        "Public dropdown/sheet menus (e.g., Bottom CTA menu and Navbar mobile sheet) receive visual polish (spacing, typography, dividers, hover/active states) while keeping existing navigation items and behaviors unchanged.",
+        "No `/admin` components, routes, or styles are modified."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor (all logic in `backend/main.mo`).",
-    "Do not edit frontend files under the immutable paths listed in SYSTEM_CONTEXT (e.g., `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, `frontend/src/components/ui`).",
-    "Use English for any user-facing text introduced or modified by this change."
+    "Do not modify any admin panel UI, routes, components, or behavior (`frontend/src/admin/**`).",
+    "Do not change public routes, CMS wiring, or backend APIs; this request is UI-only on public pages.",
+    "Do not redesign parts of the public UI that already look good; limit changes to icons, mobile title sizing, homepage banner removal, Bottom CTA bar dimensions/corners, and dropdown/menu aesthetics.",
+    "Respect immutable frontend paths listed in SYSTEM_CONTEXT; do not edit them."
   ],
   "nonGoals": [
-    "Do not redesign the admin UI or add new admin CMS features beyond fixing the regression.",
-    "Do not introduce new authentication providers or change the browser storage key strategy (must keep using `caffeineAdminSession`).",
-    "Do not add external databases or services."
+    "Translating or changing existing public text content (only adjust typography sizing where required).",
+    "Any backend changes (Motoko) or data/schema migrations.",
+    "Adding new homepage sections or changing the order/content of existing sections besides removing the main banner slider.",
+    "Changing CTA actions, WhatsApp/phone targets, or navigation destinations."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [
+      "Prefer Heroicons for all public-facing icons.",
+      "Prefer minimalist, square-corner Bottom CTA bar at 50px height with a dropdown aligned above the Main Menu button.",
+      "Prefer smaller mobile title typography on public pages."
+    ],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

@@ -10,7 +10,7 @@ interface VehicleCardProps {
 
 export default function VehicleCard({ vehicle }: VehicleCardProps) {
   const handleConsult = () => {
-    window.open(`https://wa.me/6285212340778?text=Hi, I'm interested in ${vehicle.name}`, '_blank');
+    window.open(`https://wa.me/6285212340778?text=Halo, saya tertarik dengan ${vehicle.name}`, '_blank');
   };
 
   const detailPath = vehicle.isCommercial ? '/mobil-niaga/$id' : '/mobil-keluarga/$id';
@@ -55,7 +55,7 @@ export default function VehicleCard({ vehicle }: VehicleCardProps) {
         </p>
         
         <div className="mb-4">
-          <p className="text-xs text-gray-500 mb-1">Starting from</p>
+          <p className="text-xs text-gray-500 mb-1">Mulai dari</p>
           <p className="text-2xl font-bold text-[#C90010]">
             Rp {Number(vehicle.price).toLocaleString('id-ID')}
           </p>
@@ -63,10 +63,10 @@ export default function VehicleCard({ vehicle }: VehicleCardProps) {
 
         {vehicle.commercialFeatures && (
           <div className="flex flex-wrap gap-1.5 mb-4">
-            {vehicle.commercialFeatures.economical && <Badge variant="outline" className="text-xs">Economical</Badge>}
-            {vehicle.commercialFeatures.power && <Badge variant="outline" className="text-xs">Power</Badge>}
-            {vehicle.commercialFeatures.speed && <Badge variant="outline" className="text-xs">Speed</Badge>}
-            {vehicle.commercialFeatures.capacity && <Badge variant="outline" className="text-xs">Capacity</Badge>}
+            {vehicle.commercialFeatures.economical && <Badge variant="outline" className="text-xs">Ekonomis</Badge>}
+            {vehicle.commercialFeatures.power && <Badge variant="outline" className="text-xs">Bertenaga</Badge>}
+            {vehicle.commercialFeatures.speed && <Badge variant="outline" className="text-xs">Cepat</Badge>}
+            {vehicle.commercialFeatures.capacity && <Badge variant="outline" className="text-xs">Kapasitas</Badge>}
           </div>
         )}
 
@@ -74,14 +74,14 @@ export default function VehicleCard({ vehicle }: VehicleCardProps) {
           <Link to={detailPath} params={{ id: vehicle.id.toString() }} className="flex-1">
             <Button variant="outline" className="w-full border-[#C90010] text-[#C90010] hover:bg-[#C90010] hover:text-white transition-colors">
               <Car className="mr-2 h-4 w-4" />
-              Details
+              Detail
             </Button>
           </Link>
           <Button 
             onClick={handleConsult} 
             className="flex-1 bg-[#398E3D] hover:bg-[#2d7030] text-white transition-colors"
           >
-            Consult
+            Konsultasi
           </Button>
         </div>
       </div>

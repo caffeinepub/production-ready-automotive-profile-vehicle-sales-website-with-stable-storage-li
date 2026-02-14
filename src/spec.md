@@ -1,12 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the Admin CMS regression where media assets don’t appear in editors and admin save/publish operations fail, especially around expired/invalid sessions.
+**Goal:** Refresh the public UI by standardizing icons to Heroicons, improving mobile typography, removing the homepage main banner slider, and polishing the Bottom CTA bar and public dropdown/menu styling—without changing any admin UI or behavior.
 
 **Planned changes:**
-- Update backend admin authorization/session validation error handling so admin CMS and Media Manager methods return a safe unauthorized response (instead of trapping) that existing React Query hooks can handle.
-- Ensure media assets can load end-to-end (list/search/select) in `/admin/media` and Media Picker dialogs using the existing `caffeineAdminSession.token` storage key.
-- Restore create/update/save and Published/Draft persistence for Vehicles, Promotions, Testimonials, and Blog so listings refresh correctly after saves.
-- Add minimal backend debug logging for session-validation rejections and media listing failures (English, no sensitive data).
+- Replace public-facing icons that currently use `lucide-react` and `react-icons` with Heroicons (`@heroicons/react`) across public pages and shared public components (no `/admin` changes).
+- Reduce oversized mobile title typography in shared public title components (e.g., `SectionTitle`) and the home hero title, while preserving md+ sizing.
+- Remove the Main Banner Slide/carousel from the public Home page while keeping other Home sections and existing data wiring intact.
+- Update the mobile Bottom CTA Bar to be 50px tall and square-cornered, keeping the same four actions and existing color blocks.
+- Reposition the Bottom CTA Bar “Main Menu” dropdown to open directly above the blue “Main Menu” button, and apply minimalist visual polish to public dropdown/sheet menus (e.g., Bottom CTA menu and Navbar mobile sheet) without changing navigation items or behavior.
 
-**User-visible outcome:** Admins can see and pick media assets in editors, and can reliably save and publish/draft content across Vehicles/Promotions/Testimonials/Blog; when sessions are expired, the UI shows the existing session-required/expired messaging and continues working after re-login.
+**User-visible outcome:** On the public site, icons appear consistently in the Heroicons style, mobile titles look better balanced, the homepage no longer shows the main banner slider, the Bottom CTA bar is slimmer with square corners, and public menus/dropdowns look cleaner with the Bottom CTA “Main Menu” opening directly above its button.

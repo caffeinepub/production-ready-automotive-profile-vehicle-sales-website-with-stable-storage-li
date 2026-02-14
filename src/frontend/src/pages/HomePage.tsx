@@ -2,21 +2,15 @@ import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useGetVehicles, useGetBlogPosts } from '../hooks/useQueries';
 import VehicleCard from '../components/vehicles/VehicleCard';
-import { Search } from 'lucide-react';
+import SectionTitle from '../components/public/SectionTitle';
+import { Star, Info, Search, BookOpen } from 'lucide-react';
 
 export default function HomePage() {
   const { data: vehicles = [] } = useGetVehicles();
   const { data: blogPosts = [] } = useGetBlogPosts();
   const [searchQuery, setSearchQuery] = useState('');
-
-  const banners = [
-    '/assets/generated/home-banner-1.dim_1920x720.png',
-    '/assets/generated/home-banner-2.dim_1920x720.png',
-    '/assets/generated/home-banner-3.dim_1920x720.png'
-  ];
 
   const featuredVehicles = vehicles.slice(0, 4);
   const latestPosts = blogPosts.slice(0, 5);
@@ -27,22 +21,10 @@ export default function HomePage() {
 
   return (
     <div className="space-y-12">
-      <section className="container mx-auto px-4 py-8">
-        <Carousel className="w-full">
-          <CarouselContent>
-            {banners.map((banner, index) => (
-              <CarouselItem key={index}>
-                <img src={banner} alt={`Banner ${index + 1}`} className="w-full h-[300px] md:h-[500px] object-cover rounded-lg" />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
-        </Carousel>
-      </section>
-
-      <section className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold mb-6">Featured Vehicles</h2>
+      <section className="container mx-auto px-4 pt-8">
+        <SectionTitle icon={Star} className="mb-6">
+          Kendaraan Unggulan
+        </SectionTitle>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {featuredVehicles.map((vehicle) => (
             <VehicleCard key={Number(vehicle.id)} vehicle={vehicle} />
@@ -58,18 +40,22 @@ export default function HomePage() {
 
       <section className="bg-[#F1C40F] py-12">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-4">About Us</h2>
-          <p className="text-lg max-w-3xl">
-            We are your trusted automotive dealer in Subang, providing quality vehicles and excellent service for over a decade. Our commitment is to help you find the perfect vehicle for your needs.
+          <SectionTitle icon={Info} className="mb-4">
+            Tentang Kami
+          </SectionTitle>
+          <p className="text-base md:text-lg max-w-3xl">
+            Kami adalah dealer otomotif terpercaya di Subang, menyediakan kendaraan berkualitas dan layanan terbaik selama lebih dari satu dekade. Komitmen kami adalah membantu Anda menemukan kendaraan yang sempurna sesuai kebutuhan Anda.
           </p>
         </div>
       </section>
 
       <section className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold mb-6">Search Vehicles</h2>
+        <SectionTitle icon={Search} className="mb-6">
+          Cari Kendaraan
+        </SectionTitle>
         <div className="flex gap-4 mb-6">
           <Input
-            placeholder="Search by vehicle name..."
+            placeholder="Cari berdasarkan nama kendaraan..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1"
@@ -87,8 +73,10 @@ export default function HomePage() {
         )}
       </section>
 
-      <section className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold mb-6">Latest Blog Posts</h2>
+      <section className="container mx-auto px-4 pb-8">
+        <SectionTitle icon={BookOpen} className="mb-6">
+          Blog Terbaru
+        </SectionTitle>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {latestPosts.map((post) => (
             <Link key={Number(post.id)} to="/blog/$id" params={{ id: post.id.toString() }} className="group">

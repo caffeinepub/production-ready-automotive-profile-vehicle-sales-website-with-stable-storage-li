@@ -29,7 +29,7 @@ export default function CreditSimulationForm({ onSuccess }: CreditSimulationForm
     e.preventDefault();
 
     if (!formData.name || !formData.phoneNumber || !formData.unit) {
-      toast.error('Please fill in all required fields');
+      toast.error('Mohon isi semua kolom yang wajib diisi');
       return;
     }
 
@@ -48,7 +48,7 @@ export default function CreditSimulationForm({ onSuccess }: CreditSimulationForm
 
     try {
       await addSimulation.mutateAsync(simulation);
-      toast.success('Credit simulation request submitted successfully!');
+      toast.success('Permintaan simulasi kredit berhasil dikirim!');
       setFormData({
         name: '',
         address: '',
@@ -62,14 +62,14 @@ export default function CreditSimulationForm({ onSuccess }: CreditSimulationForm
       });
       onSuccess?.();
     } catch (error) {
-      toast.error('Failed to submit request. Please try again.');
+      toast.error('Gagal mengirim permintaan. Silakan coba lagi.');
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="name">Name *</Label>
+        <Label htmlFor="name">Nama *</Label>
         <Input
           id="name"
           value={formData.name}
@@ -79,7 +79,7 @@ export default function CreditSimulationForm({ onSuccess }: CreditSimulationForm
       </div>
 
       <div>
-        <Label htmlFor="phoneNumber">Phone Number *</Label>
+        <Label htmlFor="phoneNumber">Nomor Telepon *</Label>
         <Input
           id="phoneNumber"
           type="tel"
@@ -100,7 +100,7 @@ export default function CreditSimulationForm({ onSuccess }: CreditSimulationForm
       </div>
 
       <div>
-        <Label htmlFor="unit">Vehicle Unit *</Label>
+        <Label htmlFor="unit">Unit Kendaraan *</Label>
         <Input
           id="unit"
           value={formData.unit}
@@ -111,7 +111,7 @@ export default function CreditSimulationForm({ onSuccess }: CreditSimulationForm
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="downPayment">Down Payment (Rp)</Label>
+          <Label htmlFor="downPayment">Uang Muka (Rp)</Label>
           <Input
             id="downPayment"
             type="number"
@@ -121,7 +121,7 @@ export default function CreditSimulationForm({ onSuccess }: CreditSimulationForm
         </div>
 
         <div>
-          <Label htmlFor="tenor">Tenor (months)</Label>
+          <Label htmlFor="tenor">Tenor (bulan)</Label>
           <Input
             id="tenor"
             type="number"
@@ -132,7 +132,7 @@ export default function CreditSimulationForm({ onSuccess }: CreditSimulationForm
       </div>
 
       <div>
-        <Label htmlFor="message">Additional Information</Label>
+        <Label htmlFor="message">Informasi Tambahan</Label>
         <Textarea
           id="message"
           value={formData.message}
@@ -142,7 +142,7 @@ export default function CreditSimulationForm({ onSuccess }: CreditSimulationForm
       </div>
 
       <Button type="submit" className="w-full bg-[#FEA500] hover:bg-[#e59400]" disabled={addSimulation.isPending}>
-        {addSimulation.isPending ? 'Submitting...' : 'Submit Simulation Request'}
+        {addSimulation.isPending ? 'Mengirim...' : 'Kirim Permintaan Simulasi'}
       </Button>
     </form>
   );

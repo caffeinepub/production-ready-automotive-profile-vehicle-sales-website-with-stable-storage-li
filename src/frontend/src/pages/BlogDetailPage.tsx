@@ -19,7 +19,7 @@ export default function BlogDetailPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-12">
-        <div className="text-center">Loading post...</div>
+        <div className="text-center">Memuat artikel...</div>
       </div>
     );
   }
@@ -27,7 +27,7 @@ export default function BlogDetailPage() {
   if (!post) {
     return (
       <div className="container mx-auto px-4 py-12">
-        <div className="text-center">Post not found</div>
+        <div className="text-center">Artikel tidak ditemukan</div>
       </div>
     );
   }
@@ -42,11 +42,11 @@ export default function BlogDetailPage() {
         />
         <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
         <div className="flex items-center gap-4 text-gray-600 mb-8">
-          <span>By {post.author}</span>
+          <span>Oleh {post.author}</span>
           <span>•</span>
           <span>{post.publishDate}</span>
           <span>•</span>
-          <span>{Number(post.views)} views</span>
+          <span>{Number(post.views)} tayangan</span>
         </div>
         <div className="prose max-w-none">
           <p className="whitespace-pre-wrap">{post.content}</p>

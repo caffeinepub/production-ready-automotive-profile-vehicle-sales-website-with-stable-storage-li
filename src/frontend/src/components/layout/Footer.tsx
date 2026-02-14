@@ -1,5 +1,5 @@
 import { SiFacebook, SiInstagram, SiX, SiTiktok, SiYoutube } from 'react-icons/si';
-import { Heart } from 'lucide-react';
+import { Heart, Phone, Mail } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -12,23 +12,29 @@ export default function Footer() {
           <div>
             <img src="/assets/generated/dealer-logo.dim_512x512.png" alt="Logo" className="h-12 mb-4" />
             <p className="text-sm text-gray-300">
-              Your trusted automotive dealer in Subang, providing quality vehicles and excellent service.
+              Dealer otomotif terpercaya di Subang, menyediakan kendaraan berkualitas dan layanan terbaik.
             </p>
           </div>
 
           <div>
-            <h3 className="font-bold text-lg mb-4">Contact Us</h3>
+            <div className="flex items-center gap-2 mb-4">
+              <Phone className="h-5 w-5 text-[#C90010]" />
+              <h3 className="font-bold text-lg">Hubungi Kami</h3>
+            </div>
             <div className="space-y-2 text-sm text-gray-300">
               <p>Jl. Raya Subang No. 123</p>
               <p>Subang, Jawa Barat 41211</p>
               <p>WhatsApp: 0852-1234-0778</p>
               <p>Email: fuadmitsubishi2025@gmail.com</p>
-              <p>Hours: Mon-Sat 9AM-6PM</p>
+              <p>Jam Operasional: Senin-Sabtu 09.00-18.00</p>
             </div>
           </div>
 
           <div>
-            <h3 className="font-bold text-lg mb-4">Follow Us</h3>
+            <div className="flex items-center gap-2 mb-4">
+              <Mail className="h-5 w-5 text-[#C90010]" />
+              <h3 className="font-bold text-lg">Ikuti Kami</h3>
+            </div>
             <div className="flex gap-4">
               <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">
                 <SiFacebook size={24} />
@@ -51,8 +57,8 @@ export default function Footer() {
 
         <div className="border-t border-gray-700 pt-6 text-center text-sm text-gray-400">
           <p>
-            © {currentYear} Automotive Dealer. All rights reserved. | Built with{' '}
-            <Heart className="inline h-4 w-4 text-red-500" /> using{' '}
+            © {currentYear} Automotive Dealer. Hak cipta dilindungi. | Dibuat dengan{' '}
+            <Heart className="inline h-4 w-4 text-red-500" /> menggunakan{' '}
             <a
               href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${appIdentifier}`}
               target="_blank"

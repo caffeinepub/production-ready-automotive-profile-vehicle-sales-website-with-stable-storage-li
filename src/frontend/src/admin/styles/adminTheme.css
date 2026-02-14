@@ -1,0 +1,230 @@
+/* Admin-scoped theme layer */
+.admin-scope {
+  /* Admin color tokens */
+  --admin-bg: oklch(0.96 0.002 264);
+  --admin-surface: oklch(1 0 0);
+  --admin-surface-hover: oklch(0.98 0.002 264);
+  --admin-border: oklch(0.88 0.004 264);
+  --admin-text: oklch(0.25 0.01 264);
+  --admin-text-muted: oklch(0.5 0.01 264);
+  --admin-primary: oklch(0.45 0.18 25);
+  --admin-primary-hover: oklch(0.38 0.18 25);
+  --admin-accent: oklch(0.92 0.004 25);
+  --admin-sidebar: oklch(0.18 0.01 264);
+  --admin-sidebar-hover: oklch(0.25 0.01 264);
+}
+
+/* Admin layout refinements */
+.admin-scope .admin-main-bg {
+  background: var(--admin-bg);
+}
+
+.admin-scope .admin-sidebar {
+  background: var(--admin-sidebar);
+  border-right: 1px solid oklch(0.22 0.01 264);
+}
+
+.admin-scope .admin-nav-item {
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.admin-scope .admin-nav-item:hover {
+  background: var(--admin-sidebar-hover);
+  transform: translateX(2px);
+}
+
+.admin-scope .admin-nav-item.active {
+  background: var(--admin-primary);
+  box-shadow: 0 2px 8px oklch(0.45 0.18 25 / 0.3);
+}
+
+.admin-scope .admin-nav-icon {
+  flex-shrink: 0;
+}
+
+/* Admin page header */
+.admin-scope .admin-page-header {
+  margin-bottom: 2rem;
+}
+
+.admin-scope .admin-page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--admin-text);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.admin-scope .admin-page-subtitle {
+  color: var(--admin-text-muted);
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+}
+
+/* Admin table enhancements */
+.admin-scope .admin-table-container {
+  background: var(--admin-surface);
+  border-radius: 12px;
+  border: 1px solid var(--admin-border);
+  box-shadow: 0 1px 3px oklch(0 0 0 / 0.05);
+  overflow: hidden;
+}
+
+.admin-scope .admin-table-header {
+  background: oklch(0.97 0.002 264);
+  border-bottom: 2px solid var(--admin-border);
+}
+
+.admin-scope .admin-table-header th {
+  font-weight: 600;
+  color: var(--admin-text);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 1rem;
+}
+
+.admin-scope .admin-table-row {
+  border-bottom: 1px solid oklch(0.94 0.002 264);
+  transition: background-color 0.15s ease;
+}
+
+.admin-scope .admin-table-row:hover {
+  background: var(--admin-surface-hover);
+}
+
+.admin-scope .admin-table-row:last-child {
+  border-bottom: none;
+}
+
+.admin-scope .admin-table-cell {
+  padding: 1rem;
+  color: var(--admin-text);
+}
+
+.admin-scope .admin-search-input {
+  border-radius: 8px;
+  border: 1px solid var(--admin-border);
+  transition: all 0.2s ease;
+}
+
+.admin-scope .admin-search-input:focus {
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px oklch(0.45 0.18 25 / 0.1);
+}
+
+/* Admin dashboard cards */
+.admin-scope .admin-stat-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px oklch(0 0 0 / 0.05);
+  transition: all 0.2s ease;
+}
+
+.admin-scope .admin-stat-card:hover {
+  box-shadow: 0 4px 12px oklch(0 0 0 / 0.08);
+  transform: translateY(-2px);
+}
+
+.admin-scope .admin-stat-icon-wrapper {
+  background: var(--admin-accent);
+  border-radius: 10px;
+  padding: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-scope .admin-stat-icon {
+  color: var(--admin-primary);
+}
+
+.admin-scope .admin-stat-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.admin-scope .admin-stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--admin-text);
+  line-height: 1;
+}
+
+/* Admin buttons */
+.admin-scope .admin-btn-primary {
+  background: var(--admin-primary);
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px oklch(0.45 0.18 25 / 0.2);
+}
+
+.admin-scope .admin-btn-primary:hover {
+  background: var(--admin-primary-hover);
+  box-shadow: 0 4px 8px oklch(0.45 0.18 25 / 0.3);
+  transform: translateY(-1px);
+}
+
+.admin-scope .admin-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Admin badges */
+.admin-scope .admin-badge-published {
+  background: oklch(0.92 0.08 145);
+  color: oklch(0.35 0.12 145);
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 6px;
+}
+
+.admin-scope .admin-badge-draft {
+  background: oklch(0.92 0.01 264);
+  color: oklch(0.45 0.01 264);
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 6px;
+}
+
+/* Admin action buttons */
+.admin-scope .admin-action-btn {
+  transition: all 0.15s ease;
+  border-radius: 6px;
+}
+
+.admin-scope .admin-action-btn:hover {
+  transform: scale(1.05);
+}
+
+/* Admin empty state */
+.admin-scope .admin-empty-state {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--admin-text-muted);
+  font-size: 0.95rem;
+}
+
+/* Admin content spacing */
+.admin-scope .admin-content {
+  padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  .admin-scope .admin-content {
+    padding: 1.5rem;
+  }
+  
+  .admin-scope .admin-page-title {
+    font-size: 1.75rem;
+  }
+}

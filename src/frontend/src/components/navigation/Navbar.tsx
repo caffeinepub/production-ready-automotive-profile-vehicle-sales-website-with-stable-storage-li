@@ -9,13 +9,13 @@ export default function Navbar() {
   const location = useLocation();
 
   const navItems = [
-    { label: 'Home', path: '/' },
-    { label: 'Passenger Vehicles', path: '/mobil-keluarga' },
-    { label: 'Commercial Vehicles', path: '/mobil-niaga' },
-    { label: 'Promotions', path: '/promo' },
-    { label: 'Testimonials', path: '/testimoni' },
+    { label: 'Beranda', path: '/' },
+    { label: 'Mobil Keluarga', path: '/mobil-keluarga' },
+    { label: 'Mobil Niaga', path: '/mobil-niaga' },
+    { label: 'Promo', path: '/promo' },
+    { label: 'Testimoni', path: '/testimoni' },
     { label: 'Blog', path: '/blog' },
-    { label: 'Contact', path: '/kontak' }
+    { label: 'Kontak', path: '/kontak' }
   ];
 
   const handleWhatsApp = () => {
@@ -46,7 +46,7 @@ export default function Navbar() {
         <div className="hidden lg:block">
           <Button onClick={handleWhatsApp} className="bg-[#398E3D] hover:bg-[#2d7030]">
             <Phone className="mr-2 h-4 w-4" />
-            Contact Us
+            Hubungi Kami
           </Button>
         </div>
 
@@ -57,23 +57,25 @@ export default function Navbar() {
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-[300px] bg-[#262729] text-white border-gray-700">
-            <div className="flex flex-col gap-4 mt-8">
+            <div className="flex flex-col gap-1 mt-8">
               {navItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
                   onClick={() => setIsOpen(false)}
-                  className={`text-lg font-medium hover:text-gray-300 transition-colors ${
-                    location.pathname === item.path ? 'text-white' : 'text-gray-400'
+                  className={`text-base font-medium hover:bg-white/10 transition-colors px-4 py-3 rounded-lg ${
+                    location.pathname === item.path ? 'text-white bg-white/10' : 'text-gray-300'
                   }`}
                 >
                   {item.label}
                 </Link>
               ))}
-              <Button onClick={handleWhatsApp} className="bg-[#398E3D] hover:bg-[#2d7030] mt-4">
-                <Phone className="mr-2 h-4 w-4" />
-                Contact Us
-              </Button>
+              <div className="mt-4 px-4">
+                <Button onClick={handleWhatsApp} className="bg-[#398E3D] hover:bg-[#2d7030] w-full">
+                  <Phone className="mr-2 h-4 w-4" />
+                  Hubungi Kami
+                </Button>
+              </div>
             </div>
           </SheetContent>
         </Sheet>

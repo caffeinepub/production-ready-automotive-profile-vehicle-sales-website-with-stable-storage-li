@@ -29,7 +29,7 @@ export default function ContactForm({ onSuccess }: ContactFormProps) {
     e.preventDefault();
 
     if (!formData.name || !formData.phoneNumber || !formData.message) {
-      toast.error('Please fill in all required fields');
+      toast.error('Mohon isi semua kolom yang wajib diisi');
       return;
     }
 
@@ -48,7 +48,7 @@ export default function ContactForm({ onSuccess }: ContactFormProps) {
 
     try {
       await addContact.mutateAsync(contact);
-      toast.success('Your message has been sent successfully!');
+      toast.success('Pesan Anda telah berhasil dikirim!');
       setFormData({
         name: '',
         address: '',
@@ -62,14 +62,14 @@ export default function ContactForm({ onSuccess }: ContactFormProps) {
       });
       onSuccess?.();
     } catch (error) {
-      toast.error('Failed to send message. Please try again.');
+      toast.error('Gagal mengirim pesan. Silakan coba lagi.');
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="name">Name *</Label>
+        <Label htmlFor="name">Nama *</Label>
         <Input
           id="name"
           value={formData.name}
@@ -79,7 +79,7 @@ export default function ContactForm({ onSuccess }: ContactFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="address">Address</Label>
+        <Label htmlFor="address">Alamat</Label>
         <Input
           id="address"
           value={formData.address}
@@ -88,7 +88,7 @@ export default function ContactForm({ onSuccess }: ContactFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="phoneNumber">Phone Number *</Label>
+        <Label htmlFor="phoneNumber">Nomor Telepon *</Label>
         <Input
           id="phoneNumber"
           type="tel"
@@ -109,7 +109,7 @@ export default function ContactForm({ onSuccess }: ContactFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="unit">Interested Unit</Label>
+        <Label htmlFor="unit">Unit yang Diminati</Label>
         <Input
           id="unit"
           value={formData.unit}
@@ -119,7 +119,7 @@ export default function ContactForm({ onSuccess }: ContactFormProps) {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="downPayment">Down Payment (Rp)</Label>
+          <Label htmlFor="downPayment">Uang Muka (Rp)</Label>
           <Input
             id="downPayment"
             type="number"
@@ -129,7 +129,7 @@ export default function ContactForm({ onSuccess }: ContactFormProps) {
         </div>
 
         <div>
-          <Label htmlFor="tenor">Tenor (months)</Label>
+          <Label htmlFor="tenor">Tenor (bulan)</Label>
           <Input
             id="tenor"
             type="number"
@@ -140,7 +140,7 @@ export default function ContactForm({ onSuccess }: ContactFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="message">Message *</Label>
+        <Label htmlFor="message">Pesan *</Label>
         <Textarea
           id="message"
           value={formData.message}
@@ -151,7 +151,7 @@ export default function ContactForm({ onSuccess }: ContactFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="notes">Additional Notes</Label>
+        <Label htmlFor="notes">Catatan Tambahan</Label>
         <Textarea
           id="notes"
           value={formData.notes}
@@ -161,7 +161,7 @@ export default function ContactForm({ onSuccess }: ContactFormProps) {
       </div>
 
       <Button type="submit" className="w-full bg-[#C90010] hover:bg-[#a00010]" disabled={addContact.isPending}>
-        {addContact.isPending ? 'Sending...' : 'Send Message'}
+        {addContact.isPending ? 'Mengirim...' : 'Kirim Pesan'}
       </Button>
     </form>
   );

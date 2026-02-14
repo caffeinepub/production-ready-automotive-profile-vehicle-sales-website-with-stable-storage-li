@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react';
 import CrudTable from '../components/CrudTable';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
 import TestimonialFormDialog from '../components/TestimonialFormDialog';
+import AdminPageHeader from '../components/AdminPageHeader';
 import type { Testimonial } from '../../backend';
 import { toast } from 'sonner';
 
@@ -93,19 +94,21 @@ export default function TestimonialsAdminPage() {
   return (
     <>
       <div>
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Testimonials Management</h1>
-          <Button 
-            className="bg-[#C90010] hover:bg-[#a00010]"
-            onClick={() => {
-              setEditItem(null);
-              setShowForm(true);
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Testimonial
-          </Button>
-        </div>
+        <AdminPageHeader
+          title="Testimonials Management"
+          action={
+            <Button 
+              className="admin-btn-primary"
+              onClick={() => {
+                setEditItem(null);
+                setShowForm(true);
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Testimonial
+            </Button>
+          }
+        />
 
         <CrudTable
           data={filteredTestimonials}

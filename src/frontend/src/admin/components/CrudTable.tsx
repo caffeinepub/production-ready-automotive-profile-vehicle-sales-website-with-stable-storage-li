@@ -1,7 +1,6 @@
 import { ReactNode } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Edit, Trash2, Search } from 'lucide-react';
 
@@ -43,14 +42,14 @@ export default function CrudTable<T extends { published?: boolean }>({
             placeholder={searchPlaceholder}
             value={searchValue}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10"
+            className="admin-search-input pl-10"
           />
         </div>
       )}
       
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="admin-table-container">
         <Table>
-          <TableHeader>
+          <TableHeader className="admin-table-header">
             <TableRow>
               {columns.map((col) => (
                 <TableHead key={col.key}>{col.label}</TableHead>
@@ -62,32 +61,33 @@ export default function CrudTable<T extends { published?: boolean }>({
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns.length + (showPublished ? 2 : 1)} className="text-center text-gray-500 py-8">
+                <TableCell colSpan={columns.length + (showPublished ? 2 : 1)} className="admin-empty-state">
                   No data available
                 </TableCell>
               </TableRow>
             ) : (
               data.map((item) => (
-                <TableRow key={getItemKey(item)}>
+                <TableRow key={getItemKey(item)} className="admin-table-row">
                   {columns.map((col) => (
-                    <TableCell key={col.key}>
+                    <TableCell key={col.key} className="admin-table-cell">
                       {col.render ? col.render(item) : String((item as any)[col.key] || '')}
                     </TableCell>
                   ))}
                   {showPublished && (
-                    <TableCell>
-                      <Badge variant={item.published ? 'default' : 'secondary'}>
+                    <TableCell className="admin-table-cell">
+                      <span className={item.published ? 'admin-badge-published' : 'admin-badge-draft'}>
                         {item.published ? 'Published' : 'Draft'}
-                      </Badge>
+                      </span>
                     </TableCell>
                   )}
-                  <TableCell className="text-right">
+                  <TableCell className="admin-table-cell text-right">
                     <div className="flex justify-end gap-2">
                       {onEdit && (
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => onEdit(item)}
+                          className="admin-action-btn"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -97,6 +97,7 @@ export default function CrudTable<T extends { published?: boolean }>({
                           variant="destructive"
                           size="sm"
                           onClick={() => onDelete(item)}
+                          className="admin-action-btn"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

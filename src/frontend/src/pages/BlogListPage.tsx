@@ -1,5 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useGetBlogPosts } from '../hooks/useQueries';
+import SectionTitle from '../components/public/SectionTitle';
+import { BookOpen } from 'lucide-react';
 
 export default function BlogListPage() {
   const { data: blogPosts = [], isLoading } = useGetBlogPosts();
@@ -7,14 +9,16 @@ export default function BlogListPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-12">
-        <div className="text-center">Loading blog posts...</div>
+        <div className="text-center">Memuat artikel blog...</div>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <h1 className="text-4xl font-bold mb-8">Blog</h1>
+      <SectionTitle icon={BookOpen} className="mb-8">
+        Blog
+      </SectionTitle>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {blogPosts.map((post) => (
           <Link key={Number(post.id)} to="/blog/$id" params={{ id: post.id.toString() }} className="group">
@@ -34,7 +38,7 @@ export default function BlogListPage() {
         ))}
       </div>
       {blogPosts.length === 0 && (
-        <div className="text-center py-12 text-gray-500">No blog posts available yet.</div>
+        <div className="text-center py-12 text-gray-500">Belum ada artikel blog tersedia.</div>
       )}
     </div>
   );

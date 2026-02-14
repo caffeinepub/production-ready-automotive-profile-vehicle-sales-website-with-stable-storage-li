@@ -1,78 +1,188 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin CMS regression fixes (frontend): media visibility + save/publish resilience",
+  "title": "Public UI refresh: Heroicons swap, mobile typography tuning, remove Home banner slider, and polish Bottom CTA bar/menu",
   "requirements": [
     {
-      "id": "REQ-85",
-      "summary": "Make Media Manager and editor Media Picker reliably load/search/select existing media assets using the existing caffeineAdminSession token, including after re-login.",
+      "id": "REQ-95",
+      "summary": "Swap all public-facing `lucide-react` and `react-icons` icons to Heroicons without changing any admin UI or public behavior.",
       "acceptanceCriteria": [
-        "If media assets exist in canister storage, they appear in `/admin/media` and in MediaPicker dialogs used by editors (Vehicle/Promotion/Testimonial/Blog).",
-        "If no media assets exist, the existing empty-state UI remains visible (e.g., “No media yet.”) and no unhandled exceptions occur.",
-        "Media list loading does not fail due to authorization when the user is logged in and a valid `caffeineAdminSession.token` exists."
+        "All public pages and shared public components use Heroicons instead of `lucide-react` and `react-icons` (e.g., Navbar, Footer, SectionTitle, Bottom CTA Bar, Home sections, and other public pages listed in feature_evidence.json).",
+        "No files under `frontend/src/admin/**` are changed.",
+        "No public routing, data wiring, or functionality changes occur; only icon components are swapped.",
+        "Build succeeds with Heroicons installed and no remaining imports from `lucide-react`/`react-icons` in public components."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+          "path": "frontend/package.json",
           "operation": "modify",
-          "description": "Update the media-asset query to key off the current `caffeineAdminSession` token (e.g., include token in the React Query `queryKey` and `enabled`), so the media list refetches correctly after re-login without changing the storage key. Also normalize unauthorized handling: if `getMediaAssets(token)` returns `null`, throw a consistent English error that existing UI can treat as session-expired."
+          "description": "Add `@heroicons/react` dependency and remove/stop relying on `lucide-react` and `react-icons` for public UI to ensure the build succeeds after icon migration."
         },
         {
-          "path": "frontend/src/admin/hooks/useAdminSession.ts",
+          "path": "frontend/src/components/navigation/Navbar.tsx",
           "operation": "modify",
-          "description": "Harden admin session validation to treat a `null` return from `getVisitorStats(token)` as an invalid/expired session (clear `caffeineAdminSession` and set session to null). This ensures media and other admin screens recover cleanly after re-login."
+          "description": "Replace `lucide-react` icons (Menu/X/Phone) with `@heroicons/react` equivalents for the public navbar, preserving all existing navigation items and behaviors. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/admin/components/media/MediaManagerPanel.tsx",
+          "path": "frontend/src/components/navigation/BottomCtaBar.tsx",
           "operation": "modify",
-          "description": "Align auth-error detection with the updated, normalized errors from admin CMS hooks so the existing Session Expired UI reliably appears for invalid sessions and the media grid renders when authorized."
+          "description": "Replace `lucide-react` icons (Phone/MessageCircle/Calculator/Menu) with Heroicons equivalents for the public Bottom CTA Bar, preserving actions and wiring. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/admin/components/media/MediaPickerDialog.tsx",
+          "path": "frontend/src/components/navigation/MainMenuSheet.tsx",
           "operation": "modify",
-          "description": "Align auth-error detection with the updated, normalized errors from admin CMS hooks so editors can load/search/select media when authorized and see the existing Session Expired messaging when not."
+          "description": "Replace the `lucide-react` Menu icon with a Heroicons equivalent for the public main menu panel while preserving menu items and close-on-click behavior. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/admin/pages/MediaManagerPage.tsx",
+          "path": "frontend/src/components/layout/Footer.tsx",
           "operation": "modify",
-          "description": "Ensure the page-level session-expired banner is driven by the normalized unauthorized error message from the media query (and continues to work after token refresh via re-login)."
+          "description": "Replace `react-icons/si` social icons and `lucide-react` icons in the public footer with Heroicons equivalents (using appropriate generic Heroicons where brand icons are not available), keeping links and layout behavior the same. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/public/SectionTitle.tsx",
+          "operation": "modify",
+          "description": "Remove the `LucideIcon` type dependency and update the public `SectionTitle` icon prop typing/rendering to accept Heroicons components (React component with `className` support), without changing usage semantics. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/sections/HeroSection.tsx",
+          "operation": "modify",
+          "description": "Replace the `lucide-react` Sparkles icon with a Heroicons equivalent in the public hero section while preserving structure and content. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/sections/BottomCTASection.tsx",
+          "operation": "modify",
+          "description": "Replace `lucide-react` icons (Phone/MessageCircle) with Heroicons equivalents in the public Bottom CTA section while preserving actions and styling intent. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/vehicles/VehicleCard.tsx",
+          "operation": "modify",
+          "description": "Replace the `lucide-react` Car icon with a Heroicons equivalent in the public vehicle card while preserving navigation and CTA behavior. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/HomePage.tsx",
+          "operation": "modify",
+          "description": "Replace `lucide-react` icons used by public Home page sections (e.g., Star/Info/Search/BookOpen) with Heroicons equivalents, without changing page behavior beyond icon rendering. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/PassengerVehiclesPage.tsx",
+          "operation": "modify",
+          "description": "Replace `lucide-react` icons used on the public passenger vehicles list page with Heroicons equivalents while preserving layout and filtering behavior. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/CommercialVehiclesPage.tsx",
+          "operation": "modify",
+          "description": "Replace `lucide-react` icons used on the public commercial vehicles list page with Heroicons equivalents while preserving layout and filtering behavior. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/PassengerVehicleDetailPage.tsx",
+          "operation": "modify",
+          "description": "Replace `lucide-react` icons (Heart/Share2/Download/Phone/Settings/Sparkles) with Heroicons equivalents on the public passenger vehicle detail page, preserving all actions and data wiring. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/CommercialVehicleDetailPage.tsx",
+          "operation": "modify",
+          "description": "Replace `lucide-react` icons (Heart/Share2/Download/Phone/Settings/Sparkles) with Heroicons equivalents on the public commercial vehicle detail page, preserving all actions and data wiring. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/BlogListPage.tsx",
+          "operation": "modify",
+          "description": "Replace `lucide-react` icons used on the public blog list page with Heroicons equivalents while preserving routing and rendering behavior. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/ContactPage.tsx",
+          "operation": "modify",
+          "description": "Replace `lucide-react` icons (Mail/MapPin/User/Clock if present) with Heroicons equivalents on the public contact page; remove any unused icon imports without changing the page’s structure/behavior. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/PromoPage.tsx",
+          "operation": "modify",
+          "description": "Replace `lucide-react` icons (Tag/FileText) with Heroicons equivalents on the public promo page while preserving promo rendering behavior. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/TestimonialsPage.tsx",
+          "operation": "modify",
+          "description": "Replace `lucide-react` icons (MessageSquare/Star) with Heroicons equivalents on the public testimonials page while preserving rating display behavior. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-86",
-      "summary": "Restore Admin CMS save/publish operations across Vehicles/Promotions/Testimonials/Blog by ensuring admin mutations properly fail on unauthorized/falsey results and trigger expected React Query refresh behavior.",
+      "id": "REQ-96",
+      "summary": "Reduce oversized public-page title typography on mobile in shared title components and hero titles while keeping md+ styling intact.",
       "acceptanceCriteria": [
-        "From each admin management page (Vehicles, Promotions, Testimonials, Blog), creating a new item and saving succeeds without errors and the item appears in the table.",
-        "Editing an existing item and saving persists changes and the table updates after save (via existing React Query invalidation).",
-        "Toggling Published/Draft and saving persists and the status badge in the CRUD table updates accordingly.",
-        "If the session is missing/expired, the UI shows the existing English session-required/session-expired messaging instead of silently failing."
+        "`frontend/src/components/public/SectionTitle.tsx` uses smaller heading sizing on mobile (e.g., mobile < current `text-3xl`) while keeping equal or near-current sizing on md+ breakpoints.",
+        "`frontend/src/components/sections/HeroSection.tsx` mobile title sizing is reduced to be visually balanced (current `text-3xl`), while md+ remains strong/heroic.",
+        "No layout structure changes are introduced beyond typography scaling (no reflow-heavy redesign)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+          "path": "frontend/src/components/public/SectionTitle.tsx",
           "operation": "modify",
-          "description": "For admin CMS create/update/delete mutations (Vehicles/Promotions/Testimonials/Blog, plus any related admin mutations already in this file), enforce result checking: if the backend returns `false` (or a `null` where applicable), throw a consistent English error (e.g., unauthorized/session expired vs generic failure) so the UI does not treat failures as success. Also include the current `caffeineAdminSession` token in relevant query keys (where those queries exist) so listings refetch correctly after re-login and invalidation targets the active session cache."
+          "description": "Adjust Tailwind heading classes so the public section title renders smaller on mobile (below current `text-3xl`) while keeping md+ sizing near-current; keep layout structure unchanged."
         },
         {
-          "path": "frontend/src/admin/pages/VehiclesAdminPage.tsx",
+          "path": "frontend/src/components/sections/HeroSection.tsx",
           "operation": "modify",
-          "description": "Adjust save error handling to surface session-expired/unauthorized failures from the updated admin CMS mutation hooks (keep English messaging) and avoid closing the editor dialog on failed saves, so users can re-login and retry successfully."
+          "description": "Reduce the public hero title font size on mobile (below current `text-3xl`) while preserving md+ hero styling; avoid any structural/layout redesign."
+        }
+      ]
+    },
+    {
+      "id": "REQ-97",
+      "summary": "Remove the Home page main banner carousel/slider rendering while keeping all other Home sections and data wiring intact.",
+      "acceptanceCriteria": [
+        "The carousel/banner slider section is no longer rendered on `frontend/src/pages/HomePage.tsx`.",
+        "Featured vehicles, CTA banner image section, About section, Search section, and Latest blog section remain present and functional.",
+        "No backend changes are required; no CMS data model changes are introduced."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/HomePage.tsx",
+          "operation": "modify",
+          "description": "Remove the main banner carousel/slider section and its related imports/constants from the public Home page while leaving other sections, hooks, and CMS-driven data usage unchanged."
+        }
+      ]
+    },
+    {
+      "id": "REQ-98",
+      "summary": "Update the mobile Bottom CTA Bar to 50px height with square corners while keeping the same four actions and colors.",
+      "acceptanceCriteria": [
+        "`frontend/src/components/navigation/BottomCtaBar.tsx` renders at exactly 50px height on mobile (replacing current `h-16`).",
+        "Bottom bar container and button corners are square (remove rounded top corners currently applied).",
+        "All four actions remain: Call, WhatsApp, Credit Simulation, Main Menu; existing colors remain (#C90010, #398E3D, #FEA500, #0166C0).",
+        "Tap targets remain usable at 50px height (icons/text scaled appropriately without truncation)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/navigation/BottomCtaBar.tsx",
+          "operation": "modify",
+          "description": "Change the public Bottom CTA Bar mobile height from `h-16` to a 50px height, remove rounded top corners from the bar/buttons for square edges, and tune icon/text sizing to avoid truncation while keeping the four actions and existing color blocks."
+        }
+      ]
+    },
+    {
+      "id": "REQ-99",
+      "summary": "Align the Bottom CTA 'Main Menu' dropdown directly above the blue button and polish public dropdown/sheet styling without changing behaviors or admin UI.",
+      "acceptanceCriteria": [
+        "When the user taps the blue 'Main Menu' action in the Bottom CTA Bar, the menu panel opens positioned directly above the blue box (aligned horizontally with that button), not as a generic full-width bottom sheet.",
+        "The menu dropdown closes on outside tap and on navigation item click, and animations/transitions remain smooth.",
+        "Public dropdown/sheet menus (e.g., Bottom CTA menu and Navbar mobile sheet) receive visual polish (spacing, typography, dividers, hover/active states) while keeping existing navigation items and behaviors unchanged.",
+        "No `/admin` components, routes, or styles are modified."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/navigation/BottomCtaBar.tsx",
+          "operation": "modify",
+          "description": "Replace the public Bottom CTA Bar 'Main Menu' bottom sheet behavior with a minimal dropdown/popover-style menu that anchors to the blue Main Menu button and opens directly above it; ensure close-on-outside-tap and close-on-item-click remain. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/admin/pages/PromotionsAdminPage.tsx",
+          "path": "frontend/src/components/navigation/MainMenuSheet.tsx",
           "operation": "modify",
-          "description": "Adjust save error handling to surface session-expired/unauthorized failures from the updated admin CMS mutation hooks (keep English messaging) and avoid closing the editor dialog on failed saves."
+          "description": "Refactor the public menu panel component to support the new anchored dropdown positioning/styling (or replace it with a menu component used by BottomCtaBar) while keeping the same navigation items and close-on-navigation behavior. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
+          "path": "frontend/src/components/navigation/Navbar.tsx",
           "operation": "modify",
-          "description": "Adjust save error handling to surface session-expired/unauthorized failures from the updated admin CMS mutation hooks (keep English messaging) and avoid closing the editor dialog on failed saves."
-        },
-        {
-          "path": "frontend/src/admin/pages/BlogAdminPage.tsx",
-          "operation": "modify",
-          "description": "Adjust save error handling to surface session-expired/unauthorized failures from the updated admin CMS mutation hooks (keep English messaging) and avoid closing the editor dialog on failed saves."
+          "description": "Polish the public Navbar mobile sheet menu styling for a cleaner/minimal look (spacing, dividers, typography, hover/active states) while preserving all navigation items, routing, and behaviors. Verify the component's usage instructions before implementing."
         }
       ]
     }

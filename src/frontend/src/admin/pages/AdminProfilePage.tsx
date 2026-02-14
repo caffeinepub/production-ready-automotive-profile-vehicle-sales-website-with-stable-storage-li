@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import AdminPageHeader from '../components/AdminPageHeader';
 import { toast } from 'sonner';
 import type { UserProfile } from '../../backend';
 
@@ -41,9 +42,9 @@ export default function AdminProfilePage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">Admin User Profile</h1>
+      <AdminPageHeader title="Admin User Profile" />
 
-      <Card className="max-w-2xl">
+      <Card className="max-w-2xl admin-stat-card">
         <CardHeader>
           <CardTitle>Profile Information</CardTitle>
         </CardHeader>
@@ -56,6 +57,7 @@ export default function AdminProfilePage() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
+                className="admin-search-input"
               />
             </div>
 
@@ -67,6 +69,7 @@ export default function AdminProfilePage() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
+                className="admin-search-input"
               />
             </div>
 
@@ -78,13 +81,14 @@ export default function AdminProfilePage() {
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 required
+                className="admin-search-input"
               />
             </div>
 
             <Button 
               type="submit" 
               disabled={saveProfile.isPending}
-              className="bg-[#C90010] hover:bg-[#a00010]"
+              className="admin-btn-primary"
             >
               {saveProfile.isPending ? 'Saving...' : 'Save Changes'}
             </Button>

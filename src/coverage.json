@@ -1,88 +1,125 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T14:42:27.078Z",
+  "generatedAt": "2026-02-14T16:28:44.288Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 2,
+    "total": 5,
+    "implemented": 5,
     "items": [
       {
-        "id": "REQ-84",
-        "summary": "Fix backend admin authorization error handling so Admin CMS and Media Manager operations do not trap on invalid/expired sessions, and instead return a safe unauthorized response that the current React Query hooks can handle (so the UI can show session-expired messaging and continue functioning after re-login). Apply this consistently to admin CMS methods used by the admin UI, including: getMediaAssets/createMediaAsset/deleteMediaAsset, create/update/delete Vehicle/Promotion/Testimonial/BlogPost, getContacts/deleteContact, getCreditSimulations/deleteCreditSimulation, getVisitorStats/updateVisitorStats.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-85",
-        "summary": "Ensure the Admin Media Manager asset listing and editor Media Picker can successfully load and display existing media assets end-to-end (list, search, select) using the existing session token stored under `caffeineAdminSession`, without requiring any frontend storage-key changes.",
+        "id": "REQ-95",
+        "summary": "Replace all PUBLIC-facing icons currently implemented with `lucide-react` and `react-icons` with Heroicons (from `@heroicons/react`) across the public site, without modifying any /admin UI or behavior.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-          "frontend/src/admin/hooks/useAdminSession.ts",
-          "frontend/src/admin/components/media/MediaManagerPanel.tsx",
-          "frontend/src/admin/components/media/MediaPickerDialog.tsx",
-          "frontend/src/admin/pages/MediaManagerPage.tsx"
+          "frontend/package.json",
+          "frontend/src/components/navigation/Navbar.tsx",
+          "frontend/src/components/navigation/BottomCtaBar.tsx",
+          "frontend/src/components/navigation/MainMenuSheet.tsx",
+          "frontend/src/components/layout/Footer.tsx",
+          "frontend/src/components/public/SectionTitle.tsx",
+          "frontend/src/components/sections/HeroSection.tsx",
+          "frontend/src/components/sections/BottomCTASection.tsx",
+          "frontend/src/components/vehicles/VehicleCard.tsx",
+          "frontend/src/pages/HomePage.tsx",
+          "frontend/src/pages/PassengerVehiclesPage.tsx",
+          "frontend/src/pages/CommercialVehiclesPage.tsx",
+          "frontend/src/pages/PassengerVehicleDetailPage.tsx",
+          "frontend/src/pages/CommercialVehicleDetailPage.tsx",
+          "frontend/src/pages/BlogListPage.tsx",
+          "frontend/src/pages/ContactPage.tsx",
+          "frontend/src/pages/PromoPage.tsx",
+          "frontend/src/pages/TestimonialsPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-          "frontend/src/admin/hooks/useAdminSession.ts",
-          "frontend/src/admin/components/media/MediaManagerPanel.tsx",
-          "frontend/src/admin/components/media/MediaPickerDialog.tsx",
-          "frontend/src/admin/pages/MediaManagerPage.tsx"
+          "frontend/src/components/navigation/Navbar.tsx",
+          "frontend/src/components/navigation/BottomCtaBar.tsx",
+          "frontend/src/components/navigation/MainMenuSheet.tsx",
+          "frontend/src/components/public/SectionTitle.tsx",
+          "frontend/src/components/sections/HeroSection.tsx",
+          "frontend/src/components/sections/BottomCTASection.tsx",
+          "frontend/src/pages/HomePage.tsx",
+          "frontend/src/pages/PassengerVehiclesPage.tsx",
+          "frontend/src/pages/CommercialVehiclesPage.tsx",
+          "frontend/src/pages/PassengerVehicleDetailPage.tsx",
+          "frontend/src/pages/CommercialVehicleDetailPage.tsx",
+          "frontend/src/pages/ContactPage.tsx",
+          "frontend/src/pages/PromoPage.tsx"
         ]
       },
       {
-        "id": "REQ-86",
-        "summary": "Restore Admin CMS save and publish functionality for all content editors (Vehicles, Promotions, Testimonials, Blog) so that create/update operations persist successfully and the published/draft toggle changes are saved and reflected in the listing tables after saving.",
+        "id": "REQ-96",
+        "summary": "Reduce oversized title text on mobile for PUBLIC pages by adjusting mobile typography in shared public title components and hero titles, while preserving the existing desktop/tablet styling and not changing any admin UI.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-          "frontend/src/admin/pages/VehiclesAdminPage.tsx",
-          "frontend/src/admin/pages/PromotionsAdminPage.tsx",
-          "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
-          "frontend/src/admin/pages/BlogAdminPage.tsx"
+          "frontend/src/components/public/SectionTitle.tsx",
+          "frontend/src/components/sections/HeroSection.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-          "frontend/src/admin/pages/VehiclesAdminPage.tsx",
-          "frontend/src/admin/pages/PromotionsAdminPage.tsx",
-          "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
-          "frontend/src/admin/pages/BlogAdminPage.tsx"
+          "frontend/src/components/public/SectionTitle.tsx",
+          "frontend/src/components/sections/HeroSection.tsx"
         ]
       },
       {
-        "id": "REQ-87",
-        "summary": "Add minimal, backend-side diagnostic logging (console Debug.print) for admin CMS mutation failures related to session validation (invalid/expired token) and for media asset listing failures, to make future deployment issues easier to diagnose without changing any public or admin UI.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "id": "REQ-97",
+        "summary": "Remove the Main Banner Slide (homepage banner carousel/slider) from the public Home page without affecting the remaining Home page sections or CMS-driven data wiring.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/HomePage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/HomePage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-98",
+        "summary": "Update the mobile Bottom CTA Bar to be 50px tall with sharp/square corners (no rounded top corners), keeping the same four actions and color blocks, and without impacting any admin UI.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/navigation/BottomCtaBar.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/navigation/BottomCtaBar.tsx"
+        ]
+      },
+      {
+        "id": "REQ-99",
+        "summary": "Reposition and restyle the Bottom CTA Bar 'Main Menu' dropdown so it appears directly above the blue 'Main Menu' box, and polish the visual styling of all PUBLIC dropdown/sheet menus to look cleaner and more minimal—without changing any admin panel UI.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/navigation/BottomCtaBar.tsx",
+          "frontend/src/components/navigation/MainMenuSheet.tsx",
+          "frontend/src/components/navigation/Navbar.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/navigation/BottomCtaBar.tsx",
+          "frontend/src/components/navigation/MainMenuSheet.tsx",
+          "frontend/src/components/navigation/Navbar.tsx"
+        ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/admin/components/media/MediaManagerPanel.tsx",
-    "frontend/src/admin/components/media/MediaPickerDialog.tsx",
-    "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-    "frontend/src/admin/hooks/useAdminSession.ts",
-    "frontend/src/admin/pages/BlogAdminPage.tsx",
-    "frontend/src/admin/pages/MediaManagerPage.tsx",
-    "frontend/src/admin/pages/PromotionsAdminPage.tsx",
-    "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
-    "frontend/src/admin/pages/VehiclesAdminPage.tsx",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
+    "frontend/src/components/navigation/BottomCtaBar.tsx",
+    "frontend/src/components/navigation/MainMenuSheet.tsx",
+    "frontend/src/components/navigation/Navbar.tsx",
+    "frontend/src/components/public/SectionTitle.tsx",
+    "frontend/src/components/sections/BottomCTASection.tsx",
+    "frontend/src/components/sections/HeroSection.tsx",
+    "frontend/src/pages/CommercialVehicleDetailPage.tsx",
+    "frontend/src/pages/CommercialVehiclesPage.tsx",
+    "frontend/src/pages/ContactPage.tsx",
+    "frontend/src/pages/HomePage.tsx",
+    "frontend/src/pages/PassengerVehicleDetailPage.tsx",
+    "frontend/src/pages/PassengerVehiclesPage.tsx",
+    "frontend/src/pages/PromoPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

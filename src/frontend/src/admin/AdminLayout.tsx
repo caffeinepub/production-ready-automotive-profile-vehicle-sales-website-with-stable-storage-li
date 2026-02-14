@@ -4,6 +4,7 @@ import { useAdminSession } from './hooks/useAdminSession';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Car, FileText, MessageSquare, Star, LayoutDashboard, Image, BarChart, User, LogOut, Truck, Bug } from 'lucide-react';
+import './styles/adminTheme.css';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -57,13 +58,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="admin-scope min-h-screen admin-main-bg">
       <div className="flex">
-        <aside className="w-64 bg-[#262729] text-white min-h-screen p-4 flex flex-col">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold">Admin CMS</h2>
+        <aside className="w-64 admin-sidebar text-white min-h-screen flex flex-col">
+          <div className="p-6 border-b border-white/10">
+            <h2 className="text-2xl font-bold tracking-tight">Admin CMS</h2>
+            <p className="text-sm text-white/70 mt-1">Content Management</p>
           </div>
-          <nav className="space-y-2 flex-1">
+          <nav className="flex-1 p-4 space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = isNavItemActive(item.path);
@@ -71,27 +73,29 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
-                    isActive
-                      ? 'bg-[#C90010] text-white'
-                      : 'hover:bg-gray-700'
+                  className={`admin-nav-item flex items-center gap-3 px-4 py-3 text-sm ${
+                    isActive ? 'active text-white' : 'text-white/80 hover:text-white'
                   }`}
                 >
-                  <Icon className="h-5 w-5" />
-                  {item.label}
+                  <Icon className="admin-nav-icon h-5 w-5" />
+                  <span>{item.label}</span>
                 </Link>
               );
             })}
           </nav>
-          <div className="mt-8">
-            <Button onClick={handleLogout} variant="outline" className="w-full text-white border-white hover:bg-gray-700">
+          <div className="p-4 border-t border-white/10">
+            <Button 
+              onClick={handleLogout} 
+              variant="outline" 
+              className="w-full text-white border-white/30 hover:bg-white/10 hover:text-white"
+            >
               <LogOut className="mr-2 h-4 w-4" />
               Logout
             </Button>
           </div>
         </aside>
 
-        <main className="flex-1 p-8">
+        <main className="flex-1 admin-content">
           {children}
         </main>
       </div>

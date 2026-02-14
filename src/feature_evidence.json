@@ -2,14 +2,22 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-ensure-the-admin-media-manager-asset-listing-and-editor-media-picker-can-successfully-load-and-display-existing-media-assets-end-to-end-list-search-select-using-the-existing-session-token-stored-under-caffeineadminsession-without-requiring-any-frontend-storage-key-changes",
-      "featureTitle": "Ensure the Admin Media Manager asset listing and editor Media Picker can successfully load and display existing media assets end-to-end (list, search, select) using the existing session token stored under `caffeineAdminSession`, without requiring any frontend storage-key changes.",
+      "featureId": "feature-replace-all-public-facing-icons-currently-implemented-with-lucide-react-and-react-icons-with-heroicons-from-heroicons-react-across-the-public-site-without-modifying-any-admin-ui-or-behavior",
+      "featureTitle": "Replace all PUBLIC-facing icons currently implemented with `lucide-react` and `react-icons` with Heroicons (from `@heroicons/react`) across the public site, without modifying any /admin UI or behavior.",
       "files": [
-        "frontend/src/admin/components/media/MediaManagerPanel.tsx",
-        "frontend/src/admin/components/media/MediaPickerDialog.tsx",
-        "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-        "frontend/src/admin/hooks/useAdminSession.ts",
-        "frontend/src/admin/pages/MediaManagerPage.tsx"
+        "frontend/src/components/navigation/BottomCtaBar.tsx",
+        "frontend/src/components/navigation/MainMenuSheet.tsx",
+        "frontend/src/components/navigation/Navbar.tsx",
+        "frontend/src/components/public/SectionTitle.tsx",
+        "frontend/src/components/sections/BottomCTASection.tsx",
+        "frontend/src/components/sections/HeroSection.tsx",
+        "frontend/src/pages/CommercialVehicleDetailPage.tsx",
+        "frontend/src/pages/CommercialVehiclesPage.tsx",
+        "frontend/src/pages/ContactPage.tsx",
+        "frontend/src/pages/HomePage.tsx",
+        "frontend/src/pages/PassengerVehicleDetailPage.tsx",
+        "frontend/src/pages/PassengerVehiclesPage.tsx",
+        "frontend/src/pages/PromoPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -21,19 +29,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-85"
+        "REQ-95"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-restore-admin-cms-save-and-publish-functionality-for-all-content-editors-vehicles-promotions-testimonials-blog-so-that-create-update-operations-persist-successfully-and-the-published-draft-toggle-changes-are-saved-and-reflected-in-the-listing-tables-after-saving",
-      "featureTitle": "Restore Admin CMS save and publish functionality for all content editors (Vehicles, Promotions, Testimonials, Blog) so that create/update operations persist successfully and the published/draft toggle changes are saved and reflected in the listing tables after saving.",
+      "featureId": "feature-reduce-oversized-title-text-on-mobile-for-public-pages-by-adjusting-mobile-typography-in-shared-public-title-components-and-hero-titles-while-preserving-the-existing-desktop-tablet-styling-and-not-changing-any-admin-ui",
+      "featureTitle": "Reduce oversized title text on mobile for PUBLIC pages by adjusting mobile typography in shared public title components and hero titles, while preserving the existing desktop/tablet styling and not changing any admin UI.",
       "files": [
-        "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-        "frontend/src/admin/pages/BlogAdminPage.tsx",
-        "frontend/src/admin/pages/PromotionsAdminPage.tsx",
-        "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
-        "frontend/src/admin/pages/VehiclesAdminPage.tsx"
+        "frontend/src/components/public/SectionTitle.tsx",
+        "frontend/src/components/sections/HeroSection.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -45,7 +50,69 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-86"
+        "REQ-96"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-remove-the-main-banner-slide-homepage-banner-carousel-slider-from-the-public-home-page-without-affecting-the-remaining-home-page-sections-or-cms-driven-data-wiring",
+      "featureTitle": "Remove the Main Banner Slide (homepage banner carousel/slider) from the public Home page without affecting the remaining Home page sections or CMS-driven data wiring.",
+      "files": [
+        "frontend/src/pages/HomePage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-97"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-mobile-bottom-cta-bar-to-be-50px-tall-with-sharp-square-corners-no-rounded-top-corners-keeping-the-same-four-actions-and-color-blocks-and-without-impacting-any-admin-ui",
+      "featureTitle": "Update the mobile Bottom CTA Bar to be 50px tall with sharp/square corners (no rounded top corners), keeping the same four actions and color blocks, and without impacting any admin UI.",
+      "files": [
+        "frontend/src/components/navigation/BottomCtaBar.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-98"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-reposition-and-restyle-the-bottom-cta-bar-main-menu-dropdown-so-it-appears-directly-above-the-blue-main-menu-box-and-polish-the-visual-styling-of-all-public-dropdown-sheet-menus-to-look-cleaner-and-more-minimal-without-changing-any-admin-panel-ui",
+      "featureTitle": "Reposition and restyle the Bottom CTA Bar 'Main Menu' dropdown so it appears directly above the blue 'Main Menu' box, and polish the visual styling of all PUBLIC dropdown/sheet menus to look cleaner and more minimal—without changing any admin panel UI.",
+      "files": [
+        "frontend/src/components/navigation/BottomCtaBar.tsx",
+        "frontend/src/components/navigation/MainMenuSheet.tsx",
+        "frontend/src/components/navigation/Navbar.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-99"
       ],
       "confidence": "high"
     }

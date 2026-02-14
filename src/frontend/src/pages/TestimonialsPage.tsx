@@ -1,5 +1,6 @@
 import { useGetTestimonials } from '../hooks/useQueries';
-import { Star } from 'lucide-react';
+import SectionTitle from '../components/public/SectionTitle';
+import { MessageSquare, Star } from 'lucide-react';
 
 export default function TestimonialsPage() {
   const { data: testimonials = [], isLoading } = useGetTestimonials();
@@ -7,14 +8,16 @@ export default function TestimonialsPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-12">
-        <div className="text-center">Loading testimonials...</div>
+        <div className="text-center">Memuat testimoni...</div>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <h1 className="text-4xl font-bold mb-8">Customer Testimonials</h1>
+      <SectionTitle icon={MessageSquare} className="mb-8">
+        Testimoni Pelanggan
+      </SectionTitle>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {testimonials.map((testimonial) => (
           <div key={Number(testimonial.id)} className="bg-white rounded-lg shadow-md p-6">
@@ -42,7 +45,7 @@ export default function TestimonialsPage() {
         ))}
       </div>
       {testimonials.length === 0 && (
-        <div className="text-center py-12 text-gray-500">No testimonials available yet.</div>
+        <div className="text-center py-12 text-gray-500">Belum ada testimoni tersedia.</div>
       )}
     </div>
   );
