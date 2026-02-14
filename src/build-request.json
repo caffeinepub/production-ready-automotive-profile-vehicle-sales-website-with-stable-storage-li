@@ -1,115 +1,92 @@
 {
   "kind": "build_request",
-  "title": "Fix Admin vehicles tab highlighting, restore richer vehicle editors, fix Media Manager empty/loading behavior, and improve vehicle UI quality",
+  "title": "Fix Admin CMS regression: media not visible in editors and save/publish failing",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-79",
-      "text": "Fix the Admin sidebar/nav active-state logic so that the two vehicle menu items (/admin/vehicles?category=passenger and /admin/vehicles?category=commercial) are visually separated and only the correct one is highlighted as active (avoid both buttons/links appearing active/red at the same time).",
-      "target": "frontend",
+      "id": "REQ-84",
+      "text": "Fix backend admin authorization error handling so Admin CMS and Media Manager operations do not trap on invalid/expired sessions, and instead return a safe unauthorized response that the current React Query hooks can handle (so the UI can show session-expired messaging and continue functioning after re-login). Apply this consistently to admin CMS methods used by the admin UI, including: getMediaAssets/createMediaAsset/deleteMediaAsset, create/update/delete Vehicle/Promotion/Testimonial/BlogPost, getContacts/deleteContact, getCreditSimulations/deleteCreditSimulation, getVisitorStats/updateVisitorStats.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-5"
         ],
         "quotes": [
-          "Editor passengerVehicles dan commercialVehicles ketika diklik, kedua tombol berwarna merah, tidak terpisah."
+          "Media belum bisa muncul di editor, malah sekarang jadi tidak bisa simpan dan publish"
         ]
       },
       "acceptanceCriteria": [
-        "When visiting /admin/vehicles?category=passenger, only 'Passenger Vehicles' is highlighted as active and 'Commercial Vehicles' is not highlighted.",
-        "When visiting /admin/vehicles?category=commercial, only 'Commercial Vehicles' is highlighted as active and 'Passenger Vehicles' is not highlighted.",
-        "Other Admin menu items retain correct active highlighting behavior."
+        "When calling admin CMS methods with an invalid/expired token, the backend returns an unauthorized value (e.g., null/err variant) instead of trapping with a canister error.",
+        "With a valid token, all admin CMS methods listed in this requirement succeed without trapping.",
+        "No new non-English user-facing text is introduced by backend errors; any string messages returned must be English."
       ]
     },
     {
-      "id": "REQ-80",
-      "text": "Upgrade the Passenger and Commercial Vehicle admin editor (the Add/Edit Vehicle dialog) to be significantly richer and closer to the intended CMS blueprint by adding complete vehicle editing capabilities for variants, specs, and commercial badges—while remaining compatible with the existing Vehicle data model and backend methods (createVehicle/updateVehicle).",
-      "target": "frontend",
+      "id": "REQ-85",
+      "text": "Ensure the Admin Media Manager asset listing and editor Media Picker can successfully load and display existing media assets end-to-end (list, search, select) using the existing session token stored under `caffeineAdminSession`, without requiring any frontend storage-key changes.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-5"
         ],
         "quotes": [
-          "Editor didalamnya sangat sederhana tidak sesuai blueprint awal."
+          "Media belum bisa muncul di editor"
         ]
       },
       "acceptanceCriteria": [
-        "The Vehicle editor supports managing variants as a list (add/edit/remove): name, price adjustment, feature list, and premium flag (isPremium) using clear English labels.",
-        "The Vehicle editor supports editing technical specs fields (engine, transmission, dimensions, weight, fuel capacity, suspension) and managing an 'Additional features' list (add/remove items).",
-        "For Commercial vehicles, the editor provides checkbox controls for commercialFeatures (Economical, Power, Speed, Capacity, Bus, 4x2, 6x2, 6x4). For Passenger vehicles, these controls are hidden/disabled.",
-        "The editor still supports selecting Image and Brochure via the existing MediaPickerDialog and saves selected URLs back into imageUrl/brochure fields.",
-        "Saving creates/updates the Vehicle successfully using existing mutations and no runtime type errors occur with bigint/nat conversions."
+        "If media assets exist in canister storage, they appear in `/admin/media` and in MediaPicker dialogs used by editors (Vehicle/Promotion/Testimonial/Blog).",
+        "If no media assets exist, the existing empty-state UI remains visible (e.g., “No media yet.”) and no unhandled exceptions occur.",
+        "Media list loading does not fail due to authorization when the user is logged in and a valid `caffeineAdminSession.token` exists."
       ]
     },
     {
-      "id": "REQ-81",
-      "text": "Make the Admin Media Manager and Media Picker reliably display media assets (when present) and show a clear empty-state message when none exist; ensure user-facing text is in English and consistent across Media pages and pickers.",
-      "target": "frontend",
+      "id": "REQ-86",
+      "text": "Restore Admin CMS save and publish functionality for all content editors (Vehicles, Promotions, Testimonials, Blog) so that create/update operations persist successfully and the published/draft toggle changes are saved and reflected in the listing tables after saving.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-5"
         ],
         "quotes": [
-          "Dan di semua menu media tidak bisa tampil, lihat screenshot."
+          "malah sekarang jadi tidak bisa simpan dan publish"
         ]
       },
       "acceptanceCriteria": [
-        "If the backend returns one or more MediaAsset records, both /admin/media and the MediaPickerDialog render them in a responsive grid with thumbnails for images and file-type tiles for non-images.",
-        "If there are zero assets, show an English empty state message exactly: \"No media yet.\" (not \"No media found\").",
-        "If media loading fails due to missing/expired admin session, the UI shows an English error that indicates the user must log in again (without crashing the page).",
-        "Selecting a media item in MediaPickerDialog highlights the selection and clicking \"Select\" returns the selected asset URL to the calling form field."
+        "From each admin management page (Vehicles, Promotions, Testimonials, Blog), creating a new item and saving succeeds without errors and the item appears in the table.",
+        "Editing an existing item and saving persists changes and the table updates after save (via existing React Query invalidation).",
+        "Toggling Published/Draft and saving persists and the status badge in the CRUD table updates accordingly.",
+        "If the session is missing/expired, the UI shows the existing English session-required/session-expired messaging instead of silently failing."
       ]
     },
     {
-      "id": "REQ-82",
-      "text": "Improve the public vehicle listing grid UI and vehicle card styling to look more professional and attractive while keeping the same routing and CMS-driven data wiring (no new content requirements).",
-      "target": "frontend",
+      "id": "REQ-87",
+      "text": "Add minimal, backend-side diagnostic logging (console Debug.print) for admin CMS mutation failures related to session validation (invalid/expired token) and for media asset listing failures, to make future deployment issues easier to diagnose without changing any public or admin UI.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-5",
+          "msg-8"
         ],
         "quotes": [
-          "Tampilan grid dan halaman detail kendaraan ui nya tidak menarik. Saya upload tanpa media."
+          "malah sekarang jadi tidak bisa simpan dan publish",
+          "Kenapa gagal, ok tray again"
         ]
       },
       "acceptanceCriteria": [
-        "Vehicle listing pages (/mobil-keluarga and /mobil-niaga) display a visually improved grid and cards (spacing, typography, hierarchy, hover states) using Tailwind while keeping existing data fields and links working.",
-        "Cards still correctly fall back to the existing placeholder images when imageUrl is empty.",
-        "No changes break the existing responsive column behavior (desktop/tablet/mobile)."
-      ]
-    },
-    {
-      "id": "REQ-83",
-      "text": "Improve the public Passenger and Commercial vehicle detail page UI to look more polished (layout, spacing, sections), and ensure the pages remain usable when vehicles have no uploaded media (use placeholders) and/or have empty optional fields.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Tampilan grid dan halaman detail kendaraan ui nya tidak menarik. Saya upload tanpa media."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Passenger vehicle detail page remains functional with variant selection (if variants exist) and looks visually improved (e.g., better sectioning, consistent backgrounds, clearer CTA grouping) without changing routes or breaking existing like/share actions.",
-        "Commercial vehicle detail page remains functional and visually improved while preserving the existing constraints (no color/variant switcher; chassis price emphasis; optional brochure button only when brochure exists).",
-        "Both detail pages render placeholder images when imageUrl is empty and do not show broken image icons.",
-        "All user-facing text introduced or changed by this work is in English."
+        "When an admin CMS call is rejected due to missing/invalid/expired session token, a single-line debug log is emitted indicating the method name and rejection reason (English).",
+        "No sensitive data is logged (no passwords, no full tokens; token may be truncated or omitted)."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under frontend/src/components/ui (read-only Shadcn components).",
-    "Do not modify frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
-    "Keep the backend API surface compatible with current frontend calls (e.g., actor.getMediaAssets(token), actor.createMediaAsset(token, asset), actor.deleteMediaAsset(token, id)).",
-    "Maintain single-actor backend architecture (all Motoko logic in backend/main.mo).",
-    "Use English for any user-facing text introduced/changed by this build request."
+    "Backend must remain a single Motoko actor (all logic in `backend/main.mo`).",
+    "Do not edit frontend files under the immutable paths listed in SYSTEM_CONTEXT (e.g., `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, `frontend/src/components/ui`).",
+    "Use English for any user-facing text introduced or modified by this change."
   ],
   "nonGoals": [
-    "Do not add new public routes or change existing route paths.",
-    "Do not introduce third-party auth providers or non-Internet-Computer storage backends.",
-    "Do not redesign the entire admin layout; focus on vehicle editor richness, nav highlighting correctness, and media visibility/empty-state behavior.",
-    "Do not require new seeded content to complete this work."
+    "Do not redesign the admin UI or add new admin CMS features beyond fixing the regression.",
+    "Do not introduce new authentication providers or change the browser storage key strategy (must keep using `caffeineAdminSession`).",
+    "Do not add external databases or services."
   ],
   "imageRequirements": {
     "required": [],

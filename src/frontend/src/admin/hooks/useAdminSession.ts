@@ -74,8 +74,16 @@ export function useAdminSession() {
 
       try {
         // Validate token by attempting to fetch visitor stats (admin-only endpoint)
-        await actor.getVisitorStats(storedSession.token);
-        setSession(storedSession);
+        const result = await actor.getVisitorStats(storedSession.token);
+        
+        // If result is null, session is invalid/expired
+        if (result === null) {
+          console.log('Session validation failed: null result from getVisitorStats');
+          clearAdminSession();
+          setSession(null);
+        } else {
+          setSession(storedSession);
+        }
       } catch (error) {
         console.error('Session validation failed:', error);
         clearAdminSession();

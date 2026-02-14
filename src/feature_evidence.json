@@ -2,54 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-admin-sidebar-nav-active-state-logic-so-that-the-two-vehicle-menu-items-admin-vehicles-category-passenger-and-admin-vehicles-category-commercial-are-visually-separated-and-only-the-correct-one-is-highlighted-as-active-avoid-both-buttons-links-appearing-active-red-at-the-same-time",
-      "featureTitle": "Fix the Admin sidebar/nav active-state logic so that the two vehicle menu items (/admin/vehicles?category=passenger and /admin/vehicles?category=commercial) are visually separated and only the correct one is highlighted as active (avoid both buttons/links appearing active/red at the same time).",
-      "files": [
-        "frontend/src/admin/AdminLayout.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-79"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-upgrade-the-passenger-and-commercial-vehicle-admin-editor-the-add-edit-vehicle-dialog-to-be-significantly-richer-and-closer-to-the-intended-cms-blueprint-by-adding-complete-vehicle-editing-capabilities-for-variants-specs-and-commercial-badges-while-remaining-compatible-with-the-existing-vehicle-data-model-and-backend-methods-createvehicle-updatevehicle",
-      "featureTitle": "Upgrade the Passenger and Commercial Vehicle admin editor (the Add/Edit Vehicle dialog) to be significantly richer and closer to the intended CMS blueprint by adding complete vehicle editing capabilities for variants, specs, and commercial badges—while remaining compatible with the existing Vehicle data model and backend methods (createVehicle/updateVehicle).",
-      "files": [
-        "frontend/src/admin/components/VehicleFormDialog.tsx",
-        "frontend/src/admin/components/vehicles/CommercialFeaturesEditor.tsx",
-        "frontend/src/admin/components/vehicles/TechnicalSpecsEditor.tsx",
-        "frontend/src/admin/components/vehicles/VariantsEditor.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-80"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-make-the-admin-media-manager-and-media-picker-reliably-display-media-assets-when-present-and-show-a-clear-empty-state-message-when-none-exist-ensure-user-facing-text-is-in-english-and-consistent-across-media-pages-and-pickers",
-      "featureTitle": "Make the Admin Media Manager and Media Picker reliably display media assets (when present) and show a clear empty-state message when none exist; ensure user-facing text is in English and consistent across Media pages and pickers.",
+      "featureId": "feature-ensure-the-admin-media-manager-asset-listing-and-editor-media-picker-can-successfully-load-and-display-existing-media-assets-end-to-end-list-search-select-using-the-existing-session-token-stored-under-caffeineadminsession-without-requiring-any-frontend-storage-key-changes",
+      "featureTitle": "Ensure the Admin Media Manager asset listing and editor Media Picker can successfully load and display existing media assets end-to-end (list, search, select) using the existing session token stored under `caffeineAdminSession`, without requiring any frontend storage-key changes.",
       "files": [
         "frontend/src/admin/components/media/MediaManagerPanel.tsx",
         "frontend/src/admin/components/media/MediaPickerDialog.tsx",
+        "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+        "frontend/src/admin/hooks/useAdminSession.ts",
         "frontend/src/admin/pages/MediaManagerPage.tsx"
       ],
       "components": [
@@ -62,17 +21,19 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-81"
+        "REQ-85"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-improve-the-public-vehicle-listing-grid-ui-and-vehicle-card-styling-to-look-more-professional-and-attractive-while-keeping-the-same-routing-and-cms-driven-data-wiring-no-new-content-requirements",
-      "featureTitle": "Improve the public vehicle listing grid UI and vehicle card styling to look more professional and attractive while keeping the same routing and CMS-driven data wiring (no new content requirements).",
+      "featureId": "feature-restore-admin-cms-save-and-publish-functionality-for-all-content-editors-vehicles-promotions-testimonials-blog-so-that-create-update-operations-persist-successfully-and-the-published-draft-toggle-changes-are-saved-and-reflected-in-the-listing-tables-after-saving",
+      "featureTitle": "Restore Admin CMS save and publish functionality for all content editors (Vehicles, Promotions, Testimonials, Blog) so that create/update operations persist successfully and the published/draft toggle changes are saved and reflected in the listing tables after saving.",
       "files": [
-        "frontend/src/components/vehicles/VehicleCard.tsx",
-        "frontend/src/pages/CommercialVehiclesPage.tsx",
-        "frontend/src/pages/PassengerVehiclesPage.tsx"
+        "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+        "frontend/src/admin/pages/BlogAdminPage.tsx",
+        "frontend/src/admin/pages/PromotionsAdminPage.tsx",
+        "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
+        "frontend/src/admin/pages/VehiclesAdminPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -84,28 +45,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-82"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-improve-the-public-passenger-and-commercial-vehicle-detail-page-ui-to-look-more-polished-layout-spacing-sections-and-ensure-the-pages-remain-usable-when-vehicles-have-no-uploaded-media-use-placeholders-and-or-have-empty-optional-fields",
-      "featureTitle": "Improve the public Passenger and Commercial vehicle detail page UI to look more polished (layout, spacing, sections), and ensure the pages remain usable when vehicles have no uploaded media (use placeholders) and/or have empty optional fields.",
-      "files": [
-        "frontend/src/pages/CommercialVehicleDetailPage.tsx",
-        "frontend/src/pages/PassengerVehicleDetailPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-83"
+        "REQ-86"
       ],
       "confidence": "high"
     }

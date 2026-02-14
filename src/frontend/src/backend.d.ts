@@ -133,8 +133,8 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
-    addContact(contact: Contact): Promise<void>;
-    addCreditSimulation(simulation: CreditSimulation): Promise<void>;
+    addContact(contact: Contact): Promise<boolean>;
+    addCreditSimulation(simulation: CreditSimulation): Promise<boolean>;
     adminLogin(email: string, password: string): Promise<{
         token: string;
         role: string;
@@ -142,25 +142,25 @@ export interface backendInterface {
     adminLogout(token: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createAdminUser(sessionToken: string, email: string, password: string, role: string): Promise<bigint | null>;
-    createBlogPost(sessionToken: string, post: BlogPost): Promise<void>;
-    createMediaAsset(sessionToken: string, asset: MediaAsset): Promise<void>;
-    createPromotion(sessionToken: string, promotion: Promotion): Promise<void>;
-    createTestimonial(sessionToken: string, testimonial: Testimonial): Promise<void>;
-    createVehicle(sessionToken: string, vehicle: Vehicle): Promise<void>;
-    deleteBlogPost(sessionToken: string, id: bigint): Promise<void>;
-    deleteContact(sessionToken: string, id: bigint): Promise<void>;
-    deleteCreditSimulation(sessionToken: string, id: bigint): Promise<void>;
-    deleteMediaAsset(sessionToken: string, id: bigint): Promise<void>;
-    deletePromotion(sessionToken: string, id: bigint): Promise<void>;
-    deleteTestimonial(sessionToken: string, id: bigint): Promise<void>;
-    deleteVehicle(sessionToken: string, id: bigint): Promise<void>;
+    createBlogPost(sessionToken: string, post: BlogPost): Promise<boolean>;
+    createMediaAsset(sessionToken: string, asset: MediaAsset): Promise<boolean>;
+    createPromotion(sessionToken: string, promotion: Promotion): Promise<boolean>;
+    createTestimonial(sessionToken: string, testimonial: Testimonial): Promise<boolean>;
+    createVehicle(sessionToken: string, vehicle: Vehicle): Promise<boolean>;
+    deleteBlogPost(sessionToken: string, id: bigint): Promise<boolean>;
+    deleteContact(sessionToken: string, id: bigint): Promise<boolean>;
+    deleteCreditSimulation(sessionToken: string, id: bigint): Promise<boolean>;
+    deleteMediaAsset(sessionToken: string, id: bigint): Promise<boolean>;
+    deletePromotion(sessionToken: string, id: bigint): Promise<boolean>;
+    deleteTestimonial(sessionToken: string, id: bigint): Promise<boolean>;
+    deleteVehicle(sessionToken: string, id: bigint): Promise<boolean>;
     getBlogPost(id: bigint): Promise<BlogPost | null>;
     getBlogPosts(): Promise<Array<BlogPost>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getContacts(sessionToken: string): Promise<Array<Contact>>;
-    getCreditSimulations(sessionToken: string): Promise<Array<CreditSimulation>>;
-    getMediaAssets(sessionToken: string): Promise<Array<MediaAsset>>;
+    getContacts(sessionToken: string): Promise<Array<Contact> | null>;
+    getCreditSimulations(sessionToken: string): Promise<Array<CreditSimulation> | null>;
+    getMediaAssets(sessionToken: string): Promise<Array<MediaAsset> | null>;
     getProductInteraction(itemId: bigint): Promise<Interaction | null>;
     getPromotion(id: bigint): Promise<Promotion | null>;
     getPromotions(): Promise<Array<Promotion>>;
@@ -168,16 +168,16 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     getVehicle(id: bigint): Promise<Vehicle | null>;
     getVehicles(): Promise<Array<Vehicle>>;
-    getVisitorStats(sessionToken: string): Promise<VisitorStats>;
+    getVisitorStats(sessionToken: string): Promise<VisitorStats | null>;
     incrementPageView(): Promise<void>;
     incrementVisitor(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     likeProduct(itemId: bigint): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     shareProduct(itemId: bigint, platform: string): Promise<void>;
-    updateBlogPost(sessionToken: string, post: BlogPost): Promise<void>;
-    updatePromotion(sessionToken: string, promotion: Promotion): Promise<void>;
-    updateTestimonial(sessionToken: string, testimonial: Testimonial): Promise<void>;
-    updateVehicle(sessionToken: string, vehicle: Vehicle): Promise<void>;
-    updateVisitorStats(sessionToken: string, stats: VisitorStats): Promise<void>;
+    updateBlogPost(sessionToken: string, post: BlogPost): Promise<boolean>;
+    updatePromotion(sessionToken: string, promotion: Promotion): Promise<boolean>;
+    updateTestimonial(sessionToken: string, testimonial: Testimonial): Promise<boolean>;
+    updateVehicle(sessionToken: string, vehicle: Vehicle): Promise<boolean>;
+    updateVisitorStats(sessionToken: string, stats: VisitorStats): Promise<boolean>;
 }

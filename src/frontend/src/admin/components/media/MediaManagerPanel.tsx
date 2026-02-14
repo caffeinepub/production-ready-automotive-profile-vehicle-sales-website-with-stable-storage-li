@@ -27,14 +27,19 @@ export default function MediaManagerPanel() {
       setDeleteItem(null);
     } catch (error) {
       console.error('Delete error:', error);
-      toast.error('Failed to delete media');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (errorMessage.includes('Session expired') || errorMessage.includes('unauthorized')) {
+        toast.error('Session expired. Please log in again.');
+      } else {
+        toast.error('Failed to delete media');
+      }
     }
   };
 
   const isAuthError = error instanceof Error && 
-    (error.message.includes('Unauthorized') || 
-     error.message.includes('Invalid or expired') ||
-     error.message.includes('session'));
+    (error.message.includes('Session expired') || 
+     error.message.includes('unauthorized') ||
+     error.message.includes('session required'));
 
   if (isLoading) {
     return <div className="text-center py-8">Loading media...</div>;
@@ -55,6 +60,15 @@ export default function MediaManagerPanel() {
     );
   }
 
+  if (assets.length === 0) {
+    return (
+      <div className="text-center py-12 text-gray-500">
+        <p className="text-lg font-medium">No media yet.</p>
+        <p className="text-sm mt-2">Upload your first media asset to get started.</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="space-y-4">
@@ -68,35 +82,44 @@ export default function MediaManagerPanel() {
           />
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filteredAssets.map((asset) => (
-            <div key={asset.id.toString()} className="bg-white rounded-lg shadow-md overflow-hidden">
-              {asset.typ.startsWith('image/') ? (
-                <img src={asset.url} alt="" className="w-full h-48 object-cover" />
-              ) : (
-                <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
-                  <span className="text-sm text-gray-500">{asset.typ}</span>
+        {filteredAssets.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            No media found matching your search.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredAssets.map((asset) => (
+              <div key={asset.id.toString()} className="bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <div className="aspect-video bg-gray-100 flex items-center justify-center">
+                  {asset.typ.startsWith('image/') ? (
+                    <img 
+                      src={asset.url} 
+                      alt="Media asset" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-gray-400 text-sm">{asset.typ}</div>
+                  )}
                 </div>
-              )}
-              <div className="p-3">
-                <p className="text-xs text-gray-500 truncate">{asset.folder}</p>
-                <p className="text-xs text-gray-400">{(Number(asset.size) / 1024).toFixed(1)} KB</p>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="w-full mt-2"
-                  onClick={() => setDeleteItem(asset)}
-                >
-                  <Trash2 className="h-3 w-3 mr-1" />
-                  Delete
-                </Button>
+                <div className="p-3">
+                  <p className="text-xs text-gray-500 truncate mb-2">{asset.folder}</p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-400">
+                      {(Number(asset.size) / 1024).toFixed(1)} KB
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDeleteItem(asset)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {filteredAssets.length === 0 && (
-          <div className="text-center py-8 text-gray-500">No media yet.</div>
+            ))}
+          </div>
         )}
       </div>
 
@@ -105,7 +128,7 @@ export default function MediaManagerPanel() {
         onOpenChange={(open) => !open && setDeleteItem(null)}
         onConfirm={handleDelete}
         title="Delete Media"
-        description="Are you sure you want to delete this media file? This action cannot be undone."
+        description="Are you sure you want to delete this media asset? This action cannot be undone."
         isDeleting={deleteMediaAsset.isPending}
       />
     </>

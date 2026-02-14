@@ -1,106 +1,88 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T12:24:42.907Z",
+  "generatedAt": "2026-02-14T14:42:27.078Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 5,
-    "implemented": 5,
+    "total": 4,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-79",
-        "summary": "Fix the Admin sidebar/nav active-state logic so that the two vehicle menu items (/admin/vehicles?category=passenger and /admin/vehicles?category=commercial) are visually separated and only the correct one is highlighted as active (avoid both buttons/links appearing active/red at the same time).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/admin/AdminLayout.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/admin/AdminLayout.tsx"
-        ]
+        "id": "REQ-84",
+        "summary": "Fix backend admin authorization error handling so Admin CMS and Media Manager operations do not trap on invalid/expired sessions, and instead return a safe unauthorized response that the current React Query hooks can handle (so the UI can show session-expired messaging and continue functioning after re-login). Apply this consistently to admin CMS methods used by the admin UI, including: getMediaAssets/createMediaAsset/deleteMediaAsset, create/update/delete Vehicle/Promotion/Testimonial/BlogPost, getContacts/deleteContact, getCreditSimulations/deleteCreditSimulation, getVisitorStats/updateVisitorStats.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
-        "id": "REQ-80",
-        "summary": "Upgrade the Passenger and Commercial Vehicle admin editor (the Add/Edit Vehicle dialog) to be significantly richer and closer to the intended CMS blueprint by adding complete vehicle editing capabilities for variants, specs, and commercial badges—while remaining compatible with the existing Vehicle data model and backend methods (createVehicle/updateVehicle).",
+        "id": "REQ-85",
+        "summary": "Ensure the Admin Media Manager asset listing and editor Media Picker can successfully load and display existing media assets end-to-end (list, search, select) using the existing session token stored under `caffeineAdminSession`, without requiring any frontend storage-key changes.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/admin/components/VehicleFormDialog.tsx",
-          "frontend/src/admin/components/vehicles/VariantsEditor.tsx",
-          "frontend/src/admin/components/vehicles/TechnicalSpecsEditor.tsx",
-          "frontend/src/admin/components/vehicles/CommercialFeaturesEditor.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/admin/components/VehicleFormDialog.tsx",
-          "frontend/src/admin/components/vehicles/VariantsEditor.tsx",
-          "frontend/src/admin/components/vehicles/TechnicalSpecsEditor.tsx",
-          "frontend/src/admin/components/vehicles/CommercialFeaturesEditor.tsx"
-        ]
-      },
-      {
-        "id": "REQ-81",
-        "summary": "Make the Admin Media Manager and Media Picker reliably display media assets (when present) and show a clear empty-state message when none exist; ensure user-facing text is in English and consistent across Media pages and pickers.",
-        "status": "implemented",
-        "plannedFiles": [
+          "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+          "frontend/src/admin/hooks/useAdminSession.ts",
           "frontend/src/admin/components/media/MediaManagerPanel.tsx",
           "frontend/src/admin/components/media/MediaPickerDialog.tsx",
           "frontend/src/admin/pages/MediaManagerPage.tsx"
         ],
         "matchedFiles": [
+          "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+          "frontend/src/admin/hooks/useAdminSession.ts",
           "frontend/src/admin/components/media/MediaManagerPanel.tsx",
           "frontend/src/admin/components/media/MediaPickerDialog.tsx",
           "frontend/src/admin/pages/MediaManagerPage.tsx"
         ]
       },
       {
-        "id": "REQ-82",
-        "summary": "Improve the public vehicle listing grid UI and vehicle card styling to look more professional and attractive while keeping the same routing and CMS-driven data wiring (no new content requirements).",
+        "id": "REQ-86",
+        "summary": "Restore Admin CMS save and publish functionality for all content editors (Vehicles, Promotions, Testimonials, Blog) so that create/update operations persist successfully and the published/draft toggle changes are saved and reflected in the listing tables after saving.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/vehicles/VehicleCard.tsx",
-          "frontend/src/pages/PassengerVehiclesPage.tsx",
-          "frontend/src/pages/CommercialVehiclesPage.tsx"
+          "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+          "frontend/src/admin/pages/VehiclesAdminPage.tsx",
+          "frontend/src/admin/pages/PromotionsAdminPage.tsx",
+          "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
+          "frontend/src/admin/pages/BlogAdminPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/vehicles/VehicleCard.tsx",
-          "frontend/src/pages/PassengerVehiclesPage.tsx",
-          "frontend/src/pages/CommercialVehiclesPage.tsx"
+          "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+          "frontend/src/admin/pages/VehiclesAdminPage.tsx",
+          "frontend/src/admin/pages/PromotionsAdminPage.tsx",
+          "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
+          "frontend/src/admin/pages/BlogAdminPage.tsx"
         ]
       },
       {
-        "id": "REQ-83",
-        "summary": "Improve the public Passenger and Commercial vehicle detail page UI to look more polished (layout, spacing, sections), and ensure the pages remain usable when vehicles have no uploaded media (use placeholders) and/or have empty optional fields.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/PassengerVehicleDetailPage.tsx",
-          "frontend/src/pages/CommercialVehicleDetailPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/PassengerVehicleDetailPage.tsx",
-          "frontend/src/pages/CommercialVehicleDetailPage.tsx"
-        ]
+        "id": "REQ-87",
+        "summary": "Add minimal, backend-side diagnostic logging (console Debug.print) for admin CMS mutation failures related to session validation (invalid/expired token) and for media asset listing failures, to make future deployment issues easier to diagnose without changing any public or admin UI.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/admin/AdminLayout.tsx",
-    "frontend/src/admin/components/VehicleFormDialog.tsx",
     "frontend/src/admin/components/media/MediaManagerPanel.tsx",
     "frontend/src/admin/components/media/MediaPickerDialog.tsx",
-    "frontend/src/admin/components/vehicles/CommercialFeaturesEditor.tsx",
-    "frontend/src/admin/components/vehicles/TechnicalSpecsEditor.tsx",
-    "frontend/src/admin/components/vehicles/VariantsEditor.tsx",
+    "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+    "frontend/src/admin/hooks/useAdminSession.ts",
+    "frontend/src/admin/pages/BlogAdminPage.tsx",
     "frontend/src/admin/pages/MediaManagerPage.tsx",
-    "frontend/src/components/vehicles/VehicleCard.tsx",
-    "frontend/src/pages/CommercialVehicleDetailPage.tsx",
-    "frontend/src/pages/CommercialVehiclesPage.tsx",
-    "frontend/src/pages/PassengerVehicleDetailPage.tsx",
-    "frontend/src/pages/PassengerVehiclesPage.tsx",
+    "frontend/src/admin/pages/PromotionsAdminPage.tsx",
+    "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
+    "frontend/src/admin/pages/VehiclesAdminPage.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

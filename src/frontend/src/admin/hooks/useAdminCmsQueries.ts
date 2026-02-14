@@ -5,18 +5,18 @@ import type { Vehicle, Promotion, Testimonial, BlogPost, Contact, CreditSimulati
 
 export function useGetMediaAssets() {
   const { actor, isFetching } = useActor();
+  const token = getAdminToken();
 
   return useQuery<MediaAsset[]>({
-    queryKey: ['mediaAssets'],
+    queryKey: ['mediaAssets', token],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
       const result = await actor.getMediaAssets(token);
-      if (result === null) throw new Error('Unauthorized or session expired');
+      if (result === null) throw new Error('Session expired or unauthorized');
       return result;
     },
-    enabled: !!actor && !isFetching
+    enabled: !!actor && !isFetching && !!token
   });
 }
 
@@ -29,7 +29,9 @@ export function useCreateMediaAsset() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.createMediaAsset(token, asset);
+      const result = await actor.createMediaAsset(token, asset);
+      if (result === false) throw new Error('Session expired or unauthorized');
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mediaAssets'] });
@@ -46,7 +48,9 @@ export function useDeleteMediaAsset() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.deleteMediaAsset(token, id);
+      const result = await actor.deleteMediaAsset(token, id);
+      if (result === false) throw new Error('Session expired or unauthorized');
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mediaAssets'] });
@@ -56,18 +60,18 @@ export function useDeleteMediaAsset() {
 
 export function useGetContacts() {
   const { actor, isFetching } = useActor();
+  const token = getAdminToken();
 
   return useQuery<Contact[]>({
-    queryKey: ['contacts'],
+    queryKey: ['contacts', token],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
       const result = await actor.getContacts(token);
-      if (result === null) throw new Error('Unauthorized or session expired');
+      if (result === null) throw new Error('Session expired or unauthorized');
       return result;
     },
-    enabled: !!actor && !isFetching
+    enabled: !!actor && !isFetching && !!token
   });
 }
 
@@ -80,7 +84,9 @@ export function useDeleteContact() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.deleteContact(token, id);
+      const result = await actor.deleteContact(token, id);
+      if (result === false) throw new Error('Session expired or unauthorized');
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
@@ -90,18 +96,18 @@ export function useDeleteContact() {
 
 export function useGetCreditSimulations() {
   const { actor, isFetching } = useActor();
+  const token = getAdminToken();
 
   return useQuery<CreditSimulation[]>({
-    queryKey: ['creditSimulations'],
+    queryKey: ['creditSimulations', token],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
       const result = await actor.getCreditSimulations(token);
-      if (result === null) throw new Error('Unauthorized or session expired');
+      if (result === null) throw new Error('Session expired or unauthorized');
       return result;
     },
-    enabled: !!actor && !isFetching
+    enabled: !!actor && !isFetching && !!token
   });
 }
 
@@ -114,7 +120,9 @@ export function useDeleteCreditSimulation() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.deleteCreditSimulation(token, id);
+      const result = await actor.deleteCreditSimulation(token, id);
+      if (result === false) throw new Error('Session expired or unauthorized');
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['creditSimulations'] });
@@ -124,18 +132,18 @@ export function useDeleteCreditSimulation() {
 
 export function useGetVisitorStats() {
   const { actor, isFetching } = useActor();
+  const token = getAdminToken();
 
   return useQuery<VisitorStats>({
-    queryKey: ['visitorStats'],
+    queryKey: ['visitorStats', token],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
       const result = await actor.getVisitorStats(token);
-      if (result === null) throw new Error('Unauthorized or session expired');
+      if (result === null) throw new Error('Session expired or unauthorized');
       return result;
     },
-    enabled: !!actor && !isFetching
+    enabled: !!actor && !isFetching && !!token
   });
 }
 
@@ -148,7 +156,9 @@ export function useUpdateVisitorStats() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.updateVisitorStats(token, stats);
+      const result = await actor.updateVisitorStats(token, stats);
+      if (result === false) throw new Error('Session expired or unauthorized');
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['visitorStats'] });
@@ -165,7 +175,9 @@ export function useCreateVehicle() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.createVehicle(token, vehicle);
+      const result = await actor.createVehicle(token, vehicle);
+      if (result === false) throw new Error('Session expired or unauthorized');
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
@@ -182,7 +194,9 @@ export function useUpdateVehicle() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.updateVehicle(token, vehicle);
+      const result = await actor.updateVehicle(token, vehicle);
+      if (result === false) throw new Error('Session expired or unauthorized');
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
@@ -199,7 +213,9 @@ export function useDeleteVehicle() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.deleteVehicle(token, id);
+      const result = await actor.deleteVehicle(token, id);
+      if (result === false) throw new Error('Session expired or unauthorized');
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
@@ -216,7 +232,9 @@ export function useCreatePromotion() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.createPromotion(token, promotion);
+      const result = await actor.createPromotion(token, promotion);
+      if (result === false) throw new Error('Session expired or unauthorized');
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['promotions'] });
@@ -233,7 +251,9 @@ export function useUpdatePromotion() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.updatePromotion(token, promotion);
+      const result = await actor.updatePromotion(token, promotion);
+      if (result === false) throw new Error('Session expired or unauthorized');
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['promotions'] });
@@ -250,7 +270,9 @@ export function useDeletePromotion() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.deletePromotion(token, id);
+      const result = await actor.deletePromotion(token, id);
+      if (result === false) throw new Error('Session expired or unauthorized');
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['promotions'] });
@@ -267,7 +289,9 @@ export function useCreateTestimonial() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.createTestimonial(token, testimonial);
+      const result = await actor.createTestimonial(token, testimonial);
+      if (result === false) throw new Error('Session expired or unauthorized');
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['testimonials'] });
@@ -284,7 +308,9 @@ export function useUpdateTestimonial() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.updateTestimonial(token, testimonial);
+      const result = await actor.updateTestimonial(token, testimonial);
+      if (result === false) throw new Error('Session expired or unauthorized');
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['testimonials'] });
@@ -301,7 +327,9 @@ export function useDeleteTestimonial() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.deleteTestimonial(token, id);
+      const result = await actor.deleteTestimonial(token, id);
+      if (result === false) throw new Error('Session expired or unauthorized');
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['testimonials'] });
@@ -318,7 +346,9 @@ export function useCreateBlogPost() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.createBlogPost(token, post);
+      const result = await actor.createBlogPost(token, post);
+      if (result === false) throw new Error('Session expired or unauthorized');
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
@@ -335,7 +365,9 @@ export function useUpdateBlogPost() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.updateBlogPost(token, post);
+      const result = await actor.updateBlogPost(token, post);
+      if (result === false) throw new Error('Session expired or unauthorized');
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
@@ -352,7 +384,9 @@ export function useDeleteBlogPost() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      return actor.deleteBlogPost(token, id);
+      const result = await actor.deleteBlogPost(token, id);
+      if (result === false) throw new Error('Session expired or unauthorized');
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blogPosts'] });

@@ -1,129 +1,78 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin UX fixes (nav highlighting, richer vehicle editor, media empty/loading) and polished public vehicle UI",
+  "title": "Admin CMS regression fixes (frontend): media visibility + save/publish resilience",
   "requirements": [
     {
-      "id": "REQ-79",
-      "summary": "Fix Admin sidebar active-state highlighting for Passenger vs Commercial Vehicles links that share the same pathname but differ by category query param.",
+      "id": "REQ-85",
+      "summary": "Make Media Manager and editor Media Picker reliably load/search/select existing media assets using the existing caffeineAdminSession token, including after re-login.",
       "acceptanceCriteria": [
-        "When visiting /admin/vehicles?category=passenger, only 'Passenger Vehicles' is highlighted as active and 'Commercial Vehicles' is not highlighted.",
-        "When visiting /admin/vehicles?category=commercial, only 'Commercial Vehicles' is highlighted as active and 'Passenger Vehicles' is not highlighted.",
-        "Other Admin menu items retain correct active highlighting behavior."
+        "If media assets exist in canister storage, they appear in `/admin/media` and in MediaPicker dialogs used by editors (Vehicle/Promotion/Testimonial/Blog).",
+        "If no media assets exist, the existing empty-state UI remains visible (e.g., “No media yet.”) and no unhandled exceptions occur.",
+        "Media list loading does not fail due to authorization when the user is logged in and a valid `caffeineAdminSession.token` exists."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/admin/AdminLayout.tsx",
+          "path": "frontend/src/admin/hooks/useAdminCmsQueries.ts",
           "operation": "modify",
-          "description": "Update nav active-state logic to consider both pathname and (for /admin/vehicles) the category search param so only the correct vehicle nav item is active; keep other items matching by pathname as they do today."
-        }
-      ]
-    },
-    {
-      "id": "REQ-80",
-      "summary": "Restore a richer Admin Add/Edit Vehicle dialog supporting variants, full specs, additional features list, and commercial badges while remaining compatible with current Vehicle model and createVehicle/updateVehicle calls.",
-      "acceptanceCriteria": [
-        "The Vehicle editor supports managing variants as a list (add/edit/remove): name, price adjustment, feature list, and premium flag (isPremium) using clear English labels.",
-        "The Vehicle editor supports editing technical specs fields (engine, transmission, dimensions, weight, fuel capacity, suspension) and managing an 'Additional features' list (add/remove items).",
-        "For Commercial vehicles, the editor provides checkbox controls for commercialFeatures (Economical, Power, Speed, Capacity, Bus, 4x2, 6x2, 6x4). For Passenger vehicles, these controls are hidden/disabled.",
-        "The editor still supports selecting Image and Brochure via the existing MediaPickerDialog and saves selected URLs back into imageUrl/brochure fields.",
-        "Saving creates/updates the Vehicle successfully using existing mutations and no runtime type errors occur with bigint/nat conversions."
-      ],
-      "file_operations": [
+          "description": "Update the media-asset query to key off the current `caffeineAdminSession` token (e.g., include token in the React Query `queryKey` and `enabled`), so the media list refetches correctly after re-login without changing the storage key. Also normalize unauthorized handling: if `getMediaAssets(token)` returns `null`, throw a consistent English error that existing UI can treat as session-expired."
+        },
         {
-          "path": "frontend/src/admin/components/VehicleFormDialog.tsx",
+          "path": "frontend/src/admin/hooks/useAdminSession.ts",
           "operation": "modify",
-          "description": "Expand the dialog UI to include: variants list editor (name, price adjustment bigint-safe input, isPremium toggle, features list), full TechnicalSpecs editor, 'Additional features' list editor, and Commercial vehicle feature checkboxes; keep existing MediaPickerDialog integration for imageUrl and brochure; ensure all new/changed labels are English."
+          "description": "Harden admin session validation to treat a `null` return from `getVisitorStats(token)` as an invalid/expired session (clear `caffeineAdminSession` and set session to null). This ensures media and other admin screens recover cleanly after re-login."
         },
-        {
-          "path": "frontend/src/admin/components/vehicles/VariantsEditor.tsx",
-          "operation": "create",
-          "description": "Create a reusable VariantsEditor component for add/edit/remove of Variant items (name, priceAdjustment, isPremium, features list) with bigint-safe parsing and English labels; wire it into VehicleFormDialog. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/admin/components/vehicles/TechnicalSpecsEditor.tsx",
-          "operation": "create",
-          "description": "Create a TechnicalSpecsEditor component for editing engine, transmission, dimensions, weight, fuel capacity, suspension plus an 'Additional features' add/remove list; wire it into VehicleFormDialog. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/admin/components/vehicles/CommercialFeaturesEditor.tsx",
-          "operation": "create",
-          "description": "Create a CommercialFeaturesEditor component providing checkbox controls for the commercialFeatures flags (Economical, Power, Speed, Capacity, Bus, 4x2, 6x2, 6x4); only render/enable this when isCommercial is true; wire it into VehicleFormDialog. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-81",
-      "summary": "Make Admin Media Manager and Media Picker reliably render media assets, show a consistent English empty state, and display a clear re-login error for expired/missing admin sessions.",
-      "acceptanceCriteria": [
-        "If the backend returns one or more MediaAsset records, both /admin/media and the MediaPickerDialog render them in a responsive grid with thumbnails for images and file-type tiles for non-images.",
-        "If there are zero assets, show an English empty state message exactly: \"No media yet.\" (not \"No media found\").",
-        "If media loading fails due to missing/expired admin session, the UI shows an English error that indicates the user must log in again (without crashing the page).",
-        "Selecting a media item in MediaPickerDialog highlights the selection and clicking \"Select\" returns the selected asset URL to the calling form field."
-      ],
-      "file_operations": [
         {
           "path": "frontend/src/admin/components/media/MediaManagerPanel.tsx",
           "operation": "modify",
-          "description": "Update empty state text to exactly \"No media yet.\"; improve error presentation by mapping session/authorization-related errors to an English message that instructs the user to log in again; keep responsive grid behavior for images vs non-images."
+          "description": "Align auth-error detection with the updated, normalized errors from admin CMS hooks so the existing Session Expired UI reliably appears for invalid sessions and the media grid renders when authorized."
         },
         {
           "path": "frontend/src/admin/components/media/MediaPickerDialog.tsx",
           "operation": "modify",
-          "description": "Update empty state text to exactly \"No media yet.\"; ensure selection state is reliably initialized/reset when opening the dialog and when currentUrl changes; map session/authorization-related errors to an English re-login message; keep selection highlighting and Select action behavior."
+          "description": "Align auth-error detection with the updated, normalized errors from admin CMS hooks so editors can load/search/select media when authorized and see the existing Session Expired messaging when not."
         },
         {
           "path": "frontend/src/admin/pages/MediaManagerPage.tsx",
           "operation": "modify",
-          "description": "Update the page-level error alert copy to an English message that clearly indicates the admin session may have expired and the user must log in again; keep the existing page structure and upload button wiring."
+          "description": "Ensure the page-level session-expired banner is driven by the normalized unauthorized error message from the media query (and continues to work after token refresh via re-login)."
         }
       ]
     },
     {
-      "id": "REQ-82",
-      "summary": "Polish public vehicle listing grid and vehicle card styling using Tailwind while preserving existing routing and CMS-driven data wiring.",
+      "id": "REQ-86",
+      "summary": "Restore Admin CMS save/publish operations across Vehicles/Promotions/Testimonials/Blog by ensuring admin mutations properly fail on unauthorized/falsey results and trigger expected React Query refresh behavior.",
       "acceptanceCriteria": [
-        "Vehicle listing pages (/mobil-keluarga and /mobil-niaga) display a visually improved grid and cards (spacing, typography, hierarchy, hover states) using Tailwind while keeping existing data fields and links working.",
-        "Cards still correctly fall back to the existing placeholder images when imageUrl is empty.",
-        "No changes break the existing responsive column behavior (desktop/tablet/mobile)."
+        "From each admin management page (Vehicles, Promotions, Testimonials, Blog), creating a new item and saving succeeds without errors and the item appears in the table.",
+        "Editing an existing item and saving persists changes and the table updates after save (via existing React Query invalidation).",
+        "Toggling Published/Draft and saving persists and the status badge in the CRUD table updates accordingly.",
+        "If the session is missing/expired, the UI shows the existing English session-required/session-expired messaging instead of silently failing."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/vehicles/VehicleCard.tsx",
+          "path": "frontend/src/admin/hooks/useAdminCmsQueries.ts",
           "operation": "modify",
-          "description": "Improve card visual design (spacing, typography hierarchy, hover/focus states, image presentation) using Tailwind; preserve existing links/actions and placeholder behavior; add safe image fallback handling to prevent broken image icons."
+          "description": "For admin CMS create/update/delete mutations (Vehicles/Promotions/Testimonials/Blog, plus any related admin mutations already in this file), enforce result checking: if the backend returns `false` (or a `null` where applicable), throw a consistent English error (e.g., unauthorized/session expired vs generic failure) so the UI does not treat failures as success. Also include the current `caffeineAdminSession` token in relevant query keys (where those queries exist) so listings refetch correctly after re-login and invalidation targets the active session cache."
         },
         {
-          "path": "frontend/src/pages/PassengerVehiclesPage.tsx",
+          "path": "frontend/src/admin/pages/VehiclesAdminPage.tsx",
           "operation": "modify",
-          "description": "Refine listing page layout and grid presentation (header spacing, consistent section framing) using Tailwind while keeping the same data filtering and responsive columns."
+          "description": "Adjust save error handling to surface session-expired/unauthorized failures from the updated admin CMS mutation hooks (keep English messaging) and avoid closing the editor dialog on failed saves, so users can re-login and retry successfully."
         },
         {
-          "path": "frontend/src/pages/CommercialVehiclesPage.tsx",
+          "path": "frontend/src/admin/pages/PromotionsAdminPage.tsx",
           "operation": "modify",
-          "description": "Refine section layouts for Light Duty/Medium Duty/Tractor Head and grid styling using Tailwind while preserving current grouping logic and responsive columns."
-        }
-      ]
-    },
-    {
-      "id": "REQ-83",
-      "summary": "Polish public Passenger and Commercial vehicle detail pages for a more professional layout while remaining robust with missing media and empty optional fields.",
-      "acceptanceCriteria": [
-        "Passenger vehicle detail page remains functional with variant selection (if variants exist) and looks visually improved (e.g., better sectioning, consistent backgrounds, clearer CTA grouping) without changing routes or breaking existing like/share actions.",
-        "Commercial vehicle detail page remains functional and visually improved while preserving the existing constraints (no color/variant switcher; chassis price emphasis; optional brochure button only when brochure exists).",
-        "Both detail pages render placeholder images when imageUrl is empty and do not show broken image icons.",
-        "All user-facing text introduced or changed by this work is in English."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/PassengerVehicleDetailPage.tsx",
-          "operation": "modify",
-          "description": "Improve detail page layout and sectioning (hero/media + summary + CTAs + specs/features sections) using Tailwind; ensure placeholder + onError fallback for images; keep variant selection behavior and like/share actions; make any adjusted text English; ensure optional fields render gracefully (e.g., show placeholders like \"—\" instead of blank blocks)."
+          "description": "Adjust save error handling to surface session-expired/unauthorized failures from the updated admin CMS mutation hooks (keep English messaging) and avoid closing the editor dialog on failed saves."
         },
         {
-          "path": "frontend/src/pages/CommercialVehicleDetailPage.tsx",
+          "path": "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
           "operation": "modify",
-          "description": "Improve layout and visual hierarchy while preserving constraints (no variant switcher; chassis price emphasis; brochure button only when brochure exists); ensure placeholder + onError fallback for images; replace non-English text (e.g., bodywork note) with English; ensure brochure action opens the brochure URL when present."
+          "description": "Adjust save error handling to surface session-expired/unauthorized failures from the updated admin CMS mutation hooks (keep English messaging) and avoid closing the editor dialog on failed saves."
+        },
+        {
+          "path": "frontend/src/admin/pages/BlogAdminPage.tsx",
+          "operation": "modify",
+          "description": "Adjust save error handling to surface session-expired/unauthorized failures from the updated admin CMS mutation hooks (keep English messaging) and avoid closing the editor dialog on failed saves."
         }
       ]
     }

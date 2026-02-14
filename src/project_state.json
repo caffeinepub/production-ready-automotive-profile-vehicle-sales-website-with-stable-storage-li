@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 35,
+  "projectStateVersion": 37,
   "summary": "Automotive company profile + vehicle sales website with production-ready backend/frontend separation, stable persistence (upgrade/redeploy safe), live CMS admin panel, media manager, SEO/performance, product & article interactions, and seeded content.",
   "architectural_notes": [
     "Use stable persistence only (no in-memory) and ensure upgrade/redeploy-safe data migrations with auto-restore after redeploy.",
@@ -419,6 +419,22 @@
         "REQ-83"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-ensure-the-admin-media-manager-asset-listing-and-editor-media-picker-can-successfully-load-and-display-existing-media-assets-end-to-end-list-search-select-using-the-existing-session-token-stored-under-caffeineadminsession-without-requiring-any-frontend-storage-key-changes",
+      "title": "Ensure the Admin Media Manager asset listing and editor Media Picker can successfully load and display existing media assets end-to-end (list, search, select) using the existing session token stored under `caffeineAdminSession`, without requiring any frontend storage-key changes.",
+      "reqIds": [
+        "REQ-85"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-restore-admin-cms-save-and-publish-functionality-for-all-content-editors-vehicles-promotions-testimonials-blog-so-that-create-update-operations-persist-successfully-and-the-published-draft-toggle-changes-are-saved-and-reflected-in-the-listing-tables-after-saving",
+      "title": "Restore Admin CMS save and publish functionality for all content editors (Vehicles, Promotions, Testimonials, Blog) so that create/update operations persist successfully and the published/draft toggle changes are saved and reflected in the listing tables after saving.",
+      "reqIds": [
+        "REQ-86"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -830,6 +846,22 @@
       "id": "AR-65",
       "summary": "Improve public UI quality for vehicle listing grid and vehicle detail pages to be more visually appealing/professional while keeping existing routing and CMS-driven data wiring intact.",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-66",
+      "summary": "Fix backend admin authorization error handling so Admin CMS and Media Manager operations do not trap on invalid/expired sessions, and instead return a safe unauthorized response that the current React Query hooks can handle (so the UI can show session-expired messaging and continue functioning after re-login). Apply this consistently to admin CMS methods used by the admin UI, including: getMediaAssets/createMediaAsset/deleteMediaAsset, create/update/delete Vehicle/Promotion/Testimonial/BlogPost, getContacts/deleteContact, getCreditSimulations/deleteCreditSimulation, getVisitorStats/updateVisitorStats.",
+      "reqIds": [
+        "REQ-84"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-69",
+      "summary": "Add minimal, backend-side diagnostic logging (console Debug.print) for admin CMS mutation failures related to session validation (invalid/expired token) and for media asset listing failures, to make future deployment issues easier to diagnose without changing any public or admin UI.",
+      "reqIds": [
+        "REQ-87"
+      ],
       "status": "pending"
     }
   ],

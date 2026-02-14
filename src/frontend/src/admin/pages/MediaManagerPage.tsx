@@ -1,28 +1,34 @@
-import { useState } from 'react';
-import { useGetMediaAssets } from '../hooks/useAdminCmsQueries';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 import MediaManagerPanel from '../components/media/MediaManagerPanel';
 import MediaUploadButton from '../components/media/MediaUploadButton';
+import { useGetMediaAssets } from '../hooks/useAdminCmsQueries';
 
 export default function MediaManagerPage() {
   const { error } = useGetMediaAssets();
 
   const isAuthError = error instanceof Error && 
-    (error.message.includes('Unauthorized') || 
-     error.message.includes('Invalid or expired') ||
-     error.message.includes('session'));
+    (error.message.includes('Session expired') || 
+     error.message.includes('unauthorized') ||
+     error.message.includes('session required'));
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Media Manager</h1>
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">Media Manager</h1>
+          <p className="text-gray-600 mt-1">Upload and manage media assets</p>
+        </div>
         <MediaUploadButton />
       </div>
 
       {isAuthError && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded mb-4">
-          <p className="font-semibold">Session Expired</p>
-          <p className="text-sm">Your admin session has expired. Please log in again to manage media.</p>
-        </div>
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Your admin session has expired. Please log in again to manage media.
+          </AlertDescription>
+        </Alert>
       )}
 
       <MediaManagerPanel />

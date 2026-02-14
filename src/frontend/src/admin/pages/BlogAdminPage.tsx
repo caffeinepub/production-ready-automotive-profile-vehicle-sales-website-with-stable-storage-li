@@ -39,7 +39,12 @@ export default function BlogAdminPage() {
       setDeleteItem(null);
     } catch (error) {
       console.error('Delete error:', error);
-      toast.error('Failed to delete blog post');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (errorMessage.includes('Session expired') || errorMessage.includes('unauthorized')) {
+        toast.error('Session expired. Please log in again.');
+      } else {
+        toast.error('Failed to delete blog post');
+      }
     }
   };
 
@@ -56,7 +61,13 @@ export default function BlogAdminPage() {
       setEditItem(null);
     } catch (error) {
       console.error('Save error:', error);
-      toast.error('Failed to save blog post');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (errorMessage.includes('Session expired') || errorMessage.includes('unauthorized')) {
+        toast.error('Session expired. Please log in again.');
+      } else {
+        toast.error('Failed to save blog post');
+      }
+      // Don't close the dialog on error so user can retry after re-login
     }
   };
 

@@ -20,14 +20,13 @@ actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
-  // Admin User Management Types
   public type AdminUser = {
     id : Nat;
     email : Text;
     passwordHash : Text;
-    role : Text; // "admin" or "superadmin"
+    role : Text;
     createdAt : Int;
-    status : Text; // "Active" or "Inactive"
+    status : Text;
   };
 
   public type AdminSession = {
@@ -182,10 +181,6 @@ actor {
     todayTraffic = 0;
   };
 
-  system func postupgrade() {
-    Debug.print("Admin users after upgrade: " # adminUsers.size().toText());
-  };
-
   func seedSuperAdmin() {
     if (superAdminSeeded) {
       return;
@@ -231,36 +226,6 @@ actor {
 
     superAdminSeeded := true;
     Debug.print("Super Admin seeded. Total admin users: " # adminUsers.size().toText());
-  };
-
-  private func hashPassword(password : Text, salt : Text) : Text {
-    let combined = password # salt;
-    let bytes = combined.encodeUtf8();
-    let hash = bytes.hash().toText();
-    hash;
-  };
-
-  private func generateSessionToken(userId : Nat) : Text {
-    let timestamp = Time.now();
-    let tokenData = userId.toText() # Int.toText(timestamp);
-    let bytes = tokenData.encodeUtf8();
-    let hash = bytes.hash().toText();
-    hash;
-  };
-
-  private func validateAdminSession(token : Text) : ?AdminSession {
-    switch (adminSessions.get(token)) {
-      case (?session) {
-        let now = Time.now();
-        if (session.expiresAt > now) {
-          ?session;
-        } else {
-          adminSessions.remove(token);
-          null;
-        };
-      };
-      case null { null };
-    };
   };
 
   public shared ({ caller }) func adminLogin(email : Text, password : Text) : async ?{ token : Text; role : Text } {
@@ -329,7 +294,37 @@ actor {
     ?userId;
   };
 
-  private func requireAdminSession(token : Text) : AdminSession {
+  func hashPassword(password : Text, salt : Text) : Text {
+    let combined = password # salt;
+    let bytes = combined.encodeUtf8();
+    let hash = bytes.hash().toText();
+    hash;
+  };
+
+  func generateSessionToken(userId : Nat) : Text {
+    let timestamp = Time.now();
+    let tokenData = userId.toText() # Int.toText(timestamp);
+    let bytes = tokenData.encodeUtf8();
+    let hash = bytes.hash().toText();
+    hash;
+  };
+
+  func validateAdminSession(token : Text) : ?AdminSession {
+    switch (adminSessions.get(token)) {
+      case (?session) {
+        let now = Time.now();
+        if (session.expiresAt > now) {
+          ?session;
+        } else {
+          adminSessions.remove(token);
+          null;
+        };
+      };
+      case null { null };
+    };
+  };
+
+  func requireAdminSession(token : Text) : AdminSession {
     switch (validateAdminSession(token)) {
       case (?session) { session };
       case null {
@@ -359,115 +354,174 @@ actor {
     userProfiles.add(caller, profile);
   };
 
-  public shared ({ caller }) func createVehicle(sessionToken : Text, vehicle : Vehicle) : async () {
-    let session = requireAdminSession(sessionToken);
+  public shared ({ caller }) func createVehicle(sessionToken : Text, vehicle : Vehicle) : async Bool {
+    if (not isAdminAuthorized(sessionToken, "Failed createVehicle")) {
+      return false;
+    };
     vehicles.add(vehicle.id, vehicle);
+    true;
   };
 
-  public shared ({ caller }) func updateVehicle(sessionToken : Text, vehicle : Vehicle) : async () {
-    let session = requireAdminSession(sessionToken);
+  public shared ({ caller }) func updateVehicle(sessionToken : Text, vehicle : Vehicle) : async Bool {
+    if (not isAdminAuthorized(sessionToken, "Failed updateVehicle")) {
+      return false;
+    };
     vehicles.add(vehicle.id, vehicle);
+    true;
   };
 
-  public shared ({ caller }) func deleteVehicle(sessionToken : Text, id : Nat) : async () {
-    let session = requireAdminSession(sessionToken);
+  public shared ({ caller }) func deleteVehicle(sessionToken : Text, id : Nat) : async Bool {
+    if (not isAdminAuthorized(sessionToken, "Failed deleteVehicle")) {
+      return false;
+    };
     vehicles.remove(id);
+    true;
   };
 
-  public shared ({ caller }) func createPromotion(sessionToken : Text, promotion : Promotion) : async () {
-    let session = requireAdminSession(sessionToken);
+  public shared ({ caller }) func createPromotion(sessionToken : Text, promotion : Promotion) : async Bool {
+    if (not isAdminAuthorized(sessionToken, "Failed createPromotion")) {
+      return false;
+    };
     promotions.add(promotion.id, promotion);
+    true;
   };
 
-  public shared ({ caller }) func updatePromotion(sessionToken : Text, promotion : Promotion) : async () {
-    let session = requireAdminSession(sessionToken);
+  public shared ({ caller }) func updatePromotion(sessionToken : Text, promotion : Promotion) : async Bool {
+    if (not isAdminAuthorized(sessionToken, "Failed updatePromotion")) {
+      return false;
+    };
     promotions.add(promotion.id, promotion);
+    true;
   };
 
-  public shared ({ caller }) func deletePromotion(sessionToken : Text, id : Nat) : async () {
-    let session = requireAdminSession(sessionToken);
+  public shared ({ caller }) func deletePromotion(sessionToken : Text, id : Nat) : async Bool {
+    if (not isAdminAuthorized(sessionToken, "Failed deletePromotion")) {
+      return false;
+    };
     promotions.remove(id);
+    true;
   };
 
-  public shared ({ caller }) func createTestimonial(sessionToken : Text, testimonial : Testimonial) : async () {
-    let session = requireAdminSession(sessionToken);
+  public shared ({ caller }) func createTestimonial(sessionToken : Text, testimonial : Testimonial) : async Bool {
+    if (not isAdminAuthorized(sessionToken, "Failed createTestimonial")) {
+      return false;
+    };
     testimonials.add(testimonial.id, testimonial);
+    true;
   };
 
-  public shared ({ caller }) func updateTestimonial(sessionToken : Text, testimonial : Testimonial) : async () {
-    let session = requireAdminSession(sessionToken);
+  public shared ({ caller }) func updateTestimonial(sessionToken : Text, testimonial : Testimonial) : async Bool {
+    if (not isAdminAuthorized(sessionToken, "Failed updateTestimonial")) {
+      return false;
+    };
     testimonials.add(testimonial.id, testimonial);
+    true;
   };
 
-  public shared ({ caller }) func deleteTestimonial(sessionToken : Text, id : Nat) : async () {
-    let session = requireAdminSession(sessionToken);
+  public shared ({ caller }) func deleteTestimonial(sessionToken : Text, id : Nat) : async Bool {
+    if (not isAdminAuthorized(sessionToken, "Failed deleteTestimonial")) {
+      return false;
+    };
     testimonials.remove(id);
+    true;
   };
 
-  public shared ({ caller }) func createBlogPost(sessionToken : Text, post : BlogPost) : async () {
-    let session = requireAdminSession(sessionToken);
+  public shared ({ caller }) func createBlogPost(sessionToken : Text, post : BlogPost) : async Bool {
+    if (not isAdminAuthorized(sessionToken, "Failed createBlogPost")) {
+      return false;
+    };
     blogPosts.add(post.id, post);
+    true;
   };
 
-  public shared ({ caller }) func updateBlogPost(sessionToken : Text, post : BlogPost) : async () {
-    let session = requireAdminSession(sessionToken);
+  public shared ({ caller }) func updateBlogPost(sessionToken : Text, post : BlogPost) : async Bool {
+    if (not isAdminAuthorized(sessionToken, "Failed updateBlogPost")) {
+      return false;
+    };
     blogPosts.add(post.id, post);
+    true;
   };
 
-  public shared ({ caller }) func deleteBlogPost(sessionToken : Text, id : Nat) : async () {
-    let session = requireAdminSession(sessionToken);
+  public shared ({ caller }) func deleteBlogPost(sessionToken : Text, id : Nat) : async Bool {
+    if (not isAdminAuthorized(sessionToken, "Failed deleteBlogPost")) {
+      return false;
+    };
     blogPosts.remove(id);
+    true;
   };
 
-  public shared ({ caller }) func addContact(contact : Contact) : async () {
+  public shared ({ caller }) func addContact(contact : Contact) : async Bool {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can submit contacts");
     };
     let uniqueId = contacts.size() + 1;
     contacts.add(uniqueId, contact);
+    true;
   };
 
-  public shared ({ caller }) func getContacts(sessionToken : Text) : async [Contact] {
-    let session = requireAdminSession(sessionToken);
-    contacts.values().toArray();
+  public shared ({ caller }) func getContacts(sessionToken : Text) : async ?[Contact] {
+    if (not isAdminAuthorized(sessionToken, "Failed getContacts")) {
+      return null;
+    };
+    let contactsArray = contacts.values().toArray();
+    ?contactsArray;
   };
 
-  public shared ({ caller }) func deleteContact(sessionToken : Text, id : Nat) : async () {
-    let session = requireAdminSession(sessionToken);
+  public shared ({ caller }) func deleteContact(sessionToken : Text, id : Nat) : async Bool {
+    if (not isAdminAuthorized(sessionToken, "Failed deleteContact")) {
+      return false;
+    };
     contacts.remove(id);
+    true;
   };
 
-  public shared ({ caller }) func addCreditSimulation(simulation : CreditSimulation) : async () {
+  public shared ({ caller }) func addCreditSimulation(simulation : CreditSimulation) : async Bool {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can submit credit simulations");
     };
     let uniqueId = creditSimulations.size() + 1;
     creditSimulations.add(uniqueId, simulation);
+    true;
   };
 
-  public shared ({ caller }) func getCreditSimulations(sessionToken : Text) : async [CreditSimulation] {
-    let session = requireAdminSession(sessionToken);
-    creditSimulations.values().toArray();
+  public shared ({ caller }) func getCreditSimulations(sessionToken : Text) : async ?[CreditSimulation] {
+    if (not isAdminAuthorized(sessionToken, "Failed getCreditSimulations")) {
+      return null;
+    };
+    let creditSimulationsArray = creditSimulations.values().toArray();
+    ?creditSimulationsArray;
   };
 
-  public shared ({ caller }) func deleteCreditSimulation(sessionToken : Text, id : Nat) : async () {
-    let session = requireAdminSession(sessionToken);
+  public shared ({ caller }) func deleteCreditSimulation(sessionToken : Text, id : Nat) : async Bool {
+    if (not isAdminAuthorized(sessionToken, "Failed deleteCreditSimulation")) {
+      return false;
+    };
     creditSimulations.remove(id);
+    true;
   };
 
-  public shared ({ caller }) func createMediaAsset(sessionToken : Text, asset : MediaAsset) : async () {
-    let session = requireAdminSession(sessionToken);
+  public shared ({ caller }) func createMediaAsset(sessionToken : Text, asset : MediaAsset) : async Bool {
+    if (not isAdminAuthorized(sessionToken, "Failed createMediaAsset")) {
+      return false;
+    };
     mediaAssets.add(asset.id, asset);
+    true;
   };
 
-  public shared ({ caller }) func deleteMediaAsset(sessionToken : Text, id : Nat) : async () {
-    let session = requireAdminSession(sessionToken);
+  public shared ({ caller }) func deleteMediaAsset(sessionToken : Text, id : Nat) : async Bool {
+    if (not isAdminAuthorized(sessionToken, "Failed deleteMediaAsset")) {
+      return false;
+    };
     mediaAssets.remove(id);
+    true;
   };
 
-  public shared ({ caller }) func getMediaAssets(sessionToken : Text) : async [MediaAsset] {
-    let session = requireAdminSession(sessionToken);
-    mediaAssets.values().toArray();
+  public shared ({ caller }) func getMediaAssets(sessionToken : Text) : async ?[MediaAsset] {
+    if (not isAdminAuthorized(sessionToken, "Failed getMediaAssets")) {
+      return null;
+    };
+    let mediaAssetsArray = mediaAssets.values().toArray();
+    ?mediaAssetsArray;
   };
 
   public shared ({ caller }) func likeProduct(itemId : Nat) : async () {
@@ -554,14 +608,19 @@ actor {
     };
   };
 
-  public shared ({ caller }) func getVisitorStats(sessionToken : Text) : async VisitorStats {
-    let session = requireAdminSession(sessionToken);
-    visitorStats;
+  public shared ({ caller }) func getVisitorStats(sessionToken : Text) : async ?VisitorStats {
+    if (not isAdminAuthorized(sessionToken, "Failed getVisitorStats")) {
+      return null;
+    };
+    ?visitorStats;
   };
 
-  public shared ({ caller }) func updateVisitorStats(sessionToken : Text, stats : VisitorStats) : async () {
-    let session = requireAdminSession(sessionToken);
+  public shared ({ caller }) func updateVisitorStats(sessionToken : Text, stats : VisitorStats) : async Bool {
+    if (not isAdminAuthorized(sessionToken, "Failed updateVisitorStats")) {
+      return false;
+    };
     visitorStats := stats;
+    true;
   };
 
   public query ({ caller }) func getVehicles() : async [Vehicle] {
@@ -591,4 +650,21 @@ actor {
   public query ({ caller }) func getBlogPost(id : Nat) : async ?BlogPost {
     blogPosts.get(id);
   };
+
+  func isAdminAuthorized(sessionToken : Text, functionName : Text) : Bool {
+    if (doValidateAdminSession(sessionToken)) {
+      true;
+    } else {
+      Debug.print("Unauthorized admin attempt: " # functionName # " token=" # sessionToken);
+      false;
+    };
+  };
+
+  func doValidateAdminSession(token : Text) : Bool {
+    switch (validateAdminSession(token)) {
+      case (?_) { true };
+      case (null) { false };
+    };
+  };
 };
+

@@ -233,8 +233,8 @@ export interface backendInterface {
     _caffeineStorageRefillCashier(refillInformation: _CaffeineStorageRefillInformation | null): Promise<_CaffeineStorageRefillResult>;
     _caffeineStorageUpdateGatewayPrincipals(): Promise<void>;
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
-    addContact(contact: Contact): Promise<void>;
-    addCreditSimulation(simulation: CreditSimulation): Promise<void>;
+    addContact(contact: Contact): Promise<boolean>;
+    addCreditSimulation(simulation: CreditSimulation): Promise<boolean>;
     adminLogin(email: string, password: string): Promise<{
         token: string;
         role: string;
@@ -242,25 +242,25 @@ export interface backendInterface {
     adminLogout(token: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createAdminUser(sessionToken: string, email: string, password: string, role: string): Promise<bigint | null>;
-    createBlogPost(sessionToken: string, post: BlogPost): Promise<void>;
-    createMediaAsset(sessionToken: string, asset: MediaAsset): Promise<void>;
-    createPromotion(sessionToken: string, promotion: Promotion): Promise<void>;
-    createTestimonial(sessionToken: string, testimonial: Testimonial): Promise<void>;
-    createVehicle(sessionToken: string, vehicle: Vehicle): Promise<void>;
-    deleteBlogPost(sessionToken: string, id: bigint): Promise<void>;
-    deleteContact(sessionToken: string, id: bigint): Promise<void>;
-    deleteCreditSimulation(sessionToken: string, id: bigint): Promise<void>;
-    deleteMediaAsset(sessionToken: string, id: bigint): Promise<void>;
-    deletePromotion(sessionToken: string, id: bigint): Promise<void>;
-    deleteTestimonial(sessionToken: string, id: bigint): Promise<void>;
-    deleteVehicle(sessionToken: string, id: bigint): Promise<void>;
+    createBlogPost(sessionToken: string, post: BlogPost): Promise<boolean>;
+    createMediaAsset(sessionToken: string, asset: MediaAsset): Promise<boolean>;
+    createPromotion(sessionToken: string, promotion: Promotion): Promise<boolean>;
+    createTestimonial(sessionToken: string, testimonial: Testimonial): Promise<boolean>;
+    createVehicle(sessionToken: string, vehicle: Vehicle): Promise<boolean>;
+    deleteBlogPost(sessionToken: string, id: bigint): Promise<boolean>;
+    deleteContact(sessionToken: string, id: bigint): Promise<boolean>;
+    deleteCreditSimulation(sessionToken: string, id: bigint): Promise<boolean>;
+    deleteMediaAsset(sessionToken: string, id: bigint): Promise<boolean>;
+    deletePromotion(sessionToken: string, id: bigint): Promise<boolean>;
+    deleteTestimonial(sessionToken: string, id: bigint): Promise<boolean>;
+    deleteVehicle(sessionToken: string, id: bigint): Promise<boolean>;
     getBlogPost(id: bigint): Promise<BlogPost | null>;
     getBlogPosts(): Promise<Array<BlogPost>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getContacts(sessionToken: string): Promise<Array<Contact>>;
-    getCreditSimulations(sessionToken: string): Promise<Array<CreditSimulation>>;
-    getMediaAssets(sessionToken: string): Promise<Array<MediaAsset>>;
+    getContacts(sessionToken: string): Promise<Array<Contact> | null>;
+    getCreditSimulations(sessionToken: string): Promise<Array<CreditSimulation> | null>;
+    getMediaAssets(sessionToken: string): Promise<Array<MediaAsset> | null>;
     getProductInteraction(itemId: bigint): Promise<Interaction | null>;
     getPromotion(id: bigint): Promise<Promotion | null>;
     getPromotions(): Promise<Array<Promotion>>;
@@ -268,20 +268,20 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     getVehicle(id: bigint): Promise<Vehicle | null>;
     getVehicles(): Promise<Array<Vehicle>>;
-    getVisitorStats(sessionToken: string): Promise<VisitorStats>;
+    getVisitorStats(sessionToken: string): Promise<VisitorStats | null>;
     incrementPageView(): Promise<void>;
     incrementVisitor(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     likeProduct(itemId: bigint): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     shareProduct(itemId: bigint, platform: string): Promise<void>;
-    updateBlogPost(sessionToken: string, post: BlogPost): Promise<void>;
-    updatePromotion(sessionToken: string, promotion: Promotion): Promise<void>;
-    updateTestimonial(sessionToken: string, testimonial: Testimonial): Promise<void>;
-    updateVehicle(sessionToken: string, vehicle: Vehicle): Promise<void>;
-    updateVisitorStats(sessionToken: string, stats: VisitorStats): Promise<void>;
+    updateBlogPost(sessionToken: string, post: BlogPost): Promise<boolean>;
+    updatePromotion(sessionToken: string, promotion: Promotion): Promise<boolean>;
+    updateTestimonial(sessionToken: string, testimonial: Testimonial): Promise<boolean>;
+    updateVehicle(sessionToken: string, vehicle: Vehicle): Promise<boolean>;
+    updateVisitorStats(sessionToken: string, stats: VisitorStats): Promise<boolean>;
 }
-import type { BlogPost as _BlogPost, CommercialVehicleFeatures as _CommercialVehicleFeatures, Contact as _Contact, CreditSimulation as _CreditSimulation, Interaction as _Interaction, Promotion as _Promotion, TechnicalSpecs as _TechnicalSpecs, UserProfile as _UserProfile, UserRole as _UserRole, Variant as _Variant, Vehicle as _Vehicle, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { BlogPost as _BlogPost, CommercialVehicleFeatures as _CommercialVehicleFeatures, Contact as _Contact, CreditSimulation as _CreditSimulation, Interaction as _Interaction, MediaAsset as _MediaAsset, Promotion as _Promotion, TechnicalSpecs as _TechnicalSpecs, UserProfile as _UserProfile, UserRole as _UserRole, Variant as _Variant, Vehicle as _Vehicle, VisitorStats as _VisitorStats, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -382,7 +382,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async addContact(arg0: Contact): Promise<void> {
+    async addContact(arg0: Contact): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.addContact(to_candid_Contact_n8(this._uploadFile, this._downloadFile, arg0));
@@ -396,7 +396,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async addCreditSimulation(arg0: CreditSimulation): Promise<void> {
+    async addCreditSimulation(arg0: CreditSimulation): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.addCreditSimulation(to_candid_CreditSimulation_n10(this._uploadFile, this._downloadFile, arg0));
@@ -469,7 +469,7 @@ export class Backend implements backendInterface {
             return from_candid_opt_n7(this._uploadFile, this._downloadFile, result);
         }
     }
-    async createBlogPost(arg0: string, arg1: BlogPost): Promise<void> {
+    async createBlogPost(arg0: string, arg1: BlogPost): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.createBlogPost(arg0, arg1);
@@ -483,7 +483,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async createMediaAsset(arg0: string, arg1: MediaAsset): Promise<void> {
+    async createMediaAsset(arg0: string, arg1: MediaAsset): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.createMediaAsset(arg0, arg1);
@@ -497,7 +497,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async createPromotion(arg0: string, arg1: Promotion): Promise<void> {
+    async createPromotion(arg0: string, arg1: Promotion): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.createPromotion(arg0, arg1);
@@ -511,7 +511,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async createTestimonial(arg0: string, arg1: Testimonial): Promise<void> {
+    async createTestimonial(arg0: string, arg1: Testimonial): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.createTestimonial(arg0, arg1);
@@ -525,7 +525,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async createVehicle(arg0: string, arg1: Vehicle): Promise<void> {
+    async createVehicle(arg0: string, arg1: Vehicle): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.createVehicle(arg0, to_candid_Vehicle_n14(this._uploadFile, this._downloadFile, arg1));
@@ -539,7 +539,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async deleteBlogPost(arg0: string, arg1: bigint): Promise<void> {
+    async deleteBlogPost(arg0: string, arg1: bigint): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.deleteBlogPost(arg0, arg1);
@@ -553,7 +553,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async deleteContact(arg0: string, arg1: bigint): Promise<void> {
+    async deleteContact(arg0: string, arg1: bigint): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.deleteContact(arg0, arg1);
@@ -567,7 +567,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async deleteCreditSimulation(arg0: string, arg1: bigint): Promise<void> {
+    async deleteCreditSimulation(arg0: string, arg1: bigint): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.deleteCreditSimulation(arg0, arg1);
@@ -581,7 +581,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async deleteMediaAsset(arg0: string, arg1: bigint): Promise<void> {
+    async deleteMediaAsset(arg0: string, arg1: bigint): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.deleteMediaAsset(arg0, arg1);
@@ -595,7 +595,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async deletePromotion(arg0: string, arg1: bigint): Promise<void> {
+    async deletePromotion(arg0: string, arg1: bigint): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.deletePromotion(arg0, arg1);
@@ -609,7 +609,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async deleteTestimonial(arg0: string, arg1: bigint): Promise<void> {
+    async deleteTestimonial(arg0: string, arg1: bigint): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.deleteTestimonial(arg0, arg1);
@@ -623,7 +623,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async deleteVehicle(arg0: string, arg1: bigint): Promise<void> {
+    async deleteVehicle(arg0: string, arg1: bigint): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.deleteVehicle(arg0, arg1);
@@ -693,74 +693,74 @@ export class Backend implements backendInterface {
             return from_candid_UserRole_n18(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getContacts(arg0: string): Promise<Array<Contact>> {
+    async getContacts(arg0: string): Promise<Array<Contact> | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getContacts(arg0);
-                return from_candid_vec_n20(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n20(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getContacts(arg0);
-            return from_candid_vec_n20(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n20(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getCreditSimulations(arg0: string): Promise<Array<CreditSimulation>> {
+    async getCreditSimulations(arg0: string): Promise<Array<CreditSimulation> | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCreditSimulations(arg0);
-                return from_candid_vec_n25(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n26(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCreditSimulations(arg0);
-            return from_candid_vec_n25(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n26(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getMediaAssets(arg0: string): Promise<Array<MediaAsset>> {
+    async getMediaAssets(arg0: string): Promise<Array<MediaAsset> | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getMediaAssets(arg0);
-                return result;
+                return from_candid_opt_n29(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getMediaAssets(arg0);
-            return result;
+            return from_candid_opt_n29(this._uploadFile, this._downloadFile, result);
         }
     }
     async getProductInteraction(arg0: bigint): Promise<Interaction | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getProductInteraction(arg0);
-                return from_candid_opt_n27(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n30(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getProductInteraction(arg0);
-            return from_candid_opt_n27(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n30(this._uploadFile, this._downloadFile, result);
         }
     }
     async getPromotion(arg0: bigint): Promise<Promotion | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getPromotion(arg0);
-                return from_candid_opt_n28(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n31(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getPromotion(arg0);
-            return from_candid_opt_n28(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n31(this._uploadFile, this._downloadFile, result);
         }
     }
     async getPromotions(): Promise<Array<Promotion>> {
@@ -809,42 +809,42 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getVehicle(arg0);
-                return from_candid_opt_n29(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n32(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getVehicle(arg0);
-            return from_candid_opt_n29(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n32(this._uploadFile, this._downloadFile, result);
         }
     }
     async getVehicles(): Promise<Array<Vehicle>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getVehicles();
-                return from_candid_vec_n33(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n36(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getVehicles();
-            return from_candid_vec_n33(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n36(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getVisitorStats(arg0: string): Promise<VisitorStats> {
+    async getVisitorStats(arg0: string): Promise<VisitorStats | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getVisitorStats(arg0);
-                return result;
+                return from_candid_opt_n37(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getVisitorStats(arg0);
-            return result;
+            return from_candid_opt_n37(this._uploadFile, this._downloadFile, result);
         }
     }
     async incrementPageView(): Promise<void> {
@@ -931,7 +931,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateBlogPost(arg0: string, arg1: BlogPost): Promise<void> {
+    async updateBlogPost(arg0: string, arg1: BlogPost): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.updateBlogPost(arg0, arg1);
@@ -945,7 +945,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updatePromotion(arg0: string, arg1: Promotion): Promise<void> {
+    async updatePromotion(arg0: string, arg1: Promotion): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.updatePromotion(arg0, arg1);
@@ -959,7 +959,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateTestimonial(arg0: string, arg1: Testimonial): Promise<void> {
+    async updateTestimonial(arg0: string, arg1: Testimonial): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.updateTestimonial(arg0, arg1);
@@ -973,7 +973,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateVehicle(arg0: string, arg1: Vehicle): Promise<void> {
+    async updateVehicle(arg0: string, arg1: Vehicle): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.updateVehicle(arg0, to_candid_Vehicle_n14(this._uploadFile, this._downloadFile, arg1));
@@ -987,7 +987,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateVisitorStats(arg0: string, arg1: VisitorStats): Promise<void> {
+    async updateVisitorStats(arg0: string, arg1: VisitorStats): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.updateVisitorStats(arg0, arg1);
@@ -1002,17 +1002,17 @@ export class Backend implements backendInterface {
         }
     }
 }
-function from_candid_Contact_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Contact): Contact {
-    return from_candid_record_n22(_uploadFile, _downloadFile, value);
+function from_candid_Contact_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Contact): Contact {
+    return from_candid_record_n23(_uploadFile, _downloadFile, value);
 }
-function from_candid_CreditSimulation_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CreditSimulation): CreditSimulation {
-    return from_candid_record_n22(_uploadFile, _downloadFile, value);
+function from_candid_CreditSimulation_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CreditSimulation): CreditSimulation {
+    return from_candid_record_n23(_uploadFile, _downloadFile, value);
 }
 function from_candid_UserRole_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
     return from_candid_variant_n19(_uploadFile, _downloadFile, value);
 }
-function from_candid_Vehicle_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Vehicle): Vehicle {
-    return from_candid_record_n31(_uploadFile, _downloadFile, value);
+function from_candid_Vehicle_n33(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Vehicle): Vehicle {
+    return from_candid_record_n34(_uploadFile, _downloadFile, value);
 }
 function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __CaffeineStorageRefillResult): _CaffeineStorageRefillResult {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
@@ -1032,22 +1032,34 @@ function from_candid_opt_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
 function from_candid_opt_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [number]): number | null {
+function from_candid_opt_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [Array<_Contact>]): Array<Contact> | null {
+    return value.length === 0 ? null : from_candid_vec_n21(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [number]): number | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
+function from_candid_opt_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Interaction]): Interaction | null {
+function from_candid_opt_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [Array<_CreditSimulation>]): Array<CreditSimulation> | null {
+    return value.length === 0 ? null : from_candid_vec_n27(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [Array<_MediaAsset>]): Array<MediaAsset> | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Promotion]): Promotion | null {
+function from_candid_opt_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Interaction]): Interaction | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Vehicle]): Vehicle | null {
-    return value.length === 0 ? null : from_candid_Vehicle_n30(_uploadFile, _downloadFile, value[0]);
+function from_candid_opt_n31(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Promotion]): Promotion | null {
+    return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_CommercialVehicleFeatures]): CommercialVehicleFeatures | null {
+function from_candid_opt_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Vehicle]): Vehicle | null {
+    return value.length === 0 ? null : from_candid_Vehicle_n33(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n35(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_CommercialVehicleFeatures]): CommercialVehicleFeatures | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n37(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_VisitorStats]): VisitorStats | null {
     return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
@@ -1056,7 +1068,7 @@ function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
 function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [bigint]): bigint | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     tenor: [] | [bigint];
     downPayment: [] | [number];
     date: string;
@@ -1081,18 +1093,18 @@ function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uin
 } {
     return {
         tenor: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.tenor)),
-        downPayment: record_opt_to_undefined(from_candid_opt_n23(_uploadFile, _downloadFile, value.downPayment)),
+        downPayment: record_opt_to_undefined(from_candid_opt_n24(_uploadFile, _downloadFile, value.downPayment)),
         date: value.date,
         name: value.name,
         unit: value.unit,
         email: value.email,
         message: value.message,
         address: value.address,
-        notes: record_opt_to_undefined(from_candid_opt_n24(_uploadFile, _downloadFile, value.notes)),
+        notes: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.notes)),
         phoneNumber: value.phoneNumber
     };
 }
-function from_candid_record_n31(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n34(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
     commercialFeatures: [] | [_CommercialVehicleFeatures];
     brochure: string;
@@ -1121,7 +1133,7 @@ function from_candid_record_n31(_uploadFile: (file: ExternalBlob) => Promise<Uin
 } {
     return {
         id: value.id,
-        commercialFeatures: record_opt_to_undefined(from_candid_opt_n32(_uploadFile, _downloadFile, value.commercialFeatures)),
+        commercialFeatures: record_opt_to_undefined(from_candid_opt_n35(_uploadFile, _downloadFile, value.commercialFeatures)),
         brochure: value.brochure,
         published: value.published,
         name: value.name,
@@ -1130,7 +1142,7 @@ function from_candid_record_n31(_uploadFile: (file: ExternalBlob) => Promise<Uin
         specs: value.specs,
         imageUrl: value.imageUrl,
         price: value.price,
-        videoUrl: record_opt_to_undefined(from_candid_opt_n24(_uploadFile, _downloadFile, value.videoUrl)),
+        videoUrl: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.videoUrl)),
         isCommercial: value.isCommercial
     };
 }
@@ -1155,14 +1167,14 @@ function from_candid_variant_n19(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): UserRole {
     return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
 }
-function from_candid_vec_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Contact>): Array<Contact> {
-    return value.map((x)=>from_candid_Contact_n21(_uploadFile, _downloadFile, x));
+function from_candid_vec_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Contact>): Array<Contact> {
+    return value.map((x)=>from_candid_Contact_n22(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_CreditSimulation>): Array<CreditSimulation> {
-    return value.map((x)=>from_candid_CreditSimulation_n26(_uploadFile, _downloadFile, x));
+function from_candid_vec_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_CreditSimulation>): Array<CreditSimulation> {
+    return value.map((x)=>from_candid_CreditSimulation_n28(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n33(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Vehicle>): Array<Vehicle> {
-    return value.map((x)=>from_candid_Vehicle_n30(_uploadFile, _downloadFile, x));
+function from_candid_vec_n36(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Vehicle>): Array<Vehicle> {
+    return value.map((x)=>from_candid_Vehicle_n33(_uploadFile, _downloadFile, x));
 }
 function to_candid_Contact_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Contact): _Contact {
     return to_candid_record_n9(_uploadFile, _downloadFile, value);
