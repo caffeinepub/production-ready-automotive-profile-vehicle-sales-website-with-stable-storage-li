@@ -11,6 +11,7 @@ export interface RouteDefinition {
   path: string;
   description: string;
   requiresAuth: boolean;
+  validationNotes?: string;
 }
 
 /**
@@ -68,6 +69,12 @@ export const ADMIN_ROUTES: RouteDefinition[] = [
     description: 'Admin dashboard (protected)',
     requiresAuth: true,
   },
+  {
+    path: '/admin/media',
+    description: 'Media Manager - list, upload, and delete media assets',
+    requiresAuth: true,
+    validationNotes: 'Verify media list loads using stored CMS admin session token; test upload and delete operations work without separate authorization errors',
+  },
 ];
 
 /**
@@ -91,7 +98,11 @@ export function generateSmokeTestChecklist(): string {
   
   checklist += '\n## Admin Routes\n';
   ADMIN_ROUTES.forEach(route => {
-    checklist += `- [ ] ${route.path} - ${route.description}${route.requiresAuth ? ' (requires authentication)' : ''}\n`;
+    checklist += `- [ ] ${route.path} - ${route.description}${route.requiresAuth ? ' (requires authentication)' : ''}`;
+    if (route.validationNotes) {
+      checklist += `\n  Note: ${route.validationNotes}`;
+    }
+    checklist += '\n';
   });
   
   return checklist;

@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-implement-a-temporary-clearly-marked-emergency-bypass-mode-for-the-admin-area-that-disables-the-normal-authentication-guard-behavior-and-allows-direct-access-to-the-admin-dashboard-route-admin-without-entering-credentials",
-      "featureTitle": "Implement a temporary, clearly-marked emergency bypass mode for the admin area that disables the normal authentication guard behavior and allows direct access to the admin dashboard route `/admin` without entering credentials.",
+      "featureId": "feature-fix-the-admin-sidebar-nav-active-state-logic-so-that-the-two-vehicle-menu-items-admin-vehicles-category-passenger-and-admin-vehicles-category-commercial-are-visually-separated-and-only-the-correct-one-is-highlighted-as-active-avoid-both-buttons-links-appearing-active-red-at-the-same-time",
+      "featureTitle": "Fix the Admin sidebar/nav active-state logic so that the two vehicle menu items (/admin/vehicles?category=passenger and /admin/vehicles?category=commercial) are visually separated and only the correct one is highlighted as active (avoid both buttons/links appearing active/red at the same time).",
       "files": [
-        "frontend/src/admin/AdminGuard.tsx",
-        "frontend/src/admin/auth/emergencyBypass.ts"
+        "frontend/src/admin/AdminLayout.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -18,16 +17,18 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-71"
+        "REQ-79"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-when-bypass-mode-is-enabled-and-no-caffeineadminsession-exists-in-browser-storage-automatically-create-and-persist-an-admin-session-client-side-with-role-super-admin-so-admin-cms-react-query-hooks-can-use-a-token-immediately",
-      "featureTitle": "When bypass mode is enabled and no `caffeineAdminSession` exists in browser storage, automatically create and persist an admin session client-side with role = \"Super Admin\" so admin CMS React Query hooks can use a token immediately.",
+      "featureId": "feature-upgrade-the-passenger-and-commercial-vehicle-admin-editor-the-add-edit-vehicle-dialog-to-be-significantly-richer-and-closer-to-the-intended-cms-blueprint-by-adding-complete-vehicle-editing-capabilities-for-variants-specs-and-commercial-badges-while-remaining-compatible-with-the-existing-vehicle-data-model-and-backend-methods-createvehicle-updatevehicle",
+      "featureTitle": "Upgrade the Passenger and Commercial Vehicle admin editor (the Add/Edit Vehicle dialog) to be significantly richer and closer to the intended CMS blueprint by adding complete vehicle editing capabilities for variants, specs, and commercial badges—while remaining compatible with the existing Vehicle data model and backend methods (createVehicle/updateVehicle).",
       "files": [
-        "frontend/src/admin/auth/adminSession.ts",
-        "frontend/src/admin/hooks/useAdminSession.ts"
+        "frontend/src/admin/components/VehicleFormDialog.tsx",
+        "frontend/src/admin/components/vehicles/CommercialFeaturesEditor.tsx",
+        "frontend/src/admin/components/vehicles/TechnicalSpecsEditor.tsx",
+        "frontend/src/admin/components/vehicles/VariantsEditor.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -39,15 +40,17 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-72"
+        "REQ-80"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-wire-the-frontend-bypass-flow-to-call-the-backend-bypass-login-method-when-enabled-so-that-the-created-caffeineadminsession-token-is-a-real-backend-recognized-token-and-admin-cms-endpoints-work-end-to-end",
-      "featureTitle": "Wire the frontend bypass flow to call the backend bypass login method (when enabled) so that the created `caffeineAdminSession.token` is a real backend-recognized token and admin CMS endpoints work end-to-end.",
+      "featureId": "feature-make-the-admin-media-manager-and-media-picker-reliably-display-media-assets-when-present-and-show-a-clear-empty-state-message-when-none-exist-ensure-user-facing-text-is-in-english-and-consistent-across-media-pages-and-pickers",
+      "featureTitle": "Make the Admin Media Manager and Media Picker reliably display media assets (when present) and show a clear empty-state message when none exist; ensure user-facing text is in English and consistent across Media pages and pickers.",
       "files": [
-        "frontend/src/admin/hooks/useAdminSession.ts"
+        "frontend/src/admin/components/media/MediaManagerPanel.tsx",
+        "frontend/src/admin/components/media/MediaPickerDialog.tsx",
+        "frontend/src/admin/pages/MediaManagerPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -59,15 +62,17 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-74"
+        "REQ-81"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-when-bypass-mode-is-enabled-redirect-all-admin-traffic-that-would-normally-land-on-the-login-page-to-the-dashboard-admin-so-the-login-ui-is-effectively-skipped-during-debugging",
-      "featureTitle": "When bypass mode is enabled, redirect all `/admin/*` traffic that would normally land on the login page to the dashboard (`/admin`) so the login UI is effectively skipped during debugging.",
+      "featureId": "feature-improve-the-public-vehicle-listing-grid-ui-and-vehicle-card-styling-to-look-more-professional-and-attractive-while-keeping-the-same-routing-and-cms-driven-data-wiring-no-new-content-requirements",
+      "featureTitle": "Improve the public vehicle listing grid UI and vehicle card styling to look more professional and attractive while keeping the same routing and CMS-driven data wiring (no new content requirements).",
       "files": [
-        "frontend/src/admin/pages/AdminLoginPage.tsx"
+        "frontend/src/components/vehicles/VehicleCard.tsx",
+        "frontend/src/pages/CommercialVehiclesPage.tsx",
+        "frontend/src/pages/PassengerVehiclesPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -79,7 +84,28 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-75"
+        "REQ-82"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-improve-the-public-passenger-and-commercial-vehicle-detail-page-ui-to-look-more-polished-layout-spacing-sections-and-ensure-the-pages-remain-usable-when-vehicles-have-no-uploaded-media-use-placeholders-and-or-have-empty-optional-fields",
+      "featureTitle": "Improve the public Passenger and Commercial vehicle detail page UI to look more polished (layout, spacing, sections), and ensure the pages remain usable when vehicles have no uploaded media (use placeholders) and/or have empty optional fields.",
+      "files": [
+        "frontend/src/pages/CommercialVehicleDetailPage.tsx",
+        "frontend/src/pages/PassengerVehicleDetailPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-83"
       ],
       "confidence": "high"
     }

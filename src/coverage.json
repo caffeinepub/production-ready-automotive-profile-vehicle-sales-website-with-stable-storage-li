@@ -1,84 +1,106 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T10:38:41.660Z",
+  "generatedAt": "2026-02-14T12:24:42.907Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 5,
-    "implemented": 4,
+    "implemented": 5,
     "items": [
       {
-        "id": "REQ-71",
-        "summary": "Implement a temporary, clearly-marked emergency bypass mode for the admin area that disables the normal authentication guard behavior and allows direct access to the admin dashboard route `/admin` without entering credentials.",
+        "id": "REQ-79",
+        "summary": "Fix the Admin sidebar/nav active-state logic so that the two vehicle menu items (/admin/vehicles?category=passenger and /admin/vehicles?category=commercial) are visually separated and only the correct one is highlighted as active (avoid both buttons/links appearing active/red at the same time).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/admin/auth/emergencyBypass.ts",
-          "frontend/src/admin/AdminGuard.tsx"
+          "frontend/src/admin/AdminLayout.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/admin/auth/emergencyBypass.ts",
-          "frontend/src/admin/AdminGuard.tsx"
+          "frontend/src/admin/AdminLayout.tsx"
         ]
       },
       {
-        "id": "REQ-72",
-        "summary": "When bypass mode is enabled and no `caffeineAdminSession` exists in browser storage, automatically create and persist an admin session client-side with role = \"Super Admin\" so admin CMS React Query hooks can use a token immediately.",
+        "id": "REQ-80",
+        "summary": "Upgrade the Passenger and Commercial Vehicle admin editor (the Add/Edit Vehicle dialog) to be significantly richer and closer to the intended CMS blueprint by adding complete vehicle editing capabilities for variants, specs, and commercial badges—while remaining compatible with the existing Vehicle data model and backend methods (createVehicle/updateVehicle).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/admin/hooks/useAdminSession.ts",
-          "frontend/src/admin/auth/adminSession.ts"
+          "frontend/src/admin/components/VehicleFormDialog.tsx",
+          "frontend/src/admin/components/vehicles/VariantsEditor.tsx",
+          "frontend/src/admin/components/vehicles/TechnicalSpecsEditor.tsx",
+          "frontend/src/admin/components/vehicles/CommercialFeaturesEditor.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/admin/hooks/useAdminSession.ts",
-          "frontend/src/admin/auth/adminSession.ts"
+          "frontend/src/admin/components/VehicleFormDialog.tsx",
+          "frontend/src/admin/components/vehicles/VariantsEditor.tsx",
+          "frontend/src/admin/components/vehicles/TechnicalSpecsEditor.tsx",
+          "frontend/src/admin/components/vehicles/CommercialFeaturesEditor.tsx"
         ]
       },
       {
-        "id": "REQ-73",
-        "summary": "Add a backend emergency bypass login path that (a) upserts an Active Super Admin record for email `puadsolihan@gmail.com` and (b) issues a valid admin session token without verifying any password, intended for temporary debugging only.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-74",
-        "summary": "Wire the frontend bypass flow to call the backend bypass login method (when enabled) so that the created `caffeineAdminSession.token` is a real backend-recognized token and admin CMS endpoints work end-to-end.",
+        "id": "REQ-81",
+        "summary": "Make the Admin Media Manager and Media Picker reliably display media assets (when present) and show a clear empty-state message when none exist; ensure user-facing text is in English and consistent across Media pages and pickers.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/backend.d.ts",
-          "frontend/src/admin/hooks/useAdminSession.ts"
+          "frontend/src/admin/components/media/MediaManagerPanel.tsx",
+          "frontend/src/admin/components/media/MediaPickerDialog.tsx",
+          "frontend/src/admin/pages/MediaManagerPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/admin/hooks/useAdminSession.ts"
+          "frontend/src/admin/components/media/MediaManagerPanel.tsx",
+          "frontend/src/admin/components/media/MediaPickerDialog.tsx",
+          "frontend/src/admin/pages/MediaManagerPage.tsx"
         ]
       },
       {
-        "id": "REQ-75",
-        "summary": "When bypass mode is enabled, redirect all `/admin/*` traffic that would normally land on the login page to the dashboard (`/admin`) so the login UI is effectively skipped during debugging.",
+        "id": "REQ-82",
+        "summary": "Improve the public vehicle listing grid UI and vehicle card styling to look more professional and attractive while keeping the same routing and CMS-driven data wiring (no new content requirements).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/admin/pages/AdminLoginPage.tsx"
+          "frontend/src/components/vehicles/VehicleCard.tsx",
+          "frontend/src/pages/PassengerVehiclesPage.tsx",
+          "frontend/src/pages/CommercialVehiclesPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/admin/pages/AdminLoginPage.tsx"
+          "frontend/src/components/vehicles/VehicleCard.tsx",
+          "frontend/src/pages/PassengerVehiclesPage.tsx",
+          "frontend/src/pages/CommercialVehiclesPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-83",
+        "summary": "Improve the public Passenger and Commercial vehicle detail page UI to look more polished (layout, spacing, sections), and ensure the pages remain usable when vehicles have no uploaded media (use placeholders) and/or have empty optional fields.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/PassengerVehicleDetailPage.tsx",
+          "frontend/src/pages/CommercialVehicleDetailPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/PassengerVehicleDetailPage.tsx",
+          "frontend/src/pages/CommercialVehicleDetailPage.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/admin/AdminGuard.tsx",
-    "frontend/src/admin/auth/adminSession.ts",
-    "frontend/src/admin/auth/emergencyBypass.ts",
-    "frontend/src/admin/hooks/useAdminSession.ts",
-    "frontend/src/admin/pages/AdminLoginPage.tsx",
+    "frontend/src/admin/AdminLayout.tsx",
+    "frontend/src/admin/components/VehicleFormDialog.tsx",
+    "frontend/src/admin/components/media/MediaManagerPanel.tsx",
+    "frontend/src/admin/components/media/MediaPickerDialog.tsx",
+    "frontend/src/admin/components/vehicles/CommercialFeaturesEditor.tsx",
+    "frontend/src/admin/components/vehicles/TechnicalSpecsEditor.tsx",
+    "frontend/src/admin/components/vehicles/VariantsEditor.tsx",
+    "frontend/src/admin/pages/MediaManagerPage.tsx",
+    "frontend/src/components/vehicles/VehicleCard.tsx",
+    "frontend/src/pages/CommercialVehicleDetailPage.tsx",
+    "frontend/src/pages/CommercialVehiclesPage.tsx",
+    "frontend/src/pages/PassengerVehicleDetailPage.tsx",
+    "frontend/src/pages/PassengerVehiclesPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

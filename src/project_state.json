@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 31,
+  "projectStateVersion": 35,
   "summary": "Automotive company profile + vehicle sales website with production-ready backend/frontend separation, stable persistence (upgrade/redeploy safe), live CMS admin panel, media manager, SEO/performance, product & article interactions, and seeded content.",
   "architectural_notes": [
     "Use stable persistence only (no in-memory) and ensure upgrade/redeploy-safe data migrations with auto-restore after redeploy.",
@@ -22,7 +22,9 @@
     "Seeded super admin may not exist in runtime memory at login time due to seeding only occurring in `preupgrade()` and/or reliance on legacy stable-stored hash; requires deterministic seed-on-init/upgrade + rehash using current verifier.",
     "Potential scope conflict: existing plan mentions seeding on startup and after upgrades; latest decision restricts seeding to `init()` only (no `postupgrade()`), which may leave upgraded canisters without a seeded Super Admin if stable restore does not include it.",
     "Admin auth bug: login succeeds but session is not persisted client-side, causing redirect back to login form instead of `/admin` dashboard.",
-    "Login loop prevents accessing /admin dashboard; requires temporary emergency bypass to validate CMS/storage/UI independently of auth."
+    "Login loop prevents accessing /admin dashboard; requires temporary emergency bypass to validate CMS/storage/UI independently of auth.",
+    "Media library authorization failure: admin login works but media endpoints return \"Unauthorized: Only admins can view media assets\" due to media service using a different auth source (e.g., principal whitelist) than CMS session auth.",
+    "Admin CMS: PassengerVehicles and CommercialVehicles editor buttons both appear active (both red) when one is selected; tab/state styling logic likely incorrect."
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -367,6 +369,54 @@
       "title": "When bypass mode is enabled, redirect all `/admin/*` traffic that would normally land on the login page to the dashboard (`/admin`) so the login UI is effectively skipped during debugging.",
       "reqIds": [
         "REQ-75"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-do-not-modify-any-admin-or-public-ui-components-routes-layouts-or-storage-logic-on-the-frontend-keep-the-current-frontend-behavior-and-payloads-intact-and-make-the-backend-authorization-changes-compatible-with-the-existing-frontend-calls-e-g-actor-getmediaassets-token-actor-createmediaasset-token-asset-actor-deletemediaasset-token-id",
+      "title": "Do not modify any admin or public UI components, routes, layouts, or storage logic on the frontend; keep the current frontend behavior and payloads intact and make the backend authorization changes compatible with the existing frontend calls (e.g., `actor.getMediaAssets(token)`, `actor.createMediaAsset(token, asset)`, `actor.deleteMediaAsset(token, id)`).",
+      "reqIds": [
+        "REQ-78"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-admin-sidebar-nav-active-state-logic-so-that-the-two-vehicle-menu-items-admin-vehicles-category-passenger-and-admin-vehicles-category-commercial-are-visually-separated-and-only-the-correct-one-is-highlighted-as-active-avoid-both-buttons-links-appearing-active-red-at-the-same-time",
+      "title": "Fix the Admin sidebar/nav active-state logic so that the two vehicle menu items (/admin/vehicles?category=passenger and /admin/vehicles?category=commercial) are visually separated and only the correct one is highlighted as active (avoid both buttons/links appearing active/red at the same time).",
+      "reqIds": [
+        "REQ-79"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-upgrade-the-passenger-and-commercial-vehicle-admin-editor-the-add-edit-vehicle-dialog-to-be-significantly-richer-and-closer-to-the-intended-cms-blueprint-by-adding-complete-vehicle-editing-capabilities-for-variants-specs-and-commercial-badges-while-remaining-compatible-with-the-existing-vehicle-data-model-and-backend-methods-createvehicle-updatevehicle",
+      "title": "Upgrade the Passenger and Commercial Vehicle admin editor (the Add/Edit Vehicle dialog) to be significantly richer and closer to the intended CMS blueprint by adding complete vehicle editing capabilities for variants, specs, and commercial badges—while remaining compatible with the existing Vehicle data model and backend methods (createVehicle/updateVehicle).",
+      "reqIds": [
+        "REQ-80"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-admin-media-manager-and-media-picker-reliably-display-media-assets-when-present-and-show-a-clear-empty-state-message-when-none-exist-ensure-user-facing-text-is-in-english-and-consistent-across-media-pages-and-pickers",
+      "title": "Make the Admin Media Manager and Media Picker reliably display media assets (when present) and show a clear empty-state message when none exist; ensure user-facing text is in English and consistent across Media pages and pickers.",
+      "reqIds": [
+        "REQ-81"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-the-public-vehicle-listing-grid-ui-and-vehicle-card-styling-to-look-more-professional-and-attractive-while-keeping-the-same-routing-and-cms-driven-data-wiring-no-new-content-requirements",
+      "title": "Improve the public vehicle listing grid UI and vehicle card styling to look more professional and attractive while keeping the same routing and CMS-driven data wiring (no new content requirements).",
+      "reqIds": [
+        "REQ-82"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-the-public-passenger-and-commercial-vehicle-detail-page-ui-to-look-more-polished-layout-spacing-sections-and-ensure-the-pages-remain-usable-when-vehicles-have-no-uploaded-media-use-placeholders-and-or-have-empty-optional-fields",
+      "title": "Improve the public Passenger and Commercial vehicle detail page UI to look more polished (layout, spacing, sections), and ensure the pages remain usable when vehicles have no uploaded media (use placeholders) and/or have empty optional fields.",
+      "reqIds": [
+        "REQ-83"
       ],
       "version": 1
     }
@@ -740,6 +790,46 @@
       "reqIds": [
         "REQ-73"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-60",
+      "summary": "Fix Media Manager authorization: media service must use the same admin session auth as CMS (treat any valid CMS admin session as admin), remove separate principal whitelist, and allow authenticated admins to view/upload/select media without UI or storage changes",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-61",
+      "summary": "Update backend media authorization so Media Manager access is granted based on the same admin session token used by the CMS (not based on caller Principal admin/whitelist checks). Specifically, for all media-library operations used by the admin UI (view/list media assets, create/upload media assets, delete media assets, and any blob-storage media read/write endpoints used by the Media Manager), treat the caller as an admin if and only if the provided CMS `sessionToken` is a valid, unexpired admin session.",
+      "reqIds": [
+        "REQ-76"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-62",
+      "summary": "Remove (or bypass) any separate Principal-based whitelist/admin check specifically for media viewing and media mutation paths, so that *all* authenticated admins (any role returned by `adminLogin` that represents an admin account) can view, upload, and select media via the existing admin Media Manager flows, without requiring additional Principal allowlisting.",
+      "reqIds": [
+        "REQ-77"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-63",
+      "summary": "Fix Admin CMS vehicle editor tab/button state so Passenger Vehicles and Commercial Vehicles controls are visually separated and only the active section is highlighted (avoid both buttons appearing active/red).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-64",
+      "summary": "Bring PassengerVehicles and CommercialVehicles CMS editors up to the original blueprint/spec (richer fields/layout/workflow) without regressing auth/storage; improve editor UX while keeping data model compatible.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-65",
+      "summary": "Improve public UI quality for vehicle listing grid and vehicle detail pages to be more visually appealing/professional while keeping existing routing and CMS-driven data wiring intact.",
+      "reqIds": [],
       "status": "pending"
     }
   ],

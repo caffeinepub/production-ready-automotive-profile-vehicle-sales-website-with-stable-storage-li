@@ -300,10 +300,6 @@ actor {
   };
 
   public shared ({ caller }) func createAdminUser(sessionToken : Text, email : Text, password : Text, role : Text) : async ?Nat {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can create admin users");
-    };
-
     let session = requireAdminSession(sessionToken);
 
     if (session.role != "Super Admin") {
@@ -364,97 +360,61 @@ actor {
   };
 
   public shared ({ caller }) func createVehicle(sessionToken : Text, vehicle : Vehicle) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can create vehicles");
-    };
     let session = requireAdminSession(sessionToken);
     vehicles.add(vehicle.id, vehicle);
   };
 
   public shared ({ caller }) func updateVehicle(sessionToken : Text, vehicle : Vehicle) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can update vehicles");
-    };
     let session = requireAdminSession(sessionToken);
     vehicles.add(vehicle.id, vehicle);
   };
 
   public shared ({ caller }) func deleteVehicle(sessionToken : Text, id : Nat) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can delete vehicles");
-    };
     let session = requireAdminSession(sessionToken);
     vehicles.remove(id);
   };
 
   public shared ({ caller }) func createPromotion(sessionToken : Text, promotion : Promotion) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can create promotions");
-    };
     let session = requireAdminSession(sessionToken);
     promotions.add(promotion.id, promotion);
   };
 
   public shared ({ caller }) func updatePromotion(sessionToken : Text, promotion : Promotion) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can update promotions");
-    };
     let session = requireAdminSession(sessionToken);
     promotions.add(promotion.id, promotion);
   };
 
   public shared ({ caller }) func deletePromotion(sessionToken : Text, id : Nat) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can delete promotions");
-    };
     let session = requireAdminSession(sessionToken);
     promotions.remove(id);
   };
 
   public shared ({ caller }) func createTestimonial(sessionToken : Text, testimonial : Testimonial) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can create testimonials");
-    };
     let session = requireAdminSession(sessionToken);
     testimonials.add(testimonial.id, testimonial);
   };
 
   public shared ({ caller }) func updateTestimonial(sessionToken : Text, testimonial : Testimonial) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can update testimonials");
-    };
     let session = requireAdminSession(sessionToken);
     testimonials.add(testimonial.id, testimonial);
   };
 
   public shared ({ caller }) func deleteTestimonial(sessionToken : Text, id : Nat) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can delete testimonials");
-    };
     let session = requireAdminSession(sessionToken);
     testimonials.remove(id);
   };
 
   public shared ({ caller }) func createBlogPost(sessionToken : Text, post : BlogPost) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can create blog posts");
-    };
     let session = requireAdminSession(sessionToken);
     blogPosts.add(post.id, post);
   };
 
   public shared ({ caller }) func updateBlogPost(sessionToken : Text, post : BlogPost) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can update blog posts");
-    };
     let session = requireAdminSession(sessionToken);
     blogPosts.add(post.id, post);
   };
 
   public shared ({ caller }) func deleteBlogPost(sessionToken : Text, id : Nat) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can delete blog posts");
-    };
     let session = requireAdminSession(sessionToken);
     blogPosts.remove(id);
   };
@@ -468,17 +428,11 @@ actor {
   };
 
   public shared ({ caller }) func getContacts(sessionToken : Text) : async [Contact] {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can view contacts");
-    };
     let session = requireAdminSession(sessionToken);
     contacts.values().toArray();
   };
 
   public shared ({ caller }) func deleteContact(sessionToken : Text, id : Nat) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can delete contacts");
-    };
     let session = requireAdminSession(sessionToken);
     contacts.remove(id);
   };
@@ -492,41 +446,26 @@ actor {
   };
 
   public shared ({ caller }) func getCreditSimulations(sessionToken : Text) : async [CreditSimulation] {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can view credit simulations");
-    };
     let session = requireAdminSession(sessionToken);
     creditSimulations.values().toArray();
   };
 
   public shared ({ caller }) func deleteCreditSimulation(sessionToken : Text, id : Nat) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can delete credit simulations");
-    };
     let session = requireAdminSession(sessionToken);
     creditSimulations.remove(id);
   };
 
   public shared ({ caller }) func createMediaAsset(sessionToken : Text, asset : MediaAsset) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can create media assets");
-    };
     let session = requireAdminSession(sessionToken);
     mediaAssets.add(asset.id, asset);
   };
 
   public shared ({ caller }) func deleteMediaAsset(sessionToken : Text, id : Nat) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can delete media assets");
-    };
     let session = requireAdminSession(sessionToken);
     mediaAssets.remove(id);
   };
 
   public shared ({ caller }) func getMediaAssets(sessionToken : Text) : async [MediaAsset] {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can view media assets");
-    };
     let session = requireAdminSession(sessionToken);
     mediaAssets.values().toArray();
   };
@@ -616,17 +555,11 @@ actor {
   };
 
   public shared ({ caller }) func getVisitorStats(sessionToken : Text) : async VisitorStats {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can view visitor stats");
-    };
     let session = requireAdminSession(sessionToken);
     visitorStats;
   };
 
   public shared ({ caller }) func updateVisitorStats(sessionToken : Text, stats : VisitorStats) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can update visitor stats");
-    };
     let session = requireAdminSession(sessionToken);
     visitorStats := stats;
   };

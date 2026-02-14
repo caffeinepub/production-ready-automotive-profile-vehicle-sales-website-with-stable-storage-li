@@ -35,6 +35,27 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { label: 'Auth Debug Test', path: '/admin/auth-debug', icon: Bug }
   ];
 
+  const isNavItemActive = (itemPath: string): boolean => {
+    const [itemPathname, itemSearch] = itemPath.split('?');
+    const currentPathname = location.pathname;
+    const currentSearch = location.search;
+
+    // For /admin/vehicles, check both pathname and category param
+    if (itemPathname === '/admin/vehicles') {
+      if (currentPathname !== '/admin/vehicles') return false;
+      
+      const itemParams = new URLSearchParams(itemSearch);
+      const currentParams = new URLSearchParams(currentSearch);
+      const itemCategory = itemParams.get('category');
+      const currentCategory = currentParams.get('category');
+      
+      return itemCategory === currentCategory;
+    }
+
+    // For other routes, match pathname only
+    return itemPathname === currentPathname;
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="flex">
@@ -45,7 +66,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <nav className="space-y-2 flex-1">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = item.path.split('?')[0] === location.pathname;
+              const isActive = isNavItemActive(item.path);
               return (
                 <Link
                   key={item.path}

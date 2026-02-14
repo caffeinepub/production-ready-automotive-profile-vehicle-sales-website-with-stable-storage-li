@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -22,7 +22,14 @@ interface MediaPickerDialogProps {
 export default function MediaPickerDialog({ open, onOpenChange, onSelect, currentUrl }: MediaPickerDialogProps) {
   const { data: assets = [], isLoading, error } = useGetMediaAssets();
   const [search, setSearch] = useState('');
-  const [selectedUrl, setSelectedUrl] = useState(currentUrl || '');
+  const [selectedUrl, setSelectedUrl] = useState('');
+
+  // Reset selection when dialog opens or currentUrl changes
+  useEffect(() => {
+    if (open) {
+      setSelectedUrl(currentUrl || '');
+    }
+  }, [open, currentUrl]);
 
   const filteredAssets = assets.filter((asset) =>
     asset.url.toLowerCase().includes(search.toLowerCase()) ||
@@ -35,6 +42,11 @@ export default function MediaPickerDialog({ open, onOpenChange, onSelect, curren
       onOpenChange(false);
     }
   };
+
+  const isAuthError = error instanceof Error && 
+    (error.message.includes('Unauthorized') || 
+     error.message.includes('Invalid or expired') ||
+     error.message.includes('session'));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -58,7 +70,14 @@ export default function MediaPickerDialog({ open, onOpenChange, onSelect, curren
             <div className="text-center py-8">Loading media...</div>
           ) : error ? (
             <div className="text-center py-8 text-red-600">
-              Error loading media: {error instanceof Error ? error.message : 'Unknown error'}
+              {isAuthError ? (
+                <>
+                  <p className="font-semibold mb-2">Session Expired</p>
+                  <p className="text-sm">Your admin session has expired. Please log in again to access media.</p>
+                </>
+              ) : (
+                <>Error loading media: {error instanceof Error ? error.message : 'Unknown error'}</>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-4 gap-4 max-h-96 overflow-y-auto">
@@ -88,7 +107,7 @@ export default function MediaPickerDialog({ open, onOpenChange, onSelect, curren
           )}
 
           {!isLoading && !error && filteredAssets.length === 0 && (
-            <div className="text-center py-8 text-gray-500">No media found</div>
+            <div className="text-center py-8 text-gray-500">No media yet.</div>
           )}
         </div>
 

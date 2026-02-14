@@ -1,84 +1,129 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Debug-only emergency bypass for /admin access (frontend-only)",
+  "title": "Admin UX fixes (nav highlighting, richer vehicle editor, media empty/loading) and polished public vehicle UI",
   "requirements": [
     {
-      "id": "REQ-71",
-      "summary": "Add a single debug-only bypass flag that disables AdminGuard redirects and allows direct access to all existing /admin routes.",
+      "id": "REQ-79",
+      "summary": "Fix Admin sidebar active-state highlighting for Passenger vs Commercial Vehicles links that share the same pathname but differ by category query param.",
       "acceptanceCriteria": [
-        "When bypass mode is enabled, navigating to `/admin` renders the Admin dashboard without redirecting to `/admin/login`.",
-        "When bypass mode is enabled, all admin CMS routes currently wrapped by `AdminGuard` (e.g. `/admin/vehicles`, `/admin/promotions`, `/admin/testimonials`, `/admin/blog`, `/admin/leads`, `/admin/stats`, `/admin/profile`, `/admin/media`) are accessible without being redirected to `/admin/login`.",
-        "Bypass mode is clearly marked in code comments as temporary/debug-only and can be disabled by flipping a single flag/config (no need to revert multiple files).",
-        "No public (non-`/admin`) routes, layouts, or components are modified."
+        "When visiting /admin/vehicles?category=passenger, only 'Passenger Vehicles' is highlighted as active and 'Commercial Vehicles' is not highlighted.",
+        "When visiting /admin/vehicles?category=commercial, only 'Commercial Vehicles' is highlighted as active and 'Passenger Vehicles' is not highlighted.",
+        "Other Admin menu items retain correct active highlighting behavior."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/admin/auth/emergencyBypass.ts",
+          "path": "frontend/src/admin/AdminLayout.tsx",
+          "operation": "modify",
+          "description": "Update nav active-state logic to consider both pathname and (for /admin/vehicles) the category search param so only the correct vehicle nav item is active; keep other items matching by pathname as they do today."
+        }
+      ]
+    },
+    {
+      "id": "REQ-80",
+      "summary": "Restore a richer Admin Add/Edit Vehicle dialog supporting variants, full specs, additional features list, and commercial badges while remaining compatible with current Vehicle model and createVehicle/updateVehicle calls.",
+      "acceptanceCriteria": [
+        "The Vehicle editor supports managing variants as a list (add/edit/remove): name, price adjustment, feature list, and premium flag (isPremium) using clear English labels.",
+        "The Vehicle editor supports editing technical specs fields (engine, transmission, dimensions, weight, fuel capacity, suspension) and managing an 'Additional features' list (add/remove items).",
+        "For Commercial vehicles, the editor provides checkbox controls for commercialFeatures (Economical, Power, Speed, Capacity, Bus, 4x2, 6x2, 6x4). For Passenger vehicles, these controls are hidden/disabled.",
+        "The editor still supports selecting Image and Brochure via the existing MediaPickerDialog and saves selected URLs back into imageUrl/brochure fields.",
+        "Saving creates/updates the Vehicle successfully using existing mutations and no runtime type errors occur with bigint/nat conversions."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/admin/components/VehicleFormDialog.tsx",
+          "operation": "modify",
+          "description": "Expand the dialog UI to include: variants list editor (name, price adjustment bigint-safe input, isPremium toggle, features list), full TechnicalSpecs editor, 'Additional features' list editor, and Commercial vehicle feature checkboxes; keep existing MediaPickerDialog integration for imageUrl and brochure; ensure all new/changed labels are English."
+        },
+        {
+          "path": "frontend/src/admin/components/vehicles/VariantsEditor.tsx",
           "operation": "create",
-          "description": "Create a single, clearly-commented temporary/debug-only config export (e.g., one boolean flag) controlling the emergency admin bypass mode so it can be disabled by flipping one value."
+          "description": "Create a reusable VariantsEditor component for add/edit/remove of Variant items (name, priceAdjustment, isPremium, features list) with bigint-safe parsing and English labels; wire it into VehicleFormDialog. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/admin/AdminGuard.tsx",
-          "operation": "modify",
-          "description": "Update AdminGuard to consult the single bypass flag and, when enabled, skip the normal unauthenticated redirect behavior for /admin routes (temporary/debug-only with clear comments). Ensure this change only affects admin routing behavior and does not alter any non-/admin UI."
+          "path": "frontend/src/admin/components/vehicles/TechnicalSpecsEditor.tsx",
+          "operation": "create",
+          "description": "Create a TechnicalSpecsEditor component for editing engine, transmission, dimensions, weight, fuel capacity, suspension plus an 'Additional features' add/remove list; wire it into VehicleFormDialog. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/components/vehicles/CommercialFeaturesEditor.tsx",
+          "operation": "create",
+          "description": "Create a CommercialFeaturesEditor component providing checkbox controls for the commercialFeatures flags (Economical, Power, Speed, Capacity, Bus, 4x2, 6x2, 6x4); only render/enable this when isCommercial is true; wire it into VehicleFormDialog. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-72",
-      "summary": "When bypass mode is enabled, auto-create and persist a local caffeineAdminSession with role \"Super Admin\" if missing before admin CMS queries run.",
+      "id": "REQ-81",
+      "summary": "Make Admin Media Manager and Media Picker reliably render media assets, show a consistent English empty state, and display a clear re-login error for expired/missing admin sessions.",
       "acceptanceCriteria": [
-        "With bypass mode enabled and an empty browser storage state, the app creates a `caffeineAdminSession` entry automatically (using the existing `frontend/src/admin/auth/adminSession.ts` storage format) before admin CMS queries execute.",
-        "The stored session contains `role: \"Super Admin\"` and a non-empty `token` string.",
-        "Reloading the page at any admin route keeps access without re-triggering a login loop."
+        "If the backend returns one or more MediaAsset records, both /admin/media and the MediaPickerDialog render them in a responsive grid with thumbnails for images and file-type tiles for non-images.",
+        "If there are zero assets, show an English empty state message exactly: \"No media yet.\" (not \"No media found\").",
+        "If media loading fails due to missing/expired admin session, the UI shows an English error that indicates the user must log in again (without crashing the page).",
+        "Selecting a media item in MediaPickerDialog highlights the selection and clicking \"Select\" returns the selected asset URL to the calling form field."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/admin/hooks/useAdminSession.ts",
+          "path": "frontend/src/admin/components/media/MediaManagerPanel.tsx",
           "operation": "modify",
-          "description": "Add a bypass-enabled bootstrap path: if bypass flag is enabled and no stored session exists, automatically obtain a session and persist it via the existing adminSession storage utilities (role must be \"Super Admin\"; token must be non-empty) before setting isValidating=false, so AdminGuard-protected pages can render and React Query hooks can read the token immediately."
+          "description": "Update empty state text to exactly \"No media yet.\"; improve error presentation by mapping session/authorization-related errors to an English message that instructs the user to log in again; keep responsive grid behavior for images vs non-images."
         },
         {
-          "path": "frontend/src/admin/auth/adminSession.ts",
+          "path": "frontend/src/admin/components/media/MediaPickerDialog.tsx",
           "operation": "modify",
-          "description": "Add a small helper (or clarify existing utilities via comments) to support the bypass flow reliably persisting `caffeineAdminSession` in the existing format, with explicit temporary/debug-only notes where referenced by the bypass logic."
+          "description": "Update empty state text to exactly \"No media yet.\"; ensure selection state is reliably initialized/reset when opening the dialog and when currentUrl changes; map session/authorization-related errors to an English re-login message; keep selection highlighting and Select action behavior."
+        },
+        {
+          "path": "frontend/src/admin/pages/MediaManagerPage.tsx",
+          "operation": "modify",
+          "description": "Update the page-level error alert copy to an English message that clearly indicates the admin session may have expired and the user must log in again; keep the existing page structure and upload button wiring."
         }
       ]
     },
     {
-      "id": "REQ-74",
-      "summary": "When bypass mode is enabled, call the backend emergency bypass login method to obtain a backend-recognized token and store it in caffeineAdminSession.",
+      "id": "REQ-82",
+      "summary": "Polish public vehicle listing grid and vehicle card styling using Tailwind while preserving existing routing and CMS-driven data wiring.",
       "acceptanceCriteria": [
-        "With bypass mode enabled, the frontend obtains a token from the backend bypass method and stores it under `caffeineAdminSession` using the existing storage utilities.",
-        "After bypass session creation, visiting admin pages that call admin-protected backend methods (e.g. `getVisitorStats(token)`, `getContacts(token)`, `getMediaAssets(token)`) succeeds without showing \"Admin session required\" errors.",
-        "Disabling bypass mode restores the existing admin auth behavior (AdminGuard redirects unauthenticated users to `/admin/login`)."
+        "Vehicle listing pages (/mobil-keluarga and /mobil-niaga) display a visually improved grid and cards (spacing, typography, hierarchy, hover states) using Tailwind while keeping existing data fields and links working.",
+        "Cards still correctly fall back to the existing placeholder images when imageUrl is empty.",
+        "No changes break the existing responsive column behavior (desktop/tablet/mobile)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/backend.d.ts",
+          "path": "frontend/src/components/vehicles/VehicleCard.tsx",
           "operation": "modify",
-          "description": "Extend the frontend backend interface typing to include the temporary/debug-only backend emergency bypass login method used by the admin bypass flow (returning the same session shape used by adminLogin, at least `{ token; role }`)."
+          "description": "Improve card visual design (spacing, typography hierarchy, hover/focus states, image presentation) using Tailwind; preserve existing links/actions and placeholder behavior; add safe image fallback handling to prevent broken image icons."
         },
         {
-          "path": "frontend/src/admin/hooks/useAdminSession.ts",
+          "path": "frontend/src/pages/PassengerVehiclesPage.tsx",
           "operation": "modify",
-          "description": "Wire the bypass bootstrap to call the backend emergency bypass login method (when enabled) and store the returned `{ token, role }` in `caffeineAdminSession` using existing storage utilities. Ensure disabling the bypass flag reverts to the current validation + redirect behavior without requiring changes in other files."
+          "description": "Refine listing page layout and grid presentation (header spacing, consistent section framing) using Tailwind while keeping the same data filtering and responsive columns."
+        },
+        {
+          "path": "frontend/src/pages/CommercialVehiclesPage.tsx",
+          "operation": "modify",
+          "description": "Refine section layouts for Light Duty/Medium Duty/Tractor Head and grid styling using Tailwind while preserving current grouping logic and responsive columns."
         }
       ]
     },
     {
-      "id": "REQ-75",
-      "summary": "When bypass mode is enabled, automatically redirect /admin/login to /admin (replace navigation) so login UI is skipped during debugging.",
+      "id": "REQ-83",
+      "summary": "Polish public Passenger and Commercial vehicle detail pages for a more professional layout while remaining robust with missing media and empty optional fields.",
       "acceptanceCriteria": [
-        "With bypass mode enabled, navigating to `/admin/login` automatically navigates to `/admin` (replace navigation, no loop).",
-        "No redirect behavior changes occur for non-admin routes."
+        "Passenger vehicle detail page remains functional with variant selection (if variants exist) and looks visually improved (e.g., better sectioning, consistent backgrounds, clearer CTA grouping) without changing routes or breaking existing like/share actions.",
+        "Commercial vehicle detail page remains functional and visually improved while preserving the existing constraints (no color/variant switcher; chassis price emphasis; optional brochure button only when brochure exists).",
+        "Both detail pages render placeholder images when imageUrl is empty and do not show broken image icons.",
+        "All user-facing text introduced or changed by this work is in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/admin/pages/AdminLoginPage.tsx",
+          "path": "frontend/src/pages/PassengerVehicleDetailPage.tsx",
           "operation": "modify",
-          "description": "Add a bypass-enabled redirect effect: if the emergency bypass flag is enabled, immediately navigate to `/admin` with replace navigation so the login UI is skipped during debugging. Keep changes scoped to this admin-only page."
+          "description": "Improve detail page layout and sectioning (hero/media + summary + CTAs + specs/features sections) using Tailwind; ensure placeholder + onError fallback for images; keep variant selection behavior and like/share actions; make any adjusted text English; ensure optional fields render gracefully (e.g., show placeholders like \"—\" instead of blank blocks)."
+        },
+        {
+          "path": "frontend/src/pages/CommercialVehicleDetailPage.tsx",
+          "operation": "modify",
+          "description": "Improve layout and visual hierarchy while preserving constraints (no variant switcher; chassis price emphasis; brochure button only when brochure exists); ensure placeholder + onError fallback for images; replace non-English text (e.g., bodywork note) with English; ensure brochure action opens the brochure URL when present."
         }
       ]
     }

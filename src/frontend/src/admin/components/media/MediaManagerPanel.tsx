@@ -31,6 +31,11 @@ export default function MediaManagerPanel() {
     }
   };
 
+  const isAuthError = error instanceof Error && 
+    (error.message.includes('Unauthorized') || 
+     error.message.includes('Invalid or expired') ||
+     error.message.includes('session'));
+
   if (isLoading) {
     return <div className="text-center py-8">Loading media...</div>;
   }
@@ -38,7 +43,14 @@ export default function MediaManagerPanel() {
   if (error) {
     return (
       <div className="text-center py-8 text-red-600">
-        Error loading media: {error instanceof Error ? error.message : 'Unknown error'}
+        {isAuthError ? (
+          <>
+            <p className="font-semibold mb-2">Session Expired</p>
+            <p className="text-sm">Your admin session has expired. Please log in again to access media.</p>
+          </>
+        ) : (
+          <>Error loading media: {error instanceof Error ? error.message : 'Unknown error'}</>
+        )}
       </div>
     );
   }
@@ -84,7 +96,7 @@ export default function MediaManagerPanel() {
         </div>
 
         {filteredAssets.length === 0 && (
-          <div className="text-center py-8 text-gray-500">No media found</div>
+          <div className="text-center py-8 text-gray-500">No media yet.</div>
         )}
       </div>
 

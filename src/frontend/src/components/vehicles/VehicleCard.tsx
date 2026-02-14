@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Car } from 'lucide-react';
 import type { Vehicle } from '../../backend';
 
 interface VehicleCardProps {
@@ -17,34 +18,71 @@ export default function VehicleCard({ vehicle }: VehicleCardProps) {
     ? '/assets/generated/vehicle-commercial-placeholder.dim_1200x800.png'
     : '/assets/generated/vehicle-passenger-placeholder.dim_1200x800.png';
 
+  const imageUrl = vehicle.imageUrl || placeholder;
+
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      <img src={vehicle.imageUrl || placeholder} alt={vehicle.name} className="w-full h-48 object-cover" />
-      <div className="p-4">
-        <h3 className="font-bold text-lg mb-2">{vehicle.name}</h3>
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{vehicle.description}</p>
-        <p className="text-xl font-bold text-[#C90010] mb-4">
-          Starting from Rp {Number(vehicle.price).toLocaleString('id-ID')}
+    <div className="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100">
+      <Link to={detailPath} params={{ id: vehicle.id.toString() }} className="block">
+        <div className="relative overflow-hidden bg-gray-100 aspect-[4/3]">
+          <img 
+            src={imageUrl} 
+            alt={vehicle.name} 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              if (target.src !== placeholder) {
+                target.src = placeholder;
+              }
+            }}
+          />
+          {vehicle.variants.some(v => v.isPremium) && (
+            <div className="absolute top-3 right-3">
+              <Badge className="bg-yellow-500 text-white border-0">Premium</Badge>
+            </div>
+          )}
+        </div>
+      </Link>
+      
+      <div className="p-5">
+        <Link to={detailPath} params={{ id: vehicle.id.toString() }}>
+          <h3 className="font-bold text-lg mb-2 text-gray-900 group-hover:text-[#C90010] transition-colors line-clamp-1">
+            {vehicle.name}
+          </h3>
+        </Link>
+        
+        <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">
+          {vehicle.description}
         </p>
+        
+        <div className="mb-4">
+          <p className="text-xs text-gray-500 mb-1">Starting from</p>
+          <p className="text-2xl font-bold text-[#C90010]">
+            Rp {Number(vehicle.price).toLocaleString('id-ID')}
+          </p>
+        </div>
+
         {vehicle.commercialFeatures && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {vehicle.commercialFeatures.economical && <Badge variant="secondary">Economical</Badge>}
-            {vehicle.commercialFeatures.power && <Badge variant="secondary">Power</Badge>}
-            {vehicle.commercialFeatures.speed && <Badge variant="secondary">Speed</Badge>}
-            {vehicle.commercialFeatures.capacity && <Badge variant="secondary">Capacity</Badge>}
-            {vehicle.commercialFeatures.bus && <Badge variant="secondary">Bus</Badge>}
-            {vehicle.commercialFeatures.fourByTwo && <Badge variant="secondary">4x2</Badge>}
-            {vehicle.commercialFeatures.sixByTwo && <Badge variant="secondary">6x2</Badge>}
-            {vehicle.commercialFeatures.sixByFour && <Badge variant="secondary">6x4</Badge>}
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {vehicle.commercialFeatures.economical && <Badge variant="outline" className="text-xs">Economical</Badge>}
+            {vehicle.commercialFeatures.power && <Badge variant="outline" className="text-xs">Power</Badge>}
+            {vehicle.commercialFeatures.speed && <Badge variant="outline" className="text-xs">Speed</Badge>}
+            {vehicle.commercialFeatures.capacity && <Badge variant="outline" className="text-xs">Capacity</Badge>}
           </div>
         )}
+
         <div className="flex gap-2">
-          <Button onClick={handleConsult} variant="outline" className="flex-1">
+          <Link to={detailPath} params={{ id: vehicle.id.toString() }} className="flex-1">
+            <Button variant="outline" className="w-full border-[#C90010] text-[#C90010] hover:bg-[#C90010] hover:text-white transition-colors">
+              <Car className="mr-2 h-4 w-4" />
+              Details
+            </Button>
+          </Link>
+          <Button 
+            onClick={handleConsult} 
+            className="flex-1 bg-[#398E3D] hover:bg-[#2d7030] text-white transition-colors"
+          >
             Consult
           </Button>
-          <Link to={detailPath} params={{ id: vehicle.id.toString() }} className="flex-1">
-            <Button className="w-full bg-[#C90010] hover:bg-[#a00010]">Details</Button>
-          </Link>
         </div>
       </div>
     </div>

@@ -1,123 +1,118 @@
 {
   "kind": "build_request",
-  "title": "Temporary emergency admin bypass to force access to /admin dashboard (debug-only)",
+  "title": "Fix Admin vehicles tab highlighting, restore richer vehicle editors, fix Media Manager empty/loading behavior, and improve vehicle UI quality",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-71",
-      "text": "Implement a temporary, clearly-marked emergency bypass mode for the admin area that disables the normal authentication guard behavior and allows direct access to the admin dashboard route `/admin` without entering credentials.",
+      "id": "REQ-79",
+      "text": "Fix the Admin sidebar/nav active-state logic so that the two vehicle menu items (/admin/vehicles?category=passenger and /admin/vehicles?category=commercial) are visually separated and only the correct one is highlighted as active (avoid both buttons/links appearing active/red at the same time).",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "FORCE ADMIN ACCESS — EMERGENCY BYPASS\n\nGoal:\nGain admin dashboard access without login loop.\n\nActions:\n\n1. Disable authentication guard temporarily.\n\n2. Allow direct access to:\n/admin"
+          "Editor passengerVehicles dan commercialVehicles ketika diklik, kedua tombol berwarna merah, tidak terpisah."
         ]
       },
       "acceptanceCriteria": [
-        "When bypass mode is enabled, navigating to `/admin` renders the Admin dashboard without redirecting to `/admin/login`.",
-        "When bypass mode is enabled, all admin CMS routes currently wrapped by `AdminGuard` (e.g. `/admin/vehicles`, `/admin/promotions`, `/admin/testimonials`, `/admin/blog`, `/admin/leads`, `/admin/stats`, `/admin/profile`, `/admin/media`) are accessible without being redirected to `/admin/login`.",
-        "Bypass mode is clearly marked in code comments as temporary/debug-only and can be disabled by flipping a single flag/config (no need to revert multiple files).",
-        "No public (non-`/admin`) routes, layouts, or components are modified."
+        "When visiting /admin/vehicles?category=passenger, only 'Passenger Vehicles' is highlighted as active and 'Commercial Vehicles' is not highlighted.",
+        "When visiting /admin/vehicles?category=commercial, only 'Commercial Vehicles' is highlighted as active and 'Passenger Vehicles' is not highlighted.",
+        "Other Admin menu items retain correct active highlighting behavior."
       ]
     },
     {
-      "id": "REQ-72",
-      "text": "When bypass mode is enabled and no `caffeineAdminSession` exists in browser storage, automatically create and persist an admin session client-side with role = \"Super Admin\" so admin CMS React Query hooks can use a token immediately.",
+      "id": "REQ-80",
+      "text": "Upgrade the Passenger and Commercial Vehicle admin editor (the Add/Edit Vehicle dialog) to be significantly richer and closer to the intended CMS blueprint by adding complete vehicle editing capabilities for variants, specs, and commercial badges—while remaining compatible with the existing Vehicle data model and backend methods (createVehicle/updateVehicle).",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "3. If no session exists:\nAuto-create session with role = Super Admin."
+          "Editor didalamnya sangat sederhana tidak sesuai blueprint awal."
         ]
       },
       "acceptanceCriteria": [
-        "With bypass mode enabled and an empty browser storage state, the app creates a `caffeineAdminSession` entry automatically (using the existing `frontend/src/admin/auth/adminSession.ts` storage format) before admin CMS queries execute.",
-        "The stored session contains `role: \"Super Admin\"` and a non-empty `token` string.",
-        "Reloading the page at any admin route keeps access without re-triggering a login loop."
+        "The Vehicle editor supports managing variants as a list (add/edit/remove): name, price adjustment, feature list, and premium flag (isPremium) using clear English labels.",
+        "The Vehicle editor supports editing technical specs fields (engine, transmission, dimensions, weight, fuel capacity, suspension) and managing an 'Additional features' list (add/remove items).",
+        "For Commercial vehicles, the editor provides checkbox controls for commercialFeatures (Economical, Power, Speed, Capacity, Bus, 4x2, 6x2, 6x4). For Passenger vehicles, these controls are hidden/disabled.",
+        "The editor still supports selecting Image and Brochure via the existing MediaPickerDialog and saves selected URLs back into imageUrl/brochure fields.",
+        "Saving creates/updates the Vehicle successfully using existing mutations and no runtime type errors occur with bigint/nat conversions."
       ]
     },
     {
-      "id": "REQ-73",
-      "text": "Add a backend emergency bypass login path that (a) upserts an Active Super Admin record for email `puadsolihan@gmail.com` and (b) issues a valid admin session token without verifying any password, intended for temporary debugging only.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "4. Inject temporary admin record:\n\nEmail: puadsolihan@gmail.com\nRole: Super Admin\nStatus: Active\n\nSkip password verification."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend exposes a dedicated method for emergency bypass that returns the same session shape as `adminLogin` (at least `{ token; role }`) and stores the created session in the existing `adminSessions` map so `requireAdminSession(token)` succeeds for CMS methods.",
-        "Calling the bypass method results in an admin user record present for `puadsolihan@gmail.com` with `role = \"Super Admin\"` and `status = \"Active\"` (idempotent upsert; no duplicate email entries).",
-        "Bypass method is clearly marked as temporary/debug-only in code comments.",
-        "All user-facing error messages added/changed for this bypass are in English."
-      ]
-    },
-    {
-      "id": "REQ-74",
-      "text": "Wire the frontend bypass flow to call the backend bypass login method (when enabled) so that the created `caffeineAdminSession.token` is a real backend-recognized token and admin CMS endpoints work end-to-end.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Purpose:\nConfirm CMS, storage, and admin UI function first.\nAuth system will be repaired later."
-        ]
-      },
-      "acceptanceCriteria": [
-        "With bypass mode enabled, the frontend obtains a token from the backend bypass method and stores it under `caffeineAdminSession` using the existing storage utilities.",
-        "After bypass session creation, visiting admin pages that call admin-protected backend methods (e.g. `getVisitorStats(token)`, `getContacts(token)`, `getMediaAssets(token)`) succeeds without showing \"Admin session required\" errors.",
-        "Disabling bypass mode restores the existing admin auth behavior (AdminGuard redirects unauthenticated users to `/admin/login`)."
-      ]
-    },
-    {
-      "id": "REQ-75",
-      "text": "When bypass mode is enabled, redirect all `/admin/*` traffic that would normally land on the login page to the dashboard (`/admin`) so the login UI is effectively skipped during debugging.",
+      "id": "REQ-81",
+      "text": "Make the Admin Media Manager and Media Picker reliably display media assets (when present) and show a clear empty-state message when none exist; ensure user-facing text is in English and consistent across Media pages and pickers.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "5. Redirect all /admin traffic directly to dashboard."
+          "Dan di semua menu media tidak bisa tampil, lihat screenshot."
         ]
       },
       "acceptanceCriteria": [
-        "With bypass mode enabled, navigating to `/admin/login` automatically navigates to `/admin` (replace navigation, no loop).",
-        "No redirect behavior changes occur for non-admin routes."
+        "If the backend returns one or more MediaAsset records, both /admin/media and the MediaPickerDialog render them in a responsive grid with thumbnails for images and file-type tiles for non-images.",
+        "If there are zero assets, show an English empty state message exactly: \"No media yet.\" (not \"No media found\").",
+        "If media loading fails due to missing/expired admin session, the UI shows an English error that indicates the user must log in again (without crashing the page).",
+        "Selecting a media item in MediaPickerDialog highlights the selection and clicking \"Select\" returns the selected asset URL to the calling form field."
+      ]
+    },
+    {
+      "id": "REQ-82",
+      "text": "Improve the public vehicle listing grid UI and vehicle card styling to look more professional and attractive while keeping the same routing and CMS-driven data wiring (no new content requirements).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Tampilan grid dan halaman detail kendaraan ui nya tidak menarik. Saya upload tanpa media."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Vehicle listing pages (/mobil-keluarga and /mobil-niaga) display a visually improved grid and cards (spacing, typography, hierarchy, hover states) using Tailwind while keeping existing data fields and links working.",
+        "Cards still correctly fall back to the existing placeholder images when imageUrl is empty.",
+        "No changes break the existing responsive column behavior (desktop/tablet/mobile)."
+      ]
+    },
+    {
+      "id": "REQ-83",
+      "text": "Improve the public Passenger and Commercial vehicle detail page UI to look more polished (layout, spacing, sections), and ensure the pages remain usable when vehicles have no uploaded media (use placeholders) and/or have empty optional fields.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Tampilan grid dan halaman detail kendaraan ui nya tidak menarik. Saya upload tanpa media."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Passenger vehicle detail page remains functional with variant selection (if variants exist) and looks visually improved (e.g., better sectioning, consistent backgrounds, clearer CTA grouping) without changing routes or breaking existing like/share actions.",
+        "Commercial vehicle detail page remains functional and visually improved while preserving the existing constraints (no color/variant switcher; chassis price emphasis; optional brochure button only when brochure exists).",
+        "Both detail pages render placeholder images when imageUrl is empty and do not show broken image icons.",
+        "All user-facing text introduced or changed by this work is in English."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any public (non-`/admin`) frontend pages, routes, layouts, or UI behavior.",
-    "Keep all Motoko logic within the single backend actor (`backend/main.mo`); do not introduce additional backend services.",
-    "The emergency bypass must be clearly marked as temporary/debug-only and easily removable/disabled.",
-    "Use English for any user-facing text introduced or changed as part of this bypass."
+    "Do not edit any files under frontend/src/components/ui (read-only Shadcn components).",
+    "Do not modify frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
+    "Keep the backend API surface compatible with current frontend calls (e.g., actor.getMediaAssets(token), actor.createMediaAsset(token, asset), actor.deleteMediaAsset(token, id)).",
+    "Maintain single-actor backend architecture (all Motoko logic in backend/main.mo).",
+    "Use English for any user-facing text introduced/changed by this build request."
   ],
   "nonGoals": [
-    "Do not permanently fix or redesign the email/password authentication system in this change (bypass is for debugging only).",
-    "Do not add third-party authentication providers or external services.",
-    "Do not change CMS data models, CMS UI features, or public-site content as part of this bypass."
+    "Do not add new public routes or change existing route paths.",
+    "Do not introduce third-party auth providers or non-Internet-Computer storage backends.",
+    "Do not redesign the entire admin layout; focus on vehicle editor richness, nav highlighting correctness, and media visibility/empty-state behavior.",
+    "Do not require new seeded content to complete this work."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }
