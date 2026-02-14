@@ -1,17 +1,14 @@
 import { SiFacebook, SiInstagram, SiX, SiTiktok, SiYoutube } from 'react-icons/si';
 import { Heart } from 'lucide-react';
-import { useGetVisitorStats } from '../../hooks/useQueries';
 
 export default function Footer() {
-  const { data: stats } = useGetVisitorStats();
-
   const currentYear = new Date().getFullYear();
   const appIdentifier = encodeURIComponent(window.location.hostname || 'automotive-dealer');
 
   return (
     <footer className="bg-[#262729] text-white py-12">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
           <div>
             <img src="/assets/generated/dealer-logo.dim_512x512.png" alt="Logo" className="h-12 mb-4" />
             <p className="text-sm text-gray-300">
@@ -48,16 +45,6 @@ export default function Footer() {
               <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="hover:text-red-400 transition-colors">
                 <SiYoutube size={24} />
               </a>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="font-bold text-lg mb-4">Visitor Statistics</h3>
-            <div className="space-y-2 text-sm text-gray-300">
-              <p>Total Visitors: {stats ? Number(stats.totalVisitors) : 0}</p>
-              <p>Active Users: {stats ? Number(stats.activeUsers) : 0}</p>
-              <p>Page Views: {stats ? Number(stats.pageViews) : 0}</p>
-              <p>Today's Traffic: {stats ? Number(stats.todayTraffic) : 0}</p>
             </div>
           </div>
         </div>

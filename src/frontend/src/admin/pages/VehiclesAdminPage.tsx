@@ -1,27 +1,145 @@
+import { useState, useMemo } from 'react';
 import { useGetVehicles } from '../../hooks/useQueries';
+import { useCreateVehicle, useUpdateVehicle, useDeleteVehicle } from '../hooks/useAdminCmsQueries';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import CrudTable from '../components/CrudTable';
+import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
+import VehicleFormDialog from '../components/VehicleFormDialog';
+import type { Vehicle } from '../../backend';
+import { toast } from 'sonner';
+import { useSearch } from '@tanstack/react-router';
 
 export default function VehiclesAdminPage() {
   const { data: vehicles = [], isLoading } = useGetVehicles();
+  const createVehicle = useCreateVehicle();
+  const updateVehicle = useUpdateVehicle();
+  const deleteVehicle = useDeleteVehicle();
+  
+  const searchParams = useSearch({ from: '/admin/vehicles' }) as { category?: string };
+  const category = searchParams.category || 'passenger';
+  
+  const [search, setSearch] = useState('');
+  const [editItem, setEditItem] = useState<Vehicle | null>(null);
+  const [deleteItem, setDeleteItem] = useState<Vehicle | null>(null);
+  const [showForm, setShowForm] = useState(false);
+
+  const filteredVehicles = useMemo(() => {
+    return vehicles.filter((v) => {
+      const matchesCategory = category === 'passenger' ? !v.isCommercial : v.isCommercial;
+      const matchesSearch = v.name.toLowerCase().includes(search.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [vehicles, category, search]);
+
+  const handleEdit = (vehicle: Vehicle) => {
+    setEditItem(vehicle);
+    setShowForm(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteItem) return;
+    
+    try {
+      await deleteVehicle.mutateAsync(deleteItem.id);
+      toast.success('Vehicle deleted successfully');
+      setDeleteItem(null);
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error('Failed to delete vehicle');
+    }
+  };
+
+  const handleSave = async (vehicle: Vehicle) => {
+    try {
+      if (editItem) {
+        await updateVehicle.mutateAsync(vehicle);
+        toast.success('Vehicle updated successfully');
+      } else {
+        await createVehicle.mutateAsync(vehicle);
+        toast.success('Vehicle created successfully');
+      }
+      setShowForm(false);
+      setEditItem(null);
+    } catch (error) {
+      console.error('Save error:', error);
+      toast.error('Failed to save vehicle');
+    }
+  };
+
+  const columns = [
+    { key: 'name', label: 'Name' },
+    { 
+      key: 'price', 
+      label: 'Price',
+      render: (v: Vehicle) => `Rp ${Number(v.price).toLocaleString()}`
+    },
+    { 
+      key: 'variants', 
+      label: 'Variants',
+      render: (v: Vehicle) => v.variants.length
+    }
+  ];
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div className="text-center py-8">Loading...</div>;
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Vehicles Management</h1>
-        <Button className="bg-[#C90010] hover:bg-[#a00010]">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Vehicle
-        </Button>
+    <>
+      <div>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">
+              {category === 'passenger' ? 'Passenger Vehicles' : 'Commercial Vehicles'}
+            </h1>
+            <p className="text-gray-600 mt-1">Manage {category} vehicles</p>
+          </div>
+          <Button 
+            className="bg-[#C90010] hover:bg-[#a00010]"
+            onClick={() => {
+              setEditItem(null);
+              setShowForm(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add Vehicle
+          </Button>
+        </div>
+
+        <CrudTable
+          data={filteredVehicles}
+          columns={columns}
+          onEdit={handleEdit}
+          onDelete={setDeleteItem}
+          searchValue={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search vehicles..."
+          getItemKey={(v) => v.id.toString()}
+          showPublished
+        />
       </div>
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <p className="text-gray-600">Total Vehicles: {vehicles.length}</p>
-        <p className="text-sm text-gray-500 mt-2">Full CRUD interface would be implemented here</p>
-      </div>
-    </div>
+
+      <VehicleFormDialog
+        open={showForm}
+        onOpenChange={(open) => {
+          setShowForm(open);
+          if (!open) setEditItem(null);
+        }}
+        vehicle={editItem}
+        onSave={handleSave}
+        isSaving={createVehicle.isPending || updateVehicle.isPending}
+        isCommercial={category === 'commercial'}
+      />
+
+      <ConfirmDeleteDialog
+        open={!!deleteItem}
+        onOpenChange={(open) => !open && setDeleteItem(null)}
+        onConfirm={handleDelete}
+        title="Delete Vehicle"
+        description="Are you sure you want to delete this vehicle? This action cannot be undone."
+        isDeleting={deleteVehicle.isPending}
+      />
+    </>
   );
 }

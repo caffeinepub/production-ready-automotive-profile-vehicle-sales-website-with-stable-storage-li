@@ -1,67 +1,85 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T05:44:57.111Z",
-  "summary": "The diff does not implement upgrade-safe stable persistence. `backend/main.mo` still uses in-memory `Map.empty(...)` collections and a `var visitorStats` without any visible `stable` state or `preupgrade`/`postupgrade` hooks. A new `backend/migration.mo` file defines old in-memory actor types but does not perform any migration/splitting into the required stable collections.",
+  "generatedAt": "2026-02-14T06:31:40.269Z",
+  "summary": "Frontend adds session-token-based admin login (email/password), token storage utilities, an admin guard, and updates admin CMS query hooks to pass a token. However, the diff summary does not provide enough backend evidence to confirm stable persistence, hashing/token security, session validation, and protection of all admin backend methods. Additionally, non-/admin frontend files were modified (Footer and public query hooks), which was not requested and violates the stated constraints.",
   "missing_requirements": [
     {
-      "id": "REQ-28",
-      "requirement": "Replace all in-memory collections in `backend/main.mo` with upgrade-safe stable persistence so that data survives rebuilds/upgrades/redeploys.",
-      "reason": "The modified backend still declares all main datasets as volatile in-memory `let ... = Map.empty(...)` and `visitorStats` as a non-stable `var`, with no evidence of stable serialization/restoration.",
+      "id": "REQ-38",
+      "requirement": "Implement a stable-persisted `adminUsers` collection in the Motoko backend with fields: `id`, `email`, `passwordHash`, `role`, `createdAt`, upgrade-safe, and provide lookup methods without leaking password hashes.",
+      "reason": "The diff shows new `AdminUser` type and in-memory `Map` collections, but there is no evidence of stable variables and preupgrade/postupgrade handling to make the data survive upgrades, nor any shown backend methods for safe lookup by email without leaking hashes (file content is truncated before any such logic).",
       "evidence": [
-        "backend/main.mo"
+        "backend/main.mo (truncated): shows `let adminUsers = Map.empty...` and type definitions but no stable persistence/upgrade hooks are visible"
       ]
     },
     {
-      "id": "REQ-29",
-      "requirement": "Create and persist stable collections for: `passengerVehicles`, `commercialVehicles`, `promotions`, `testimonials`, `blogPosts`, `contacts`, `creditSimulations`, `adminUsers`, `visitorStats`, `mediaAssets` with explicit versioned schema; split vehicles into passenger/commercial stable collections.",
-      "reason": "No stable collections are defined for the listed datasets in the diff. Vehicles are still stored in a single in-memory `vehicles` map and use an `isCommercial` flag rather than two persisted collections; `visitorStats` remains a non-stable `var`.",
+      "id": "REQ-39",
+      "requirement": "Add salted one-way password hashing and constant-time password verification for admin passwords.",
+      "reason": "The diff summary does not show any implemented salted hashing logic, storage format, or constant-time comparison. The backend file is truncated at a comment ('Helper function: Simple passwo...'), so hashing/verification cannot be confirmed.",
       "evidence": [
-        "backend/main.mo",
-        "backend/migration.mo"
+        "backend/main.mo (truncated): no visible hashing/salt/constant-time verification implementation"
       ]
     },
     {
-      "id": "REQ-30",
-      "requirement": "Create and persist stable interaction collections: `productLikes`, `productShares`, `articleLikes`, `articleComments`, splitting any existing combined state without data loss.",
-      "reason": "Interactions are still represented as a single in-memory `productInteractions` map with combined fields (likes/shares), and there is no evidence of separate stable collections for product likes/shares or any article likes/comments storage.",
+      "id": "REQ-40",
+      "requirement": "Implement admin login API (email, password) that returns a cryptographically strong session token on success and English errors on failure.",
+      "reason": "Frontend calls `actor.adminLogin(email, password)` and expects `{ token, role }`, but the diff does not show the backend method implementation, its error messages, or token generation strength.",
       "evidence": [
-        "backend/main.mo",
-        "backend/migration.mo"
+        "frontend/src/admin/hooks/useAdminSession.ts: calls `actor.adminLogin(email, password)`",
+        "backend/main.mo (truncated): does not show `adminLogin` implementation or token generation"
       ]
     },
     {
-      "id": "REQ-31",
-      "requirement": "Implement upgrade-safe lifecycle hooks (`preupgrade`/`postupgrade`) with schema versioning and backward-compatible migration/decoding.",
-      "reason": "The diff shows no `preupgrade`/`postupgrade` implementations or any `stable` variables/version field used for conditional migrations. The added `migration.mo` module returns the input unchanged and does not migrate data.",
+      "id": "REQ-41",
+      "requirement": "Implement a stable-persisted admin session store mapping tokens to admin identity/role, surviving upgrades, with validation and logout invalidation.",
+      "reason": "The diff shows an `AdminSession` type and an in-memory `Map` for sessions, but no evidence of stable persistence/upgrade hooks, nor visible `adminLogout` implementation and token validation resolver methods.",
       "evidence": [
-        "backend/main.mo",
-        "backend/migration.mo"
+        "backend/main.mo (truncated): shows `let adminSessions = Map.empty<Text, AdminSession>();` but no stable persistence or validation/logout logic is visible",
+        "frontend/src/admin/hooks/useAdminSession.ts: calls `actor.adminLogout(session.token)`"
       ]
     },
     {
-      "id": "REQ-32",
-      "requirement": "Keep the backend public interface compatible with the existing frontend and map existing endpoints to the new stable collections.",
-      "reason": "Because the diff does not introduce the required stable collections or mapping logic, there is no evidence that existing endpoints are backed by new stable storage or that any passenger/commercial vehicle recombination logic is implemented.",
+      "id": "REQ-42",
+      "requirement": "Protect all admin/CMS backend methods so admin operations require a valid session token and enforce authorization based on admin role; public site methods remain accessible; rejected requests return English auth-required errors.",
+      "reason": "Frontend was updated to pass a token to many admin methods (e.g., `getVisitorStats(token)`), but the diff does not show backend-side enforcement (token validation, role checks, English error messages) across all admin/CMS backend methods.",
       "evidence": [
-        "backend/main.mo"
+        "frontend/src/admin/hooks/useAdminCmsQueries.ts (truncated): passes `token` to admin actor methods",
+        "backend/main.mo (truncated): does not show token validation checks for admin methods or role enforcement"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Introduced a migration module wiring (`import Migration \"migration\";` and `(with migration = Migration.run)`) plus a placeholder `backend/migration.mo` that defines an `OldActor` and returns it unchanged.",
-      "reason": "The BuildRequest asks for stable persistence + upgrade-safe restore/migrations, but the diff adds a migration framework stub without implementing the required stable-state schema, hooks, or actual migration/splitting logic.",
+      "description": "Modified public (non-/admin) Footer component to include a caffeine.ai referral link and compute `appIdentifier` from `window.location.hostname`.",
+      "reason": "BuildRequest explicitly states not to modify public pages/routes/components; changes must be limited to `/admin` and shared auth utilities. Footer is a public/shared layout component unrelated to admin auth.",
       "evidence": [
-        "backend/main.mo",
-        "backend/migration.mo"
+        "frontend/src/components/layout/Footer.tsx"
+      ]
+    },
+    {
+      "description": "Modified public query hooks file (non-/admin) despite requirement to avoid changes outside `/admin` area.",
+      "reason": "BuildRequest forbids modifying routes/components/pages outside `/admin` for this change; `frontend/src/hooks/useQueries.ts` is described as public query hooks (no authentication required).",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts (truncated)"
       ]
     }
   ],
   "confidence": 0.74,
   "changed_files": [
     "backend/main.mo",
-    "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/admin/AdminGuard.tsx",
+    "frontend/src/admin/AdminLayout.tsx",
+    "frontend/src/admin/auth/adminSession.ts",
+    "frontend/src/admin/components/AccessDeniedView.tsx",
+    "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+    "frontend/src/admin/hooks/useAdminSession.ts",
+    "frontend/src/admin/pages/AdminLoginPage.tsx",
+    "frontend/src/admin/pages/LeadsAdminPage.tsx",
+    "frontend/src/admin/pages/MediaManagerPage.tsx",
+    "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
+    "frontend/src/components/layout/Footer.tsx",
+    "frontend/src/hooks/useQueries.ts",
     "project_state.json"
   ]
 }

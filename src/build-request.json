@@ -1,113 +1,155 @@
 {
   "kind": "build_request",
-  "title": "Backend storage foundation injection: full stable persistence + upgrade-safe restore",
+  "title": "Implement email/password admin authentication backend with persistent sessions (admin-only)",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-28",
-      "text": "Replace all in-memory collections in `backend/main.mo` with upgrade-safe stable persistence so that data survives draft rebuilds, canister upgrades, and version redeploys.",
+      "id": "REQ-38",
+      "text": "Implement a stable-persisted `adminUsers` collection in the Motoko backend with fields: `id`, `email`, `passwordHash`, `role`, `createdAt`, and ensure it is upgrade-safe (data survives canister redeploy/upgrade).",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-5"
         ],
         "quotes": [
-          "Upgrade current project storage system to FULL STABLE PERSISTENCE.",
-          "Replace all in-memory maps with stable storage",
-          "Data must survive: Draft rebuild, Canister upgrade, Version redeploy"
+          "1. Create stable collection:\n   adminUsers\n\nFields:\n• id\n• email\n• passwordHash\n• role\n• createdAt"
         ]
       },
       "acceptanceCriteria": [
-        "No application data is stored only in `let ... = Map.empty(...)` (or other volatile/in-memory variables) without being serialized to stable storage during upgrades.",
-        "After inserting records into each collection, performing a canister upgrade preserves all records and they are returned identically by existing query/update APIs.",
-        "After a redeploy that triggers the canister’s initialization + upgrade lifecycle, previously persisted stable data is automatically restored into the live in-canister working state (if any runtime state is needed)."
+        "Admin users are stored in stable memory and remain available after canister upgrade/redeploy.",
+        "Each admin user record includes exactly: id, email, passwordHash, role, createdAt.",
+        "Backend exposes internal/query methods needed by the admin auth flow to look up admins by email without leaking password hashes to the frontend."
       ]
     },
     {
-      "id": "REQ-29",
-      "text": "Create and persist stable collections for the following domain datasets: `passengerVehicles`, `commercialVehicles`, `promotions`, `testimonials`, `blogPosts`, `contacts`, `creditSimulations`, `adminUsers`, `visitorStats`, `mediaAssets`. Ensure the stable schema is explicitly defined and versioned to allow safe future upgrades.",
+      "id": "REQ-39",
+      "text": "Add password hashing support in the backend for admin user passwords, using a salted, one-way hash and constant-time password verification.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-5"
         ],
         "quotes": [
-          "Create stable collections:\n\npassengerVehicles\ncommercialVehicles\npromotions\ntestimonials\nblogPosts\ncontacts\ncreditSimulations\nadminUsers\nvisitorStats\nmediaAssets"
+          "2. Implement password hashing."
         ]
       },
       "acceptanceCriteria": [
-        "Stable storage contains an explicitly defined structure for each named collection (not a single combined map unless it also provides these named logical collections).",
-        "`visitorStats` is persisted in stable storage (not only a `var`) and survives upgrade/redeploy with the same counter values.",
-        "Vehicle data is persisted in two stable collections (`passengerVehicles` and `commercialVehicles`) rather than relying on a volatile filter flag; any existing combined representation must be mapped into these two stable collections in an upgrade-safe way."
+        "Passwords are never stored or returned in plaintext.",
+        "`passwordHash` stored for admin users includes a per-user salt (or equivalent) so identical passwords do not produce identical stored hashes.",
+        "Login verification uses constant-time comparison to avoid timing leaks."
       ]
     },
     {
-      "id": "REQ-30",
-      "text": "Create and persist stable interaction collections: `productLikes`, `productShares`, `articleLikes`, `articleComments`. Map or split any existing combined interaction state (e.g., a single `productInteractions` map) into these stable collections without data loss.",
+      "id": "REQ-40",
+      "text": "Implement an admin login API for email/password authentication that validates the email exists and the provided password matches the stored hash, and returns a secure session token on success.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-5"
         ],
         "quotes": [
-          "Interaction collections:\n\nproductLikes\nproductShares\narticleLikes\narticleComments"
+          "3. Build login endpoint:\n\nPOST /admin/login\n\nValidate:\n• Email exists\n• Password match hash\n\n4. Generate secure session token."
         ]
       },
       "acceptanceCriteria": [
-        "Each interaction dataset is stored in its own stable collection with a clear keying strategy (e.g., by product/article id and optionally principal where relevant).",
-        "Existing public interaction APIs (e.g., product like/share) continue to function and their counters persist across upgrade/redeploy.",
-        "If the prior implementation stored likes/shares together, the upgraded stable data correctly populates the new `productLikes`/`productShares` collections and returns consistent results after upgrade."
+        "A backend method exists to perform admin login with inputs (email, password).",
+        "If the email does not exist, login fails with an English error message and no token is issued.",
+        "If the password is incorrect, login fails with an English error message and no token is issued.",
+        "If login succeeds, a cryptographically strong, unguessable session token is generated and returned."
       ]
     },
     {
-      "id": "REQ-31",
-      "text": "Implement upgrade-safe lifecycle hooks and data mapping that automatically saves to stable state on upgrade and restores on deploy/upgrade, including handling schema evolution and backward-compatible decoding from prior in-memory layouts.",
+      "id": "REQ-41",
+      "text": "Implement a stable-persisted admin session store in the backend that maps session tokens to an admin user (and role), supports session expiry/invalidations as needed, and survives canister upgrade/redeploy.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-5"
         ],
         "quotes": [
-          "Ensure upgrade-safe data mapping",
-          "Add auto-restore lifecycle mapping on deploy."
+          "5. Store token in session / cookie.",
+          "8. Session persists after refresh.",
+          "9. Logout destroys session."
         ]
       },
       "acceptanceCriteria": [
-        "`preupgrade` persists all required runtime state into stable variables.",
-        "`postupgrade` restores state from stable variables into runtime variables (if runtime variables remain) and the canister remains functional without manual admin actions.",
-        "A schema/version field (or equivalent) is used to distinguish persisted data formats and perform conditional migrations when formats differ.",
-        "If prior versions stored data only in in-memory maps, the canister does not trap on upgrade; it should either (a) initialize empty stable collections safely, or (b) migrate from any prior stable representation if it existed."
+        "On successful login, the session token is stored server-side in a stable session collection so it remains valid after a canister upgrade/redeploy (until logout/expiry).",
+        "A backend method exists to invalidate/destroy a session token (logout). After logout, the token is rejected by all protected admin APIs.",
+        "The backend provides a way to validate a session token and resolve the associated admin identity/role."
       ]
     },
     {
-      "id": "REQ-32",
-      "text": "Keep the backend public interface compatible with the existing frontend (no UI changes): preserve existing method names and argument/return types where currently used, and add internal mapping so existing endpoints continue to read/write the new stable collections.",
+      "id": "REQ-42",
+      "text": "Protect all admin/CMS backend methods so that any operation used by the /admin UI (e.g., create/update/delete content, viewing leads, media management, visitor stats updates) requires a valid admin session token and enforces authorization based on the admin role.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-5"
         ],
         "quotes": [
-          "Do NOT modify UI.\nDo NOT modify layout.\nBackend injection only."
+          "6. Protect all /admin routes."
         ]
       },
       "acceptanceCriteria": [
-        "No frontend code changes are required for the app to compile and run against the updated backend.",
-        "Existing backend methods in `backend/main.mo` (e.g., `getVehicles`, `getPromotions`, `getTestimonials`, `getBlogPosts`, `addContact`, `addCreditSimulation`, interaction APIs, visitor stats APIs) still exist and behave consistently, backed by the new stable collections.",
-        "Any required internal data transformations (e.g., combining passenger+commercial into `getVehicles` output) are implemented entirely in the backend."
+        "All backend methods that are intended for admin use are rejected unless a valid admin session token is provided.",
+        "Public site methods (e.g., fetching vehicles/blog posts/promotions/testimonials, submitting contacts/credit simulations, visitor tracking) remain accessible without admin authentication.",
+        "If a request is rejected due to missing/invalid session, the backend returns an English error message indicating authentication is required."
+      ]
+    },
+    {
+      "id": "REQ-43",
+      "text": "Update the admin-only frontend authentication flow to use email/password login against the new backend login method, store the returned session token client-side (cookie and/or localStorage), and ensure the admin session persists across refreshes and supports logout that destroys the session in the backend. Do not modify any public (non-/admin) pages.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "7. Auto redirect to dashboard after login.",
+          "8. Session persists after refresh.",
+          "9. Logout destroys session.",
+          "Do NOT modify frontend public pages.\nAdmin auth only."
+        ]
+      },
+      "acceptanceCriteria": [
+        "`/admin/login` uses an email + password form (not Internet Identity) and shows English UI text.",
+        "On successful login, the user is redirected to the admin dashboard route (`/admin`).",
+        "Refreshing the page while logged in keeps the user authenticated and able to access `/admin` pages without re-login.",
+        "Logging out from the admin UI calls backend logout and removes the stored token; subsequent navigation to `/admin` requires logging in again.",
+        "No routes/components/pages outside the `/admin` area are modified as part of this change."
+      ]
+    },
+    {
+      "id": "REQ-44",
+      "text": "Replace the current Internet Identity-based admin guard logic with session-token-based guarding for all `/admin` routes so unauthenticated users are redirected to `/admin/login`, and authenticated users without required privileges are blocked with an English 'Access denied' message.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "6. Protect all /admin routes.",
+          "7. Auto redirect to dashboard after login."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Visiting any `/admin/*` route without a valid stored session redirects to `/admin/login`.",
+        "Visiting `/admin/login` while already authenticated redirects to `/admin` automatically.",
+        "If an authenticated session exists but lacks required role/permissions (if roles are enforced), the UI displays an English access-denied view instead of rendering admin pages."
       ]
     }
   ],
   "constraints": [
-    "Backend changes only; do not modify UI or layout (no frontend edits).",
-    "Respect the single-actor backend architecture: all Motoko logic remains in `backend/main.mo`.",
-    "Use English for any user-facing text produced by backend traps/errors.",
-    "Do not introduce external databases or services; persistence must be implemented with canister stable storage."
+    "Backend must remain a single Motoko actor (all logic in `backend/main.mo`).",
+    "Do not modify frontend public pages/routes/components; changes must be limited to `/admin` area and shared auth utilities.",
+    "Use English for all user-facing text related to admin authentication errors and UI.",
+    "Do not edit files under `frontend/src/components/ui` (compose instead).",
+    "Do not modify files listed as immutable in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Redesigning or refactoring frontend components, routes, or styling.",
-    "Adding new product features beyond stable persistence + upgrade/redeploy-safe restore for the specified collections.",
-    "Changing authentication provider(s) or adding third-party auth integrations."
+    "Adding third-party authentication providers (only in-app email/password admin auth).",
+    "Implementing real HTTP REST routes (e.g., Express-style POST endpoints) outside Internet Computer canister method patterns.",
+    "Changing public-site authorization rules for visitor tracking, contact submission, credit simulation submission, or public content browsing."
   ],
   "imageRequirements": {
     "required": [],

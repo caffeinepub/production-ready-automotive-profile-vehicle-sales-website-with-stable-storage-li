@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 9,
+  "projectStateVersion": 13,
   "summary": "Automotive company profile + vehicle sales website with production-ready backend/frontend separation, stable persistence (upgrade/redeploy safe), live CMS admin panel, media manager, SEO/performance, product & article interactions, and seeded content.",
   "architectural_notes": [
     "Use stable persistence only (no in-memory) and ensure upgrade/redeploy-safe data migrations with auto-restore after redeploy.",
@@ -8,7 +8,9 @@
     "Admin CMS at /admin with secure authentication and role-based authority.",
     "Define stable collections for content + interactions (likes/shares/comments) and visitor statistics.",
     "TanStack Router: ensure RouterProvider is rendered exactly once (avoid double RouterProvider rendering via both rootRoute component and App.tsx) to prevent production blank screen.",
-    "Storage foundation injection scope: backend-only changes for full stable persistence; do NOT modify UI or layout."
+    "Storage foundation injection scope: backend-only changes for full stable persistence; do NOT modify UI or layout.",
+    "Admin CMS system injection scope: implement /admin panel only (CRUD + draft/publish + delete + media upload + multi-admin roles + secure session auth) and do NOT modify any public frontend pages.",
+    "Admin auth scope: implement email/password login with password hashing and secure session token stored in cookie/session; session must persist across refresh, protect all /admin routes, and support logout session invalidation. Do not modify any public frontend pages."
   ],
   "known_issues": [
     "Production/live page shows blank screen after deploy due to frontend crash: project uses `next-themes` ThemeProvider even though frontend is Vite + React (not Next.js), causing app to fail before rendering.",
@@ -223,6 +225,46 @@
         "REQ-27"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-implement-admin-authentication-for-the-admin-area-using-email-password-with-secure-session-based-authentication-not-internet-identity-supporting-logout-and-session-persistence-across-refreshes",
+      "title": "Implement admin authentication for the /admin area using email + password with secure session-based authentication (not Internet Identity), supporting logout and session persistence across refreshes.",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-admin-cms-dashboard-sidebar-menus-match-the-requested-cms-sections-and-route-to-working-management-pages-for-each-section-mobil-keluarga-passenger-vehicles-mobil-niaga-commercial-vehicles-promo-testimoni-testimonials-blog-leads-kontak-visitor-statistics-and-admin-user-profile",
+      "title": "Ensure the Admin CMS dashboard sidebar menus match the requested CMS sections and route to working management pages for each section: Mobil Keluarga (Passenger Vehicles), Mobil Niaga (Commercial Vehicles), Promo, Testimoni (Testimonials), Blog, Leads/Kontak, Visitor Statistics, and Admin User Profile.",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-complete-the-admin-cms-functionality-for-the-requested-sections-with-live-stable-storage-integration-crud-operations-draft-publish-workflow-where-applicable-delete-and-media-upload-selection-via-the-media-manager",
+      "title": "Complete the Admin CMS functionality for the requested sections with live stable-storage integration: CRUD operations, draft/publish workflow (where applicable), delete, and media upload/selection via the Media Manager.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-only-frontend-authentication-flow-to-use-email-password-login-against-the-new-backend-login-method-store-the-returned-session-token-client-side-cookie-and-or-localstorage-and-ensure-the-admin-session-persists-across-refreshes-and-supports-logout-that-destroys-the-session-in-the-backend-do-not-modify-any-public-non-admin-pages",
+      "title": "Update the admin-only frontend authentication flow to use email/password login against the new backend login method, store the returned session token client-side (cookie and/or localStorage), and ensure the admin session persists across refreshes and supports logout that destroys the session in the backend. Do not modify any public (non-/admin) pages.",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-current-internet-identity-based-admin-guard-logic-with-session-token-based-guarding-for-all-admin-routes-so-unauthenticated-users-are-redirected-to-admin-login-and-authenticated-users-without-required-privileges-are-blocked-with-an-english-access-denied-message",
+      "title": "Replace the current Internet Identity-based admin guard logic with session-token-based guarding for all `/admin` routes so unauthenticated users are redirected to `/admin/login`, and authenticated users without required privileges are blocked with an English 'Access denied' message.",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -343,6 +385,68 @@
       "summary": "Keep the backend public interface compatible with the existing frontend (no UI changes): preserve existing method names and argument/return types where currently used, and add internal mapping so existing endpoints continue to read/write the new stable collections.",
       "reqIds": [
         "REQ-32"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Add/extend stable-storage persistence for admin users, roles, and sessions so that admin accounts and active sessions survive canister upgrades/redeploys (upgrade-safe, stable collections).",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Update the admin route protection logic to use the new email/password session auth (instead of Internet Identity) while keeping the existing /admin route structure and admin-only access control.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Implement backend email/password admin authentication: stable adminUsers collection (id,email,passwordHash,role,createdAt), password hashing, POST /admin/login, secure session token stored via session/cookie with persistence across refresh, protect all /admin routes, logout destroys session, redirect to dashboard after login (admin-only; no public page changes)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Implement a stable-persisted `adminUsers` collection in the Motoko backend with fields: `id`, `email`, `passwordHash`, `role`, `createdAt`, and ensure it is upgrade-safe (data survives canister redeploy/upgrade).",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Add password hashing support in the backend for admin user passwords, using a salted, one-way hash and constant-time password verification.",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Implement an admin login API for email/password authentication that validates the email exists and the provided password matches the stored hash, and returns a secure session token on success.",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Implement a stable-persisted admin session store in the backend that maps session tokens to an admin user (and role), supports session expiry/invalidations as needed, and survives canister upgrade/redeploy.",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Protect all admin/CMS backend methods so that any operation used by the /admin UI (e.g., create/update/delete content, viewing leads, media management, visitor stats updates) requires a valid admin session token and enforces authorization based on the admin role.",
+      "reqIds": [
+        "REQ-42"
       ],
       "status": "pending"
     }

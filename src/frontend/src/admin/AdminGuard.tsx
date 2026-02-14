@@ -1,19 +1,17 @@
 import { ReactNode } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useIsCallerAdmin, useGetCallerUserProfile } from '../hooks/useQueries';
+import { useAdminSession } from './hooks/useAdminSession';
+import AccessDeniedView from './components/AccessDeniedView';
 
 interface AdminGuardProps {
   children: ReactNode;
 }
 
 export default function AdminGuard({ children }: AdminGuardProps) {
-  const { identity, isInitializing } = useInternetIdentity();
-  const { data: isAdmin, isLoading: isAdminLoading } = useIsCallerAdmin();
-  const { data: profile, isLoading: profileLoading } = useGetCallerUserProfile();
+  const { session, isValidating, isAuthenticated } = useAdminSession();
   const navigate = useNavigate();
 
-  if (isInitializing || isAdminLoading || profileLoading) {
+  if (isValidating) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -24,20 +22,15 @@ export default function AdminGuard({ children }: AdminGuardProps) {
     );
   }
 
-  if (!identity) {
+  if (!isAuthenticated) {
     navigate({ to: '/admin/login' });
     return null;
   }
 
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-          <p className="text-gray-600">You do not have permission to access the admin panel.</p>
-        </div>
-      </div>
-    );
+  // Optional: Check for specific role requirements
+  // For now, any authenticated admin can access
+  if (session && !session.role) {
+    return <AccessDeniedView />;
   }
 
   return <>{children}</>;

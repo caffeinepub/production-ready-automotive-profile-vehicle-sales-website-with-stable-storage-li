@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Vehicle, Promotion, Testimonial, BlogPost, Contact, CreditSimulation, MediaAsset, VisitorStats, Interaction, UserProfile } from '../backend';
+import type { Vehicle, Promotion, Testimonial, BlogPost, Contact, CreditSimulation, Interaction, UserProfile } from '../backend';
+
+// Public query hooks - no authentication required
 
 export function useGetVehicles() {
   const { actor, isFetching } = useActor();
@@ -80,19 +82,6 @@ export function useGetBlogPost(id: bigint | undefined) {
   });
 }
 
-export function useGetVisitorStats() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<VisitorStats>({
-    queryKey: ['visitorStats'],
-    queryFn: async () => {
-      if (!actor) return { totalVisitors: 0n, activeUsers: 0n, pageViews: 0n, todayTraffic: 0n };
-      return actor.getVisitorStats();
-    },
-    enabled: !!actor && !isFetching
-  });
-}
-
 export function useGetProductInteraction(itemId: bigint | undefined) {
   const { actor, isFetching } = useActor();
 
@@ -105,6 +94,8 @@ export function useGetProductInteraction(itemId: bigint | undefined) {
     enabled: !!actor && !isFetching && !!itemId
   });
 }
+
+// Public mutation hooks - no authentication required
 
 export function useAddContact() {
   const { actor } = useActor();
@@ -188,6 +179,8 @@ export function useIncrementVisitor() {
   });
 }
 
+// User profile hooks - require user authentication
+
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
 
@@ -238,299 +231,5 @@ export function useIsCallerAdmin() {
     },
     enabled: !!actor && !isFetching,
     retry: false
-  });
-}
-
-export function useGetContacts() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<Contact[]>({
-    queryKey: ['contacts'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getContacts();
-    },
-    enabled: !!actor && !isFetching
-  });
-}
-
-export function useGetCreditSimulations() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<CreditSimulation[]>({
-    queryKey: ['creditSimulations'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getCreditSimulations();
-    },
-    enabled: !!actor && !isFetching
-  });
-}
-
-export function useGetMediaAssets() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<MediaAsset[]>({
-    queryKey: ['mediaAssets'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getMediaAssets();
-    },
-    enabled: !!actor && !isFetching
-  });
-}
-
-export function useCreateVehicle() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (vehicle: Vehicle) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.createVehicle(vehicle);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-    }
-  });
-}
-
-export function useUpdateVehicle() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (vehicle: Vehicle) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.updateVehicle(vehicle);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-    }
-  });
-}
-
-export function useDeleteVehicle() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: bigint) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.deleteVehicle(id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-    }
-  });
-}
-
-export function useCreatePromotion() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (promotion: Promotion) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.createPromotion(promotion);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['promotions'] });
-    }
-  });
-}
-
-export function useUpdatePromotion() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (promotion: Promotion) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.updatePromotion(promotion);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['promotions'] });
-    }
-  });
-}
-
-export function useDeletePromotion() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: bigint) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.deletePromotion(id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['promotions'] });
-    }
-  });
-}
-
-export function useCreateTestimonial() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (testimonial: Testimonial) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.createTestimonial(testimonial);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['testimonials'] });
-    }
-  });
-}
-
-export function useUpdateTestimonial() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (testimonial: Testimonial) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.updateTestimonial(testimonial);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['testimonials'] });
-    }
-  });
-}
-
-export function useDeleteTestimonial() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: bigint) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.deleteTestimonial(id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['testimonials'] });
-    }
-  });
-}
-
-export function useCreateBlogPost() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (post: BlogPost) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.createBlogPost(post);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
-    }
-  });
-}
-
-export function useUpdateBlogPost() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (post: BlogPost) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.updateBlogPost(post);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
-    }
-  });
-}
-
-export function useDeleteBlogPost() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: bigint) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.deleteBlogPost(id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
-    }
-  });
-}
-
-export function useCreateMediaAsset() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (asset: MediaAsset) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.createMediaAsset(asset);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['mediaAssets'] });
-    }
-  });
-}
-
-export function useDeleteMediaAsset() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: bigint) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.deleteMediaAsset(id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['mediaAssets'] });
-    }
-  });
-}
-
-export function useUpdateVisitorStats() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (stats: VisitorStats) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.updateVisitorStats(stats);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['visitorStats'] });
-    }
-  });
-}
-
-export function useDeleteContact() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: bigint) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.deleteContact(id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contacts'] });
-    }
-  });
-}
-
-export function useDeleteCreditSimulation() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: bigint) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.deleteCreditSimulation(id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['creditSimulations'] });
-    }
   });
 }

@@ -16,6 +16,7 @@ export interface Promotion {
     id: bigint;
     terms: string;
     title: string;
+    published: boolean;
     description: string;
     imageUrl: string;
     validUntil: string;
@@ -27,6 +28,7 @@ export interface BlogPost {
     seoTitle: string;
     views: bigint;
     publishDate: string;
+    published: boolean;
     author: string;
     likes: bigint;
     imageUrl: string;
@@ -79,6 +81,7 @@ export interface Vehicle {
     id: bigint;
     commercialFeatures?: CommercialVehicleFeatures;
     brochure: string;
+    published: boolean;
     name: string;
     description: string;
     variants: Array<Variant>;
@@ -120,6 +123,7 @@ export interface Testimonial {
     customerName: string;
     review: string;
     city: string;
+    published: boolean;
     imageUrl: string;
     rating: number;
 }
@@ -131,26 +135,32 @@ export enum UserRole {
 export interface backendInterface {
     addContact(contact: Contact): Promise<void>;
     addCreditSimulation(simulation: CreditSimulation): Promise<void>;
+    adminLogin(email: string, password: string): Promise<{
+        token: string;
+        role: string;
+    } | null>;
+    adminLogout(token: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    createBlogPost(post: BlogPost): Promise<void>;
-    createMediaAsset(asset: MediaAsset): Promise<void>;
-    createPromotion(promotion: Promotion): Promise<void>;
-    createTestimonial(testimonial: Testimonial): Promise<void>;
-    createVehicle(vehicle: Vehicle): Promise<void>;
-    deleteBlogPost(id: bigint): Promise<void>;
-    deleteContact(id: bigint): Promise<void>;
-    deleteCreditSimulation(id: bigint): Promise<void>;
-    deleteMediaAsset(id: bigint): Promise<void>;
-    deletePromotion(id: bigint): Promise<void>;
-    deleteTestimonial(id: bigint): Promise<void>;
-    deleteVehicle(id: bigint): Promise<void>;
+    createAdminUser(email: string, password: string, role: string): Promise<bigint | null>;
+    createBlogPost(sessionToken: string, post: BlogPost): Promise<void>;
+    createMediaAsset(sessionToken: string, asset: MediaAsset): Promise<void>;
+    createPromotion(sessionToken: string, promotion: Promotion): Promise<void>;
+    createTestimonial(sessionToken: string, testimonial: Testimonial): Promise<void>;
+    createVehicle(sessionToken: string, vehicle: Vehicle): Promise<void>;
+    deleteBlogPost(sessionToken: string, id: bigint): Promise<void>;
+    deleteContact(sessionToken: string, id: bigint): Promise<void>;
+    deleteCreditSimulation(sessionToken: string, id: bigint): Promise<void>;
+    deleteMediaAsset(sessionToken: string, id: bigint): Promise<void>;
+    deletePromotion(sessionToken: string, id: bigint): Promise<void>;
+    deleteTestimonial(sessionToken: string, id: bigint): Promise<void>;
+    deleteVehicle(sessionToken: string, id: bigint): Promise<void>;
     getBlogPost(id: bigint): Promise<BlogPost | null>;
     getBlogPosts(): Promise<Array<BlogPost>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getContacts(): Promise<Array<Contact>>;
-    getCreditSimulations(): Promise<Array<CreditSimulation>>;
-    getMediaAssets(): Promise<Array<MediaAsset>>;
+    getContacts(sessionToken: string): Promise<Array<Contact>>;
+    getCreditSimulations(sessionToken: string): Promise<Array<CreditSimulation>>;
+    getMediaAssets(sessionToken: string): Promise<Array<MediaAsset>>;
     getProductInteraction(itemId: bigint): Promise<Interaction | null>;
     getPromotion(id: bigint): Promise<Promotion | null>;
     getPromotions(): Promise<Array<Promotion>>;
@@ -158,16 +168,16 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     getVehicle(id: bigint): Promise<Vehicle | null>;
     getVehicles(): Promise<Array<Vehicle>>;
-    getVisitorStats(): Promise<VisitorStats>;
+    getVisitorStats(sessionToken: string): Promise<VisitorStats>;
     incrementPageView(): Promise<void>;
     incrementVisitor(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     likeProduct(itemId: bigint): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     shareProduct(itemId: bigint, platform: string): Promise<void>;
-    updateBlogPost(post: BlogPost): Promise<void>;
-    updatePromotion(promotion: Promotion): Promise<void>;
-    updateTestimonial(testimonial: Testimonial): Promise<void>;
-    updateVehicle(vehicle: Vehicle): Promise<void>;
-    updateVisitorStats(stats: VisitorStats): Promise<void>;
+    updateBlogPost(sessionToken: string, post: BlogPost): Promise<void>;
+    updatePromotion(sessionToken: string, promotion: Promotion): Promise<void>;
+    updateTestimonial(sessionToken: string, testimonial: Testimonial): Promise<void>;
+    updateVehicle(sessionToken: string, vehicle: Vehicle): Promise<void>;
+    updateVisitorStats(sessionToken: string, stats: VisitorStats): Promise<void>;
 }

@@ -1,13 +1,15 @@
 # Specification
 
 ## Summary
-**Goal:** Replace the backend’s volatile/in-memory storage with upgrade-safe stable persistence so all application data survives draft rebuilds, canister upgrades, and version redeploys without requiring any frontend changes.
+**Goal:** Implement admin-only email/password authentication with secure, persistent backend sessions, and update `/admin` frontend auth/route guarding to use session tokens (replacing Internet Identity).
 
 **Planned changes:**
-- Update `backend/main.mo` to persist all previously in-memory collections to stable storage, eliminating reliance on volatile `Map.empty(...)` (or similar) as the sole source of truth.
-- Define and version stable schemas/structures for these domain collections: `passengerVehicles`, `commercialVehicles`, `promotions`, `testimonials`, `blogPosts`, `contacts`, `creditSimulations`, `adminUsers`, `visitorStats`, `mediaAssets`.
-- Define and persist stable interaction collections: `productLikes`, `productShares`, `articleLikes`, `articleComments`, including mapping/splitting any previously combined interaction state without data loss.
-- Implement upgrade lifecycle hooks (`preupgrade`/`postupgrade`) to automatically serialize/restore state and handle schema evolution via a version field and backward-compatible decoding/migration paths.
-- Preserve the existing backend public interface used by the frontend (method names and argument/return types), with internal mapping as needed (e.g., combining passenger+commercial into existing `getVehicles` outputs).
+- Add an upgrade-safe, stable `adminUsers` collection in the Motoko backend with fields: `id`, `email`, `passwordHash`, `role`, `createdAt`.
+- Implement salted, one-way password hashing and constant-time password verification for admin authentication.
+- Add a backend admin login method that validates email/password and returns a cryptographically strong session token on success.
+- Add an upgrade-safe, stable admin session store mapping session tokens to admin identity/role, including logout/session invalidation and token validation.
+- Protect all admin/CMS backend methods so they require a valid admin session token and enforce authorization by role; keep public site methods unauthenticated.
+- Update the `/admin` frontend to use an email/password login form, store the session token client-side for persistence across refresh, and implement logout that destroys the backend session.
+- Replace `/admin` route guard logic to require a valid session token: redirect unauthenticated users to `/admin/login`, redirect authenticated users away from `/admin/login` to `/admin`, and show an English “Access denied” message when lacking privileges.
 
-**User-visible outcome:** The app behaves the same for users, but all stored data (vehicles, content, interactions, stats, contacts, admin users, and media metadata) persists reliably across canister upgrades and redeploys.
+**User-visible outcome:** Admin users can log in at `/admin/login` with email/password, stay logged in across refreshes, access protected `/admin` pages only when authenticated (and authorized), and log out to end the session; public pages remain unchanged.

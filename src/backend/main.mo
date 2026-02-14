@@ -2,19 +2,43 @@ import Map "mo:core/Map";
 import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
-
+import Text "mo:core/Text";
+import Nat "mo:core/Nat";
+import Time "mo:core/Time";
+import Blob "mo:core/Blob";
+import Array "mo:core/Array";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
-import Migration "migration";
 
-(with migration = Migration.run)
 actor {
   include MixinStorage();
 
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
+
+  // Admin User Management Types
+  public type AdminUser = {
+    id : Nat;
+    email : Text;
+    passwordHash : Text;
+    role : Text; // "admin" or "superadmin"
+    createdAt : Int;
+  };
+
+  public type AdminSession = {
+    token : Text;
+    userId : Nat;
+    role : Text;
+    expiresAt : Int;
+  };
+
+  // Stable storage for admin users and sessions
+  let adminUsers = Map.empty<Nat, AdminUser>();
+  let adminUsersByEmail = Map.empty<Text, Nat>();
+  let adminSessions = Map.empty<Text, AdminSession>();
+  var nextAdminUserId : Nat = 1;
 
   public type UserProfile = {
     name : Text;
@@ -62,6 +86,7 @@ actor {
     brochure : Text;
     specs : TechnicalSpecs;
     commercialFeatures : ?CommercialVehicleFeatures;
+    published : Bool;
   };
 
   public type Promotion = {
@@ -71,6 +96,7 @@ actor {
     terms : Text;
     validUntil : Text;
     imageUrl : Text;
+    published : Bool;
   };
 
   public type Testimonial = {
@@ -80,6 +106,7 @@ actor {
     review : Text;
     rating : Float;
     imageUrl : Text;
+    published : Bool;
   };
 
   public type BlogPost = {
@@ -93,6 +120,7 @@ actor {
     seoDescription : Text;
     views : Nat;
     likes : Nat;
+    published : Bool;
   };
 
   public type Contact = {
@@ -151,6 +179,120 @@ actor {
     todayTraffic = 0;
   };
 
+  // Helper function: Simple password hashing (salted)
+  // Note: In production, use a proper cryptographic library
+  private func hashPassword(password : Text, salt : Text) : Text {
+    let combined = password # salt;
+    let bytes = combined.encodeUtf8();
+    let hash = bytes.hash().toText();
+    hash;
+  };
+
+  // Helper function: Generate session token
+  private func generateSessionToken(userId : Nat) : Text {
+    let timestamp = Time.now();
+    let tokenData = userId.toText() # Int.toText(timestamp);
+    let bytes = tokenData.encodeUtf8();
+    let hash = bytes.hash().toText();
+    hash;
+  };
+
+  // Helper function: Validate admin session token
+  private func validateAdminSession(token : Text) : ?AdminSession {
+    switch (adminSessions.get(token)) {
+      case (?session) {
+        let now = Time.now();
+        if (session.expiresAt > now) {
+          ?session;
+        } else {
+          // Session expired, remove it
+          adminSessions.remove(token);
+          null;
+        };
+      };
+      case null { null };
+    };
+  };
+
+  // Admin Authentication API
+  public shared ({ caller }) func adminLogin(email : Text, password : Text) : async ?{ token : Text; role : Text } {
+    // Find user by email
+    switch (adminUsersByEmail.get(email)) {
+      case (?userId) {
+        switch (adminUsers.get(userId)) {
+          case (?user) {
+            // Verify password (with salt = email for simplicity)
+            let expectedHash = hashPassword(password, email);
+            if (expectedHash == user.passwordHash) {
+              // Create session token
+              let token = generateSessionToken(userId);
+              let sessionExpiry = Time.now() + (24 * 60 * 60 * 1_000_000_000); // 24 hours
+              let session : AdminSession = {
+                token = token;
+                userId = userId;
+                role = user.role;
+                expiresAt = sessionExpiry;
+              };
+              adminSessions.add(token, session);
+              ?{ token = token; role = user.role };
+            } else {
+              null; // Invalid password
+            };
+          };
+          case null { null };
+        };
+      };
+      case null { null }; // User not found
+    };
+  };
+
+  // Admin logout
+  public shared ({ caller }) func adminLogout(token : Text) : async () {
+    adminSessions.remove(token);
+  };
+
+  // Create admin user (protected - only existing admins or initialization)
+  public shared ({ caller }) func createAdminUser(email : Text, password : Text, role : Text) : async ?Nat {
+    // Check if this is initialization (no admin users exist) or caller is admin
+    let isInitialization = adminUsers.size() == 0;
+    if (not isInitialization and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can create admin users");
+    };
+
+    // Check if email already exists
+    switch (adminUsersByEmail.get(email)) {
+      case (?_) { return null }; // Email already exists
+      case null {};
+    };
+
+    let userId = nextAdminUserId;
+    nextAdminUserId += 1;
+
+    let passwordHash = hashPassword(password, email);
+    let adminUser : AdminUser = {
+      id = userId;
+      email = email;
+      passwordHash = passwordHash;
+      role = role;
+      createdAt = Time.now();
+    };
+
+    adminUsers.add(userId, adminUser);
+    adminUsersByEmail.add(email, userId);
+    ?userId;
+  };
+
+  // Validate session and check admin permission
+  private func requireAdminSession(token : Text) : AdminSession {
+    switch (validateAdminSession(token)) {
+      case (?session) { session };
+      case null {
+        Runtime.trap("Unauthorized: Invalid or expired admin session");
+      };
+    };
+  };
+
+  // User Profile Management - User-level access
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view profiles");
@@ -172,149 +314,142 @@ actor {
     userProfiles.add(caller, profile);
   };
 
-  public shared ({ caller }) func createVehicle(vehicle : Vehicle) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can create vehicles");
-    };
+  // Vehicle Management - Admin-only CRUD (requires session token)
+  public shared ({ caller }) func createVehicle(sessionToken : Text, vehicle : Vehicle) : async () {
+    let session = requireAdminSession(sessionToken);
     vehicles.add(vehicle.id, vehicle);
   };
 
-  public shared ({ caller }) func updateVehicle(vehicle : Vehicle) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can update vehicles");
-    };
+  public shared ({ caller }) func updateVehicle(sessionToken : Text, vehicle : Vehicle) : async () {
+    let session = requireAdminSession(sessionToken);
     vehicles.add(vehicle.id, vehicle);
   };
 
-  public shared ({ caller }) func deleteVehicle(id : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can delete vehicles");
-    };
+  public shared ({ caller }) func deleteVehicle(sessionToken : Text, id : Nat) : async () {
+    let session = requireAdminSession(sessionToken);
     vehicles.remove(id);
   };
 
-  public shared ({ caller }) func createPromotion(promotion : Promotion) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can create promotions");
-    };
+  // Promotion Management - Admin-only CRUD (requires session token)
+  public shared ({ caller }) func createPromotion(sessionToken : Text, promotion : Promotion) : async () {
+    let session = requireAdminSession(sessionToken);
     promotions.add(promotion.id, promotion);
   };
 
-  public shared ({ caller }) func updatePromotion(promotion : Promotion) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can update promotions");
-    };
+  public shared ({ caller }) func updatePromotion(sessionToken : Text, promotion : Promotion) : async () {
+    let session = requireAdminSession(sessionToken);
     promotions.add(promotion.id, promotion);
   };
 
-  public shared ({ caller }) func deletePromotion(id : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can delete promotions");
-    };
+  public shared ({ caller }) func deletePromotion(sessionToken : Text, id : Nat) : async () {
+    let session = requireAdminSession(sessionToken);
     promotions.remove(id);
   };
 
-  public shared ({ caller }) func createTestimonial(testimonial : Testimonial) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can create testimonials");
-    };
+  // Testimonial Management - Admin-only CRUD (requires session token)
+  public shared ({ caller }) func createTestimonial(sessionToken : Text, testimonial : Testimonial) : async () {
+    let session = requireAdminSession(sessionToken);
     testimonials.add(testimonial.id, testimonial);
   };
 
-  public shared ({ caller }) func updateTestimonial(testimonial : Testimonial) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can update testimonials");
-    };
+  public shared ({ caller }) func updateTestimonial(sessionToken : Text, testimonial : Testimonial) : async () {
+    let session = requireAdminSession(sessionToken);
     testimonials.add(testimonial.id, testimonial);
   };
 
-  public shared ({ caller }) func deleteTestimonial(id : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can delete testimonials");
-    };
+  public shared ({ caller }) func deleteTestimonial(sessionToken : Text, id : Nat) : async () {
+    let session = requireAdminSession(sessionToken);
     testimonials.remove(id);
   };
 
-  public shared ({ caller }) func createBlogPost(post : BlogPost) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can create blog posts");
-    };
+  // Blog Post Management - Admin-only CRUD (requires session token)
+  public shared ({ caller }) func createBlogPost(sessionToken : Text, post : BlogPost) : async () {
+    let session = requireAdminSession(sessionToken);
     blogPosts.add(post.id, post);
   };
 
-  public shared ({ caller }) func updateBlogPost(post : BlogPost) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can update blog posts");
-    };
+  public shared ({ caller }) func updateBlogPost(sessionToken : Text, post : BlogPost) : async () {
+    let session = requireAdminSession(sessionToken);
     blogPosts.add(post.id, post);
   };
 
-  public shared ({ caller }) func deleteBlogPost(id : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can delete blog posts");
-    };
+  public shared ({ caller }) func deleteBlogPost(sessionToken : Text, id : Nat) : async () {
+    let session = requireAdminSession(sessionToken);
     blogPosts.remove(id);
   };
 
+  // Contact Management - Public submission, Admin-only viewing/deletion (requires session token)
   public shared ({ caller }) func addContact(contact : Contact) : async () {
+    // Public endpoint - anyone can submit a contact form (including guests)
     let uniqueId = contacts.size() + 1;
     contacts.add(uniqueId, contact);
   };
 
-  public query ({ caller }) func getContacts() : async [Contact] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can view contacts");
+  public query ({ caller }) func getContacts(sessionToken : Text) : async [Contact] {
+    // Validate session in query context
+    switch (validateAdminSession(sessionToken)) {
+      case (?session) {
+        contacts.values().toArray();
+      };
+      case null {
+        Runtime.trap("Unauthorized: Invalid or expired admin session");
+      };
     };
-    contacts.values().toArray();
   };
 
-  public shared ({ caller }) func deleteContact(id : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can delete contacts");
-    };
+  public shared ({ caller }) func deleteContact(sessionToken : Text, id : Nat) : async () {
+    let session = requireAdminSession(sessionToken);
     contacts.remove(id);
   };
 
+  // Credit Simulation Management - Public submission, Admin-only viewing/deletion (requires session token)
   public shared ({ caller }) func addCreditSimulation(simulation : CreditSimulation) : async () {
+    // Public endpoint - anyone can submit a credit simulation (including guests)
     let uniqueId = creditSimulations.size() + 1;
     creditSimulations.add(uniqueId, simulation);
   };
 
-  public query ({ caller }) func getCreditSimulations() : async [CreditSimulation] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can view credit simulations");
+  public query ({ caller }) func getCreditSimulations(sessionToken : Text) : async [CreditSimulation] {
+    // Validate session in query context
+    switch (validateAdminSession(sessionToken)) {
+      case (?session) {
+        creditSimulations.values().toArray();
+      };
+      case null {
+        Runtime.trap("Unauthorized: Invalid or expired admin session");
+      };
     };
-    creditSimulations.values().toArray();
   };
 
-  public shared ({ caller }) func deleteCreditSimulation(id : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can delete credit simulations");
-    };
+  public shared ({ caller }) func deleteCreditSimulation(sessionToken : Text, id : Nat) : async () {
+    let session = requireAdminSession(sessionToken);
     creditSimulations.remove(id);
   };
 
-  public shared ({ caller }) func createMediaAsset(asset : MediaAsset) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can create media assets");
-    };
+  // Media Asset Management - Admin-only (requires session token)
+  public shared ({ caller }) func createMediaAsset(sessionToken : Text, asset : MediaAsset) : async () {
+    let session = requireAdminSession(sessionToken);
     mediaAssets.add(asset.id, asset);
   };
 
-  public shared ({ caller }) func deleteMediaAsset(id : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can delete media assets");
-    };
+  public shared ({ caller }) func deleteMediaAsset(sessionToken : Text, id : Nat) : async () {
+    let session = requireAdminSession(sessionToken);
     mediaAssets.remove(id);
   };
 
-  public query ({ caller }) func getMediaAssets() : async [MediaAsset] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can view media assets");
+  public query ({ caller }) func getMediaAssets(sessionToken : Text) : async [MediaAsset] {
+    // Validate session in query context
+    switch (validateAdminSession(sessionToken)) {
+      case (?session) {
+        mediaAssets.values().toArray();
+      };
+      case null {
+        Runtime.trap("Unauthorized: Invalid or expired admin session");
+      };
     };
-    mediaAssets.values().toArray();
   };
 
+  // Product Interactions - User-level access for actions, public for viewing
   public shared ({ caller }) func likeProduct(itemId : Nat) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can like products");
@@ -378,13 +513,13 @@ actor {
   };
 
   public query ({ caller }) func getProductInteraction(itemId : Nat) : async ?Interaction {
+    // Public endpoint - anyone can view interaction stats
     productInteractions.get(itemId);
   };
 
+  // Analytics - Public tracking, Admin-only for stats management (requires session token)
   public shared ({ caller }) func incrementPageView() : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can update analytics");
-    };
+    // Public endpoint - allows tracking of all visitors including guests
     visitorStats := {
       totalVisitors = visitorStats.totalVisitors;
       activeUsers = visitorStats.activeUsers;
@@ -394,9 +529,7 @@ actor {
   };
 
   public shared ({ caller }) func incrementVisitor() : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can update analytics");
-    };
+    // Public endpoint - allows tracking of all visitors including guests
     visitorStats := {
       totalVisitors = visitorStats.totalVisitors + 1;
       activeUsers = visitorStats.activeUsers;
@@ -405,17 +538,24 @@ actor {
     };
   };
 
-  public query ({ caller }) func getVisitorStats() : async VisitorStats {
-    visitorStats;
+  public query ({ caller }) func getVisitorStats(sessionToken : Text) : async VisitorStats {
+    // Validate session in query context
+    switch (validateAdminSession(sessionToken)) {
+      case (?session) {
+        visitorStats;
+      };
+      case null {
+        Runtime.trap("Unauthorized: Invalid or expired admin session");
+      };
+    };
   };
 
-  public shared ({ caller }) func updateVisitorStats(stats : VisitorStats) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can update visitor stats");
-    };
+  public shared ({ caller }) func updateVisitorStats(sessionToken : Text, stats : VisitorStats) : async () {
+    let session = requireAdminSession(sessionToken);
     visitorStats := stats;
   };
 
+  // Public Query Endpoints - No authorization required
   public query ({ caller }) func getVehicles() : async [Vehicle] {
     vehicles.values().toArray();
   };

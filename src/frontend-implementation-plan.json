@@ -1,6 +1,106 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Frontend plan: no changes (backend-only stable persistence injection)",
-  "requirements": []
+  "title": "Admin email/password session-token authentication for /admin routes (frontend-only)",
+  "requirements": [
+    {
+      "id": "REQ-43",
+      "summary": "Update /admin login + logout flow to use backend email/password login, persist session token across refresh, and destroy session on logout (admin-only).",
+      "acceptanceCriteria": [
+        "`/admin/login` uses an email + password form (not Internet Identity) and shows English UI text.",
+        "On successful login, the user is redirected to the admin dashboard route (`/admin`).",
+        "Refreshing the page while logged in keeps the user authenticated and able to access `/admin` pages without re-login.",
+        "Logging out from the admin UI calls backend logout and removes the stored token; subsequent navigation to `/admin` requires logging in again.",
+        "No routes/components/pages outside the `/admin` area are modified as part of this change."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/admin/auth/adminSession.ts",
+          "operation": "create",
+          "description": "Add a small admin-session utility to store/retrieve/clear the admin session token (and role) in localStorage and a cookie, so sessions persist across refreshes."
+        },
+        {
+          "path": "frontend/src/admin/hooks/useAdminSession.ts",
+          "operation": "create",
+          "description": "Create a hook that (1) performs adminLogin(email,password) against the backend, (2) persists token/role via adminSession utilities, (3) validates an existing token by calling a token-protected backend capability, and (4) performs logout by calling adminLogout(token) and clearing stored session."
+        },
+        {
+          "path": "frontend/src/admin/pages/AdminLoginPage.tsx",
+          "operation": "modify",
+          "description": "Replace Internet Identity login UI with an email/password form that calls the backend adminLogin capability via useAdminSession; on success persist token, show English errors on failure, and redirect to /admin; if already authenticated (valid stored token) auto-redirect to /admin."
+        },
+        {
+          "path": "frontend/src/admin/AdminLayout.tsx",
+          "operation": "modify",
+          "description": "Replace Internet Identity-based logout with session-token logout: call backend adminLogout(token), clear local token storage/cookie, clear React Query cache, then navigate to /admin/login."
+        },
+        {
+          "path": "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+          "operation": "modify",
+          "description": "Update all admin/CMS React Query hooks to read the stored admin session token and pass it to token-protected backend capabilities (create/update/delete/list leads/media/stats/etc); surface English errors when token is missing/invalid."
+        },
+        {
+          "path": "frontend/src/admin/pages/LeadsAdminPage.tsx",
+          "operation": "modify",
+          "description": "Ensure leads admin page uses updated token-aware admin hooks and handles missing/invalid session errors in English without affecting any public pages."
+        },
+        {
+          "path": "frontend/src/admin/pages/MediaManagerPage.tsx",
+          "operation": "modify",
+          "description": "Ensure media manager page uses updated token-aware admin hooks for listing/creating/deleting media and shows English error feedback when unauthorized."
+        },
+        {
+          "path": "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
+          "operation": "modify",
+          "description": "Ensure visitor stats admin page uses updated token-aware hooks for read/update and shows English error feedback when unauthorized."
+        },
+        {
+          "path": "frontend/src/admin/pages/VehiclesAdminPage.tsx",
+          "operation": "modify",
+          "description": "Ensure vehicle CMS actions (create/update/delete) use token-aware admin mutations (no Internet Identity dependency) and handle authorization failures in English."
+        },
+        {
+          "path": "frontend/src/admin/pages/PromotionsAdminPage.tsx",
+          "operation": "modify",
+          "description": "Ensure promotion CMS actions (create/update/delete) use token-aware admin mutations and handle authorization failures in English."
+        },
+        {
+          "path": "frontend/src/admin/pages/TestimonialsAdminPage.tsx",
+          "operation": "modify",
+          "description": "Ensure testimonial CMS actions (create/update/delete) use token-aware admin mutations and handle authorization failures in English."
+        },
+        {
+          "path": "frontend/src/admin/pages/BlogAdminPage.tsx",
+          "operation": "modify",
+          "description": "Ensure blog CMS actions (create/update/delete) use token-aware admin mutations and handle authorization failures in English."
+        }
+      ]
+    },
+    {
+      "id": "REQ-44",
+      "summary": "Replace Internet Identity admin guarding with session-token-based guarding for all /admin routes, including access-denied handling.",
+      "acceptanceCriteria": [
+        "Visiting any `/admin/*` route without a valid stored session redirects to `/admin/login`.",
+        "Visiting `/admin/login` while already authenticated redirects to `/admin` automatically.",
+        "If an authenticated session exists but lacks required role/permissions (if roles are enforced), the UI displays an English access-denied view instead of rendering admin pages."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/admin/components/AccessDeniedView.tsx",
+          "operation": "create",
+          "description": "Add a small admin-only AccessDenied view that renders an English 'Access denied' message for authenticated sessions that lack required privileges."
+        },
+        {
+          "path": "frontend/src/admin/AdminGuard.tsx",
+          "operation": "modify",
+          "description": "Replace Internet Identity checks with session-token checks using useAdminSession validation: unauthenticated/invalid token redirects to /admin/login; authenticated sessions with insufficient role render AccessDeniedView; keep all text English."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Ensure all existing /admin routes continue to be wrapped by the updated AdminGuard; keep routing unchanged outside /admin and do not modify public pages."
+        }
+      ]
+    }
+  ]
 }
