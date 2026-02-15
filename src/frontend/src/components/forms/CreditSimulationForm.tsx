@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { useAddCreditSimulation } from '../../hooks/useQueries';
+import { useSubmitCreditSimulation } from '../../hooks/useQueries';
 import { toast } from 'sonner';
 import type { CreditSimulation } from '../../backend';
 
@@ -12,7 +12,7 @@ interface CreditSimulationFormProps {
 }
 
 export default function CreditSimulationForm({ onSuccess }: CreditSimulationFormProps) {
-  const addSimulation = useAddCreditSimulation();
+  const addSimulation = useSubmitCreditSimulation();
   const [formData, setFormData] = useState({
     name: '',
     address: '',

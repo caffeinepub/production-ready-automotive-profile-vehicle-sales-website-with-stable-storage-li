@@ -73,16 +73,16 @@ export function useAdminSession() {
       }
 
       try {
-        // Validate token by attempting to fetch visitor stats (admin-only endpoint)
-        const result = await actor.getVisitorStats(storedSession.token);
+        // Validate token by attempting to fetch extended visitor stats (admin-only endpoint)
+        const result = await actor.getExtendedVisitorStats(storedSession.token);
         
-        // If result is null, session is invalid/expired
-        if (result === null) {
-          console.log('Session validation failed: null result from getVisitorStats');
+        // If result is returned successfully, session is valid
+        if (result) {
+          setSession(storedSession);
+        } else {
+          console.log('Session validation failed: null result from getExtendedVisitorStats');
           clearAdminSession();
           setSession(null);
-        } else {
-          setSession(storedSession);
         }
       } catch (error) {
         console.error('Session validation failed:', error);

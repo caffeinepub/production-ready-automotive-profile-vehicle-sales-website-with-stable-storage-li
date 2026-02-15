@@ -1,42 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useGetVisitorStats, useUpdateVisitorStats } from '../hooks/useAdminCmsQueries';
+import { useGetExtendedVisitorStats } from '../hooks/useAdminCmsQueries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Users, Activity, Eye, TrendingUp } from 'lucide-react';
+import { Users, Activity, Eye, TrendingUp, Calendar, CalendarDays, CalendarRange, CalendarClock } from 'lucide-react';
 import AdminPageHeader from '../components/AdminPageHeader';
-import { toast } from 'sonner';
-import type { VisitorStats } from '../../backend';
 
 export default function VisitorStatsAdminPage() {
-  const { data: stats, isLoading, error } = useGetVisitorStats();
-  const updateStats = useUpdateVisitorStats();
-  
-  const [formData, setFormData] = useState<VisitorStats>({
-    totalVisitors: 0n,
-    activeUsers: 0n,
-    pageViews: 0n,
-    todayTraffic: 0n
-  });
-
-  useEffect(() => {
-    if (stats) {
-      setFormData(stats);
-    }
-  }, [stats]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      await updateStats.mutateAsync(formData);
-      toast.success('Visitor statistics updated successfully');
-    } catch (error) {
-      console.error('Update error:', error);
-      toast.error('Failed to update visitor statistics');
-    }
-  };
+  const { data: stats, isLoading, error } = useGetExtendedVisitorStats();
 
   if (isLoading) {
     return <div className="text-center py-8">Loading visitor statistics...</div>;
@@ -54,22 +22,50 @@ export default function VisitorStatsAdminPage() {
     {
       title: 'Total Visitors',
       value: stats?.totalVisitors || 0n,
-      icon: Users
-    },
-    {
-      title: 'Active Users',
-      value: stats?.activeUsers || 0n,
-      icon: Activity
+      icon: Users,
+      description: 'All-time visitors'
     },
     {
       title: 'Page Views',
       value: stats?.pageViews || 0n,
-      icon: Eye
+      icon: Eye,
+      description: 'Total pages viewed'
     },
     {
       title: 'Today Traffic',
       value: stats?.todayTraffic || 0n,
-      icon: TrendingUp
+      icon: TrendingUp,
+      description: 'Visitors today'
+    },
+    {
+      title: 'Yesterday Traffic',
+      value: stats?.yesterdayTraffic || 0n,
+      icon: Calendar,
+      description: 'Visitors yesterday'
+    },
+    {
+      title: 'Weekly Traffic',
+      value: stats?.weeklyTraffic || 0n,
+      icon: CalendarDays,
+      description: 'Last 7 days'
+    },
+    {
+      title: 'Monthly Traffic',
+      value: stats?.monthlyTraffic || 0n,
+      icon: CalendarRange,
+      description: 'Last 30 days'
+    },
+    {
+      title: 'Yearly Traffic',
+      value: stats?.yearlyTraffic || 0n,
+      icon: CalendarClock,
+      description: 'Last 365 days'
+    },
+    {
+      title: 'Online Visitors',
+      value: stats?.onlineVisitors || 0n,
+      icon: Activity,
+      description: 'Currently active'
     }
   ];
 
@@ -77,7 +73,7 @@ export default function VisitorStatsAdminPage() {
     <div className="space-y-6">
       <AdminPageHeader
         title="Visitor Statistics"
-        subtitle="Monitor and update website visitor statistics"
+        subtitle="Real-time monitoring of website visitor statistics (auto-refreshes every 10 seconds)"
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -95,6 +91,7 @@ export default function VisitorStatsAdminPage() {
               </CardHeader>
               <CardContent>
                 <p className="admin-stat-value text-2xl">{Number(stat.value).toLocaleString()}</p>
+                <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
               </CardContent>
             </Card>
           );
@@ -103,64 +100,18 @@ export default function VisitorStatsAdminPage() {
 
       <Card className="admin-stat-card">
         <CardHeader>
-          <CardTitle>Update Statistics</CardTitle>
+          <CardTitle>About Statistics</CardTitle>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="totalVisitors">Total Visitors</Label>
-                <Input
-                  id="totalVisitors"
-                  type="number"
-                  value={Number(formData.totalVisitors)}
-                  onChange={(e) => setFormData({ ...formData, totalVisitors: BigInt(e.target.value || 0) })}
-                  min="0"
-                  className="admin-search-input"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="activeUsers">Active Users</Label>
-                <Input
-                  id="activeUsers"
-                  type="number"
-                  value={Number(formData.activeUsers)}
-                  onChange={(e) => setFormData({ ...formData, activeUsers: BigInt(e.target.value || 0) })}
-                  min="0"
-                  className="admin-search-input"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="pageViews">Page Views</Label>
-                <Input
-                  id="pageViews"
-                  type="number"
-                  value={Number(formData.pageViews)}
-                  onChange={(e) => setFormData({ ...formData, pageViews: BigInt(e.target.value || 0) })}
-                  min="0"
-                  className="admin-search-input"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="todayTraffic">Today Traffic</Label>
-                <Input
-                  id="todayTraffic"
-                  type="number"
-                  value={Number(formData.todayTraffic)}
-                  onChange={(e) => setFormData({ ...formData, todayTraffic: BigInt(e.target.value || 0) })}
-                  min="0"
-                  className="admin-search-input"
-                />
-              </div>
-            </div>
-
-            <Button type="submit" disabled={updateStats.isPending} className="admin-btn-primary">
-              {updateStats.isPending ? 'Updating...' : 'Update Statistics'}
-            </Button>
-          </form>
+        <CardContent className="space-y-2 text-sm text-gray-600">
+          <p>• <strong>Total Visitors:</strong> Cumulative count of all unique visitors since launch</p>
+          <p>• <strong>Page Views:</strong> Total number of pages viewed across the site</p>
+          <p>• <strong>Today Traffic:</strong> Visitors who accessed the site today (resets at midnight WIB)</p>
+          <p>• <strong>Yesterday Traffic:</strong> Visitors from the previous day</p>
+          <p>• <strong>Weekly Traffic:</strong> Visitors in the last 7 days</p>
+          <p>• <strong>Monthly Traffic:</strong> Visitors in the last 30 days</p>
+          <p>• <strong>Yearly Traffic:</strong> Visitors in the last 365 days</p>
+          <p>• <strong>Online Visitors:</strong> Users currently active on the site (last 15 minutes)</p>
+          <p className="mt-4 text-xs text-gray-500">Statistics automatically refresh every 10 seconds. Daily counters reset at midnight WIB (UTC+7).</p>
         </CardContent>
       </Card>
     </div>

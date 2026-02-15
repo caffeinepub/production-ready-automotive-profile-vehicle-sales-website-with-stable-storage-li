@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { useAddContact } from '../../hooks/useQueries';
+import { useSubmitContact } from '../../hooks/useQueries';
 import { toast } from 'sonner';
 import type { Contact } from '../../backend';
 
@@ -12,7 +12,7 @@ interface ContactFormProps {
 }
 
 export default function ContactForm({ onSuccess }: ContactFormProps) {
-  const addContact = useAddContact();
+  const addContact = useSubmitContact();
   const [formData, setFormData] = useState({
     name: '',
     address: '',

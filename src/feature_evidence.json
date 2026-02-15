@@ -2,11 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-public-blog-interactions-bar-so-the-like-action-includes-a-visible-text-label-like-to-match-the-existing-share-and-comment-label-style-and-restrict-like-so-each-visitor-can-only-like-a-given-blog-article-once-per-blogpostid",
-      "featureTitle": "Update the public Blog interactions bar so the Like action includes a visible text label \"Like\" (to match the existing \"Share\" and \"Comment\" label style), and restrict Like so each visitor can only like a given blog article once per blogPostId.",
+      "featureId": "feature-update-the-admin-visitor-statistics-page-frontend-src-admin-pages-visitorstatsadminpage-tsx-to-display-the-requested-additional-metrics-total-visitors-today-yesterday-weekly-monthly-yearly-online-real-time-and-total-page-views-using-a-visual-format-consistent-with-the-current-admin-panel-styling-any-new-user-facing-text-introduced-on-the-admin-page-must-be-in-english",
+      "featureTitle": "Update the Admin Visitor Statistics page (frontend/src/admin/pages/VisitorStatsAdminPage.tsx) to display the requested additional metrics: Total Visitors, Today, Yesterday, Weekly, Monthly, Yearly, Online (real-time), and total Page Views, using a visual format consistent with the current admin panel styling. Any new user-facing text introduced on the admin page must be in English.",
       "files": [
-        "frontend/src/components/blog/BlogInteractionsBar.tsx",
-        "frontend/src/pages/BlogDetailPage.tsx"
+        "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+        "frontend/src/admin/pages/VisitorStatsAdminPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -18,17 +18,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-116"
+        "REQ-128"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-display-the-published-blog-comments-directly-below-the-article-content-on-the-public-blog-detail-page-and-support-threaded-replies-so-visitors-can-reply-to-an-existing-comment-and-see-replies-rendered-nested-under-the-parent-comment",
-      "featureTitle": "Display the published blog comments directly below the article content on the public Blog Detail page, and support threaded replies so visitors can reply to an existing comment and see replies rendered nested under the parent comment.",
+      "featureId": "feature-implement-automatic-refresh-behavior-on-the-admin-visitor-statistics-page-so-that-online-visitors-updates-near-real-time-via-polling-and-other-counters-refresh-on-a-reasonable-interval-without-requiring-manual-page-reload",
+      "featureTitle": "Implement automatic refresh behavior on the Admin Visitor Statistics page so that Online Visitors updates near-real-time via polling, and other counters refresh on a reasonable interval without requiring manual page reload.",
       "files": [
-        "frontend/src/components/blog/BlogCommentForm.tsx",
-        "frontend/src/components/blog/BlogCommentsThread.tsx",
-        "frontend/src/pages/BlogDetailPage.tsx"
+        "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+        "frontend/src/admin/pages/VisitorStatsAdminPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -40,16 +39,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-117"
+        "REQ-129"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-extend-the-backend-blog-comment-data-model-and-apis-to-support-threaded-comments-replies-and-provide-admin-only-moderation-capabilities-to-edit-and-delete-individual-comments-replies-from-the-existing-admin-blog-management-experience",
-      "featureTitle": "Extend the backend blog comment data model and APIs to support threaded comments (replies) and provide admin-only moderation capabilities to edit and delete individual comments/replies from the existing /admin Blog management experience.",
+      "featureId": "feature-keep-the-public-site-footer-ui-and-the-set-of-visitor-stat-items-displayed-in-the-footer-unchanged-ensure-the-footer-continues-to-show-only-the-existing-four-items-and-that-their-values-can-still-reflect-real-time-backend-tracked-values-no-new-rows-labels-sections-added-to-the-footer",
+      "featureTitle": "Keep the public-site Footer UI and the set of visitor-stat items displayed in the Footer unchanged. Ensure the Footer continues to show only the existing four items and that their values can still reflect real-time backend-tracked values (no new rows/labels/sections added to the Footer).",
       "files": [
-        "frontend/src/admin/components/BlogFormDialog.tsx",
-        "frontend/src/admin/hooks/useAdminCmsQueries.ts"
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -61,28 +59,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-118"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-activate-the-article-views-counter-so-that-visiting-a-public-blog-detail-page-increments-that-blog-post-s-views-count-and-the-updated-views-value-is-reflected-in-the-existing-admin-panel-views-counter-for-the-same-article",
-      "featureTitle": "Activate the article Views counter so that visiting a public Blog Detail page increments that blog post’s views count, and the updated views value is reflected in the existing admin panel views counter for the same article.",
-      "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/BlogDetailPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-119"
+        "REQ-130"
       ],
       "confidence": "high"
     }

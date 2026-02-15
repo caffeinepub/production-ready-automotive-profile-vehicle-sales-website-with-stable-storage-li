@@ -29,13 +29,9 @@ export default function BlogCommentsThread({
     setReplyingTo(null);
   };
 
+  // Hide empty state when no comments
   if (comments.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        <MessageCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
-        <p>No comments yet. Be the first to comment!</p>
-      </div>
-    );
+    return null;
   }
 
   return (

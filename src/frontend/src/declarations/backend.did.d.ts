@@ -79,6 +79,16 @@ export interface CreditSimulation {
   'notes' : [] | [string],
   'phoneNumber' : string,
 }
+export interface ExtendedVisitorStats {
+  'todayTraffic' : bigint,
+  'monthlyTraffic' : bigint,
+  'totalVisitors' : bigint,
+  'yesterdayTraffic' : bigint,
+  'yearlyTraffic' : bigint,
+  'onlineVisitors' : bigint,
+  'pageViews' : bigint,
+  'weeklyTraffic' : bigint,
+}
 export interface Interaction {
   'itemId' : bigint,
   'sharesFacebook' : bigint,
@@ -150,12 +160,6 @@ export interface Vehicle {
   'videoUrl' : [] | [string],
   'isCommercial' : boolean,
 }
-export interface VisitorStats {
-  'activeUsers' : bigint,
-  'todayTraffic' : bigint,
-  'totalVisitors' : bigint,
-  'pageViews' : bigint,
-}
 export interface _CaffeineStorageCreateCertificateResult {
   'method' : string,
   'blob_hash' : string,
@@ -192,7 +196,6 @@ export interface _SERVICE {
     [] | [{ 'token' : string, 'role' : string }]
   >,
   'adminLogout' : ActorMethod<[string], undefined>,
-  'approveBlogComment' : ActorMethod<[string, bigint], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'createAdminUser' : ActorMethod<
     [string, string, string, string],
@@ -203,7 +206,7 @@ export interface _SERVICE {
   'createPromotion' : ActorMethod<[string, Promotion], boolean>,
   'createTestimonial' : ActorMethod<[string, Testimonial], boolean>,
   'createVehicle' : ActorMethod<[string, Vehicle], boolean>,
-  'deleteBlogComment' : ActorMethod<[string, bigint], undefined>,
+  'deleteBlogComment' : ActorMethod<[string, bigint, bigint], undefined>,
   'deleteBlogPost' : ActorMethod<[string, bigint], boolean>,
   'deleteContact' : ActorMethod<[string, bigint], boolean>,
   'deleteCreditSimulation' : ActorMethod<[string, bigint], boolean>,
@@ -212,6 +215,7 @@ export interface _SERVICE {
   'deleteTestimonial' : ActorMethod<[string, bigint], boolean>,
   'deleteVehicle' : ActorMethod<[string, bigint], boolean>,
   'getAndIncrementBlogPostViews' : ActorMethod<[bigint], [] | [BlogPost]>,
+  'getBlogComment' : ActorMethod<[string, bigint, bigint], [] | [BlogComment]>,
   'getBlogComments' : ActorMethod<[bigint], Array<BlogComment>>,
   'getBlogInteractionSummary' : ActorMethod<[bigint], BlogInteractionSummary>,
   'getBlogPost' : ActorMethod<[bigint], [] | [BlogPost]>,
@@ -223,6 +227,7 @@ export interface _SERVICE {
     [string],
     [] | [Array<CreditSimulation>]
   >,
+  'getExtendedVisitorStats' : ActorMethod<[string], ExtendedVisitorStats>,
   'getMediaAssets' : ActorMethod<[string], [] | [Array<MediaAsset>]>,
   'getProductInteraction' : ActorMethod<[bigint], [] | [Interaction]>,
   'getPromotion' : ActorMethod<[bigint], [] | [Promotion]>,
@@ -231,7 +236,6 @@ export interface _SERVICE {
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'getVehicle' : ActorMethod<[bigint], [] | [Vehicle]>,
   'getVehicles' : ActorMethod<[], Array<Vehicle>>,
-  'getVisitorStats' : ActorMethod<[string], [] | [VisitorStats]>,
   'incrementBlogLike' : ActorMethod<[bigint], bigint>,
   'incrementBlogShare' : ActorMethod<[bigint, string], bigint>,
   'incrementPageView' : ActorMethod<[], undefined>,
@@ -240,12 +244,15 @@ export interface _SERVICE {
   'likeProduct' : ActorMethod<[bigint], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'shareProduct' : ActorMethod<[bigint, string], undefined>,
-  'updateBlogComment' : ActorMethod<[string, bigint, string], undefined>,
+  'updateBlogComment' : ActorMethod<
+    [string, bigint, bigint, string],
+    undefined
+  >,
   'updateBlogPost' : ActorMethod<[string, BlogPost], boolean>,
   'updatePromotion' : ActorMethod<[string, Promotion], boolean>,
   'updateTestimonial' : ActorMethod<[string, Testimonial], boolean>,
   'updateVehicle' : ActorMethod<[string, Vehicle], boolean>,
-  'updateVisitorStats' : ActorMethod<[string, VisitorStats], boolean>,
+  'userActivity' : ActorMethod<[string], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

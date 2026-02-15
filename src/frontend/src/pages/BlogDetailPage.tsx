@@ -88,7 +88,7 @@ export default function BlogDetailPage() {
         content: data.content,
         parentId: data.parentId
       });
-      toast.success('Comment submitted! It will be reviewed before being published.');
+      toast.success('Comment posted successfully!');
       // Reset form by incrementing the reset key
       setFormResetKey(prev => prev + 1);
     } catch (error) {

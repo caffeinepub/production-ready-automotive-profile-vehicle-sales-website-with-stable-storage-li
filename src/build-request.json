@@ -1,98 +1,146 @@
 {
   "kind": "build_request",
-  "title": "Enhance public blog interactions: Like label + one-like-per-visitor, threaded comments with admin moderation, and article view counter activation",
+  "title": "Expand and activate Visitor Statistics in Admin panel (keep Footer UI unchanged)",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-116",
-      "text": "Update the public Blog interactions bar so the Like action includes a visible text label \"Like\" (to match the existing \"Share\" and \"Comment\" label style), and restrict Like so each visitor can only like a given blog article once per blogPostId.",
+      "id": "REQ-124",
+      "text": "Extend the backend visitor statistics system to compute and persist the following metrics in stable, upgrade-safe storage: Total Visitors, Today Visitors, Yesterday Visitors, Weekly Visitors, Monthly Visitors, Yearly Visitors, Online Visitors (real-time), and total Page Views. Ensure these metrics are queryable efficiently for the admin panel.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Perbarui dan mengaktifkan data Statistik Pengunjung pada admin panel tanpa mengubah tampilan di Footer.\n...\n- Total Pengunjung\n- Pengunjung Hari Ini\n- Pengunjung Kemarin\n- Pengunjung Mingguan\n- Pengunjung Bulanan\n- Pengunjung Tahunan\n- Pengunjung Online (Real-time)\n- Page View (total halaman yang dibuka)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Visitor statistics data survives canister redeploy/upgrade (stable persistence) and restores correctly.",
+        "Backend provides an internal representation of all requested metrics (total, today, yesterday, weekly, monthly, yearly, online, page views).",
+        "Metrics can be retrieved via backend APIs without requiring full scans of raw events on every query (i.e., counters/rollups are persisted)."
+      ]
+    },
+    {
+      "id": "REQ-125",
+      "text": "Implement backend rollup/reset logic for time-based visitor counters using the WIB timezone, including a daily reset at 00:00 WIB (midnight). Ensure the system updates Today/Yesterday/Weekly/Monthly/Yearly counters correctly when day/week/month/year boundaries are crossed, even if no traffic occurs exactly at the boundary (i.e., rollovers happen on the next relevant call).",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Pastikan refresh data berjalan otomatis, Statistik harian reset setiap pukul 00.00 WIB (jam 12 malam)."
+        ]
+      },
+      "acceptanceCriteria": [
+        "When the WIB day changes, the system rolls Today -> Yesterday and resets Today to 0 on the next visitor/pageview/stat-query call.",
+        "Weekly, monthly, and yearly counters roll over at WIB boundaries consistent with their period, without requiring an external cron service.",
+        "Rollover logic is idempotent (multiple calls after rollover do not double-shift counters)."
+      ]
+    },
+    {
+      "id": "REQ-126",
+      "text": "Add backend support for Online Visitors (real-time) suitable for admin display by tracking active visitor presence with an expiry window (based on last-seen timestamps) and exposing the current online count via an admin-readable API. This should not require any changes to the public Footer UI.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Perbarui API atau fungsi pengambil data agar admin panel menampilkan data terbaru secara real-time (untuk Pengunjung Online)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend exposes an admin-readable online visitor count that reflects recent activity within a defined presence window (e.g., lastSeen-based).",
+        "Online visitor count updates as new page views/heartbeats occur and decreases automatically as visitors go inactive (without manual intervention).",
+        "No changes are required to any public Footer component layout/markup to support this."
+      ]
+    },
+    {
+      "id": "REQ-127",
+      "text": "Expose backend admin APIs (session-token protected, consistent with existing admin auth patterns) to fetch the extended visitor statistics dataset required by the admin panel, while keeping the existing public visitor stats shape used by the Footer unchanged (no new Footer fields, no UI changes).",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Perbarui API atau fungsi pengambil data agar admin panel menampilkan data terbaru ...\nFooter Website\nTidak melakukan perubahan apapun pada Statistik Pengunjung yang tampil di footer.\nFooter tetap menampilkan statistik yang sudah ada tanpa menambahkan poin baru"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin can fetch all extended metrics via an authenticated admin method (token required).",
+        "Existing Footer-displayed fields remain exactly: totalVisitors, activeUsers, pageViews, todayTraffic (no additional fields required by the Footer UI).",
+        "Unauthorized/expired admin sessions do not trap; they return a safe unauthorized response consistent with current admin CMS expectations."
+      ]
+    },
+    {
+      "id": "REQ-128",
+      "text": "Update the Admin Visitor Statistics page (frontend/src/admin/pages/VisitorStatsAdminPage.tsx) to display the requested additional metrics: Total Visitors, Today, Yesterday, Weekly, Monthly, Yearly, Online (real-time), and total Page Views, using a visual format consistent with the current admin panel styling. Any new user-facing text introduced on the admin page must be in English.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "Tambahkan text 'Like' pada icon Love seperti pada icon share dan komen agar serasi.",
-          "Batasi klik Like agar setiap pengunjung hanya dapat mengklik Like 1x disetiap halaman artikel. Hanya Like, untuk share dan komentar bebas."
+          "Frontend Admin Panel\nTambahkan atau aktifkan tampilan statistik sesuai daftar poin di atas.\nGunakan format yang konsisten dengan tampilan admin panel saat ini."
         ]
       },
       "acceptanceCriteria": [
-        "On the public Blog Detail page, the Like button shows the text label \"Like\" next to the heart icon and count.",
-        "After a visitor successfully likes an article once, subsequent clicks for the same article do not call the backend increment-like mutation again and the Like control is visibly disabled or otherwise prevented from re-liking for that same visitor.",
-        "The one-like-per-visitor restriction is scoped per blogPostId (liking one article does not block liking other articles).",
-        "Share and Comment actions remain unrestricted (no per-visitor limitation added)."
+        "Admin Visitor Statistics page shows cards/fields for all requested metrics (including Yesterday/Weekly/Monthly/Yearly/Online).",
+        "Any newly added labels/help text/toasts introduced by this change are in English.",
+        "Existing admin layout/routes remain unchanged (only the Visitor Stats content is expanded)."
       ]
     },
     {
-      "id": "REQ-117",
-      "text": "Display the published blog comments directly below the article content on the public Blog Detail page, and support threaded replies so visitors can reply to an existing comment and see replies rendered nested under the parent comment.",
-      "target": "both",
+      "id": "REQ-129",
+      "text": "Implement automatic refresh behavior on the Admin Visitor Statistics page so that Online Visitors updates near-real-time via polling, and other counters refresh on a reasonable interval without requiring manual page reload.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "Tampilkan langsung komentar yang sudah di posting pengunjung dibawah artikel. Dapat diedit dan dihapus diadmin panel.",
-          "Buat komentar yang tampil bisa dibalas oleh pengunjung lain."
+          "Pastikan refresh data berjalan otomatis ... (untuk Pengunjung Online)"
         ]
       },
       "acceptanceCriteria": [
-        "The public Blog Detail page renders a comment list section below the article (and below the interactions/form area), showing existing comments for that blogPostId.",
-        "The comment list supports replies: each top-level comment can be replied to, and replies render nested under their parent comment.",
-        "After submitting a new comment or a reply, the UI updates so the new item appears in the list without requiring a full page refresh.",
-        "Any new user-facing text introduced for the comments list/replies UI (buttons, placeholders, empty states, validation) is in English."
+        "Online Visitors value updates automatically via client polling (e.g., React Query refetchInterval) without a full page reload.",
+        "Non-real-time counters also refresh automatically on an interval appropriate for admin monitoring.",
+        "No changes are made to public (non-/admin) pages as part of implementing admin refresh behavior."
       ]
     },
     {
-      "id": "REQ-118",
-      "text": "Extend the backend blog comment data model and APIs to support threaded comments (replies) and provide admin-only moderation capabilities to edit and delete individual comments/replies from the existing /admin Blog management experience.",
-      "target": "both",
+      "id": "REQ-130",
+      "text": "Keep the public-site Footer UI and the set of visitor-stat items displayed in the Footer unchanged. Ensure the Footer continues to show only the existing four items and that their values can still reflect real-time backend-tracked values (no new rows/labels/sections added to the Footer).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "Dapat diedit dan dihapus diadmin panel.",
-          "Buat komentar yang tampil bisa dibalas oleh pengunjung lain."
+          "Footer Website\nTidak melakukan perubahan apapun pada Statistik Pengunjung yang tampil di footer.\nFooter tetap menampilkan statistik yang sudah ada tanpa menambahkan poin baru, dan sama-sama menampilkan data real time."
         ]
       },
       "acceptanceCriteria": [
-        "Backend supports storing a comment as either a top-level comment or a reply tied to a parent comment (threaded structure) in stable, upgrade-safe persistence.",
-        "Public API supports: (1) fetching approved comments (including replies) for a blogPostId, and (2) creating a top-level comment or a reply for a blogPostId.",
-        "Admin API supports: editing an individual comment (at minimum the content) and deleting an individual comment (whether top-level or reply).",
-        "The existing admin Blog editor dialog (/admin blog management area) is updated so admins can edit and delete individual comments (not only delete-all), and the admin UI remains in English for any new text added."
-      ]
-    },
-    {
-      "id": "REQ-119",
-      "text": "Activate the article Views counter so that visiting a public Blog Detail page increments that blog post’s views count, and the updated views value is reflected in the existing admin panel views counter for the same article.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Aktifkan Views counter halaman artikel yang sudah ada pada admin panel."
-        ]
-      },
-      "acceptanceCriteria": [
-        "When a visitor opens a Blog Detail page, the system increments that blog post’s views count via a backend method, and the blog post’s views value returned by the public blog post query reflects the increment.",
-        "The view increment occurs at most once per visitor per article within a reasonable single browsing session (to avoid multiple increments from re-renders/navigation loops).",
-        "The /admin Blog management UI shows the same views value for the article as stored in the backend (i.e., the counter used by admin is actually updated by public visits).",
-        "Any new user-facing text introduced by this change is in English."
+        "No markup/layout changes are made to frontend/src/components/layout/Footer.tsx that would alter what is displayed (still 4 rows: Total Visitors, Active Users, Page Views, Today Traffic).",
+        "Footer does not display any of the new admin-only metrics (Yesterday/Weekly/Monthly/Yearly/Online).",
+        "Footer values are sourced from backend-tracked values (not hardcoded), with behavior consistent with existing site expectations."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui (compose only).",
-    "Keep the existing public blog page layout structure intact beyond adding the requested comment list/replies rendering below the article and minor label additions in the interactions bar.",
-    "Backend must remain single-actor (all Motoko logic in backend/main.mo). Only add backend/migration.mo changes if a stable-state upgrade is required by the data model changes.",
-    "Use English for any new user-facing text introduced by these changes (public and admin)."
+    "Backend must remain a single-actor Motoko canister (all logic in backend/main.mo).",
+    "Use stable, upgrade-safe persistence for visitor statistics so counters survive redeploy/upgrade.",
+    "Do not change the public Footer UI appearance or add new visitor-stat rows/labels/sections in the Footer.",
+    "Any new user-facing text introduced by these changes in the admin panel must be in English.",
+    "Do not modify any files under frontend/src/components/ui (immutable Shadcn components)."
   ],
   "nonGoals": [
-    "Do not add any per-visitor restriction for Share or Comment beyond the requested Like limitation.",
-    "Do not introduce third-party authentication or external databases/services.",
-    "Do not redesign the overall admin layout or change admin routes; only extend the existing blog management/editor experience to support comment edit/delete and replies moderation."
+    "Do not redesign the public Footer or change its visual layout.",
+    "Do not add new public pages or new public-facing visitor-stat metrics beyond what the Footer already shows.",
+    "Do not introduce external databases, cron services, or third-party analytics integrations."
   ],
   "imageRequirements": {
     "required": [],
@@ -101,9 +149,7 @@
   "userProfileUpdate": {
     "goalsToAdd": [],
     "goalsToRemove": [],
-    "preferencesToAdd": [
-      "Use English for any new user-facing text introduced by blog interaction/comment/view changes."
-    ],
+    "preferencesToAdd": [],
     "preferencesToRemove": [],
     "miscToAdd": [],
     "miscToRemove": [],

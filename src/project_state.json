@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 51,
+  "projectStateVersion": 55,
   "summary": "Automotive company profile + vehicle sales website with production-ready backend/frontend separation, stable persistence (upgrade/redeploy safe), live CMS admin panel, media manager, SEO/performance, product & article interactions, and seeded content.",
   "architectural_notes": [
     "Use stable persistence only (no in-memory) and ensure upgrade/redeploy-safe data migrations with auto-restore after redeploy.",
@@ -26,7 +26,7 @@
     "Media library authorization failure: admin login works but media endpoints return \"Unauthorized: Only admins can view media assets\" due to media service using a different auth source (e.g., principal whitelist) than CMS session auth.",
     "Admin CMS: PassengerVehicles and CommercialVehicles editor buttons both appear active (both red) when one is selected; tab/state styling logic likely incorrect."
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-build-an-admin-authentication-and-authority-system-for-admin-supporting-email-password-login-multi-admin-accounts-and-role-based-access-control-seed-an-initial-super-admin-bound-to-principal-id-7aizr-qwhrg-kuvhe-yekzz-6nj4a-t6yeb-5gnrb-pjpwy-gp2ut-up3m5-3qe-as-owner-with-the-ability-to-manage-other-admins-and-roles",
@@ -667,6 +667,54 @@
         "REQ-119"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-public-blog-comment-submission-flow-so-newly-submitted-visitor-comments-are-immediately-visible-below-the-article-no-admin-review-approval-step-required-this-includes-1-backend-comment-creation-must-mark-new-comments-as-approved-by-default-2-public-comment-queries-must-return-these-comments-right-away-and-3-the-public-success-toast-message-on-comment-submit-must-not-mention-review-approval",
+      "title": "Update the public blog comment submission flow so newly submitted visitor comments are immediately visible below the article (no admin review/approval step required). This includes: (1) backend comment creation must mark new comments as approved by default, (2) public comment queries must return these comments right away, and (3) the public success toast/message on comment submit must not mention review/approval.",
+      "reqIds": [
+        "REQ-120"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-blog-editor-ui-existing-dialog-so-an-admin-can-always-find-and-manage-comments-for-the-selected-blog-post-show-a-comments-moderation-section-for-existing-posts-even-when-there-are-zero-comments-and-wire-the-section-to-the-admin-only-comment-apis-so-edit-and-delete-work-reliably",
+      "title": "Update the admin Blog editor UI (existing dialog) so an admin can always find and manage comments for the selected blog post: show a Comments moderation section for existing posts even when there are zero comments, and wire the section to the admin-only comment APIs so edit and delete work reliably.",
+      "reqIds": [
+        "REQ-122"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-hide-the-public-empty-state-message-no-comments-yet-be-the-first-to-comment-when-a-blog-article-has-zero-comments-do-not-render-that-empty-state-block",
+      "title": "Hide the public empty-state message 'No comments yet. Be the first to comment!' when a blog article has zero comments (do not render that empty-state block).",
+      "reqIds": [
+        "REQ-123"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-visitor-statistics-page-frontend-src-admin-pages-visitorstatsadminpage-tsx-to-display-the-requested-additional-metrics-total-visitors-today-yesterday-weekly-monthly-yearly-online-real-time-and-total-page-views-using-a-visual-format-consistent-with-the-current-admin-panel-styling-any-new-user-facing-text-introduced-on-the-admin-page-must-be-in-english",
+      "title": "Update the Admin Visitor Statistics page (frontend/src/admin/pages/VisitorStatsAdminPage.tsx) to display the requested additional metrics: Total Visitors, Today, Yesterday, Weekly, Monthly, Yearly, Online (real-time), and total Page Views, using a visual format consistent with the current admin panel styling. Any new user-facing text introduced on the admin page must be in English.",
+      "reqIds": [
+        "REQ-128"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-automatic-refresh-behavior-on-the-admin-visitor-statistics-page-so-that-online-visitors-updates-near-real-time-via-polling-and-other-counters-refresh-on-a-reasonable-interval-without-requiring-manual-page-reload",
+      "title": "Implement automatic refresh behavior on the Admin Visitor Statistics page so that Online Visitors updates near-real-time via polling, and other counters refresh on a reasonable interval without requiring manual page reload.",
+      "reqIds": [
+        "REQ-129"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-keep-the-public-site-footer-ui-and-the-set-of-visitor-stat-items-displayed-in-the-footer-unchanged-ensure-the-footer-continues-to-show-only-the-existing-four-items-and-that-their-values-can-still-reflect-real-time-backend-tracked-values-no-new-rows-labels-sections-added-to-the-footer",
+      "title": "Keep the public-site Footer UI and the set of visitor-stat items displayed in the Footer unchanged. Ensure the Footer continues to show only the existing four items and that their values can still reflect real-time backend-tracked values (no new rows/labels/sections added to the Footer).",
+      "reqIds": [
+        "REQ-130"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -1232,6 +1280,70 @@
       "id": "AR-116",
       "summary": "Enable/activate the Blog article Views counter so public blog detail page views are tracked and reflected in the existing /admin panel views counter for each article.",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-117",
+      "summary": "Public Blog comments publishing behavior: when a visitor submits a comment, it should be immediately visible live below the article (no admin review/approval step required).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-118",
+      "summary": "Admin Blog comment moderation: add ability in /admin Blog management to view, edit, and delete individual public blog comments (not just delete-all), for comments shown on the public blog detail page.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-119",
+      "summary": "Public Blog Detail page UI: hide the empty-state text 'No comments yet. Be the first to comment!' when an article has zero comments.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-121",
+      "summary": "Add/adjust backend admin-only blog comment moderation APIs so admins can view, edit, and delete individual blog comments for a specific blogPostId from the existing /admin Blog management experience. Ensure these admin APIs require a valid admin session token and return safe unauthorized responses (no traps) consistent with existing admin CMS patterns.",
+      "reqIds": [
+        "REQ-121"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-122",
+      "summary": "Expand/activate Visitor Statistics in the /admin panel (without changing Footer UI): add metrics Total Visitors, Today, Yesterday, Weekly, Monthly, Yearly, Online (real-time), and total Page Views; ensure backend stable persistence + efficient queries; implement scheduled rollups/resets with daily reset at 00:00 WIB; auto-refresh admin data and keep Footer showing only existing stats (still real-time).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-123",
+      "summary": "Extend the backend visitor statistics system to compute and persist the following metrics in stable, upgrade-safe storage: Total Visitors, Today Visitors, Yesterday Visitors, Weekly Visitors, Monthly Visitors, Yearly Visitors, Online Visitors (real-time), and total Page Views. Ensure these metrics are queryable efficiently for the admin panel.",
+      "reqIds": [
+        "REQ-124"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-124",
+      "summary": "Implement backend rollup/reset logic for time-based visitor counters using the WIB timezone, including a daily reset at 00:00 WIB (midnight). Ensure the system updates Today/Yesterday/Weekly/Monthly/Yearly counters correctly when day/week/month/year boundaries are crossed, even if no traffic occurs exactly at the boundary (i.e., rollovers happen on the next relevant call).",
+      "reqIds": [
+        "REQ-125"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-125",
+      "summary": "Add backend support for Online Visitors (real-time) suitable for admin display by tracking active visitor presence with an expiry window (based on last-seen timestamps) and exposing the current online count via an admin-readable API. This should not require any changes to the public Footer UI.",
+      "reqIds": [
+        "REQ-126"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-126",
+      "summary": "Expose backend admin APIs (session-token protected, consistent with existing admin auth patterns) to fetch the extended visitor statistics dataset required by the admin panel, while keeping the existing public visitor stats shape used by the Footer unchanged (no new Footer fields, no UI changes).",
+      "reqIds": [
+        "REQ-127"
+      ],
       "status": "pending"
     }
   ],

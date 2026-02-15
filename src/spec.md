@@ -1,12 +1,15 @@
 # Specification
 
 ## Summary
-**Goal:** Improve public blog engagement and admin oversight by enhancing likes, enabling threaded comments with moderation, and activating the article views counter.
+**Goal:** Expand and activate visitor statistics for the Admin panel with additional metrics and near-real-time updates, while keeping the public-site Footer UI and its displayed visitor-stat items unchanged.
 
 **Planned changes:**
-- Add a visible “Like” text label to the Like (heart) action in the public blog interactions bar and enforce one-like-per-visitor per blogPostId (Share and Comment remain unrestricted).
-- Render published comments below the public Blog Detail content and support threaded replies with nested display; update the UI immediately after posting without a full refresh (new UI text in English).
-- Extend backend comment storage and APIs to support replies (parent/child), and update the existing admin blog management/editor experience to allow admins to edit and delete individual comments and replies (new UI text in English).
-- Activate blog post view counting so visiting a public Blog Detail increments views (at most once per visitor per article per session) and the admin views counter reflects the updated backend value.
+- Extend backend visitor statistics to compute and persist (upgrade-safe) counters for: Total, Today, Yesterday, Weekly, Monthly, Yearly, Online (real-time), and total Page Views.
+- Add WIB timezone rollover/reset logic (daily reset at 00:00 WIB; correct weekly/monthly/yearly rollovers on the next relevant call, idempotently).
+- Implement backend tracking for Online Visitors using last-seen/presence expiry and expose an admin-readable online count.
+- Expose authenticated (session-token protected) admin APIs to fetch the extended statistics dataset, while keeping the existing public Footer stats API shape unchanged.
+- Update the Admin Visitor Statistics page to display all requested metrics using existing admin styling; ensure any new labels/text are in English.
+- Add automatic refresh/polling on the Admin Visitor Statistics page so Online Visitors updates near-real-time and other counters refresh periodically without manual reload.
+- Ensure the public Footer remains visually unchanged and continues to display only the existing four items.
 
-**User-visible outcome:** Visitors can like an article once, see and post threaded comments/replies under the article, and article view counts increase on visits and are visible in the admin panel; admins can edit/delete individual comments and replies.
+**User-visible outcome:** Admin users can view a richer Visitor Statistics dashboard (including yesterday/weekly/monthly/yearly and real-time online visitors) that updates automatically, while site visitors see the Footer statistics unchanged with the same four items as before.

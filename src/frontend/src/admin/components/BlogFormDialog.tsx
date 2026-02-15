@@ -12,9 +12,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Trash2, CheckCircle, Edit2, X } from 'lucide-react';
+import { Trash2, Edit2, X, Save } from 'lucide-react';
 import MediaPickerDialog from './media/MediaPickerDialog';
-import { useGetBlogCommentsAdmin, useDeleteBlogComment, useApproveBlogComment, useUpdateBlogComment } from '../hooks/useAdminCmsQueries';
+import { useGetBlogComments, useDeleteBlogComment, useUpdateBlogComment } from '../hooks/useAdminCmsQueries';
 import { useGetBlogInteractionSummary } from '../../hooks/useQueries';
 import type { BlogPost, BlogComment } from '../../backend';
 import { toast } from 'sonner';
@@ -51,9 +51,8 @@ export default function BlogFormDialog({
   const [editingContent, setEditingContent] = useState('');
 
   const { data: interactionSummary } = useGetBlogInteractionSummary(blogPost?.id);
-  const { data: comments = [] } = useGetBlogCommentsAdmin(blogPost?.id);
+  const { data: comments = [], isLoading: commentsLoading } = useGetBlogComments(blogPost?.id);
   const deleteComment = useDeleteBlogComment();
-  const approveComment = useApproveBlogComment();
   const updateComment = useUpdateBlogComment();
 
   useEffect(() => {
@@ -73,6 +72,8 @@ export default function BlogFormDialog({
         published: false
       });
     }
+    setEditingCommentId(null);
+    setEditingContent('');
   }, [blogPost, open]);
 
   const handleSubmit = () => {
@@ -93,22 +94,18 @@ export default function BlogFormDialog({
   };
 
   const handleDeleteComment = async (commentId: bigint) => {
+    if (!blogPost?.id) return;
+    
+    if (!confirm('Are you sure you want to delete this comment?')) {
+      return;
+    }
+
     try {
-      await deleteComment.mutateAsync(commentId);
+      await deleteComment.mutateAsync({ blogPostId: blogPost.id, commentId });
       toast.success('Comment deleted successfully');
     } catch (error) {
       console.error('Delete comment error:', error);
       toast.error('Failed to delete comment');
-    }
-  };
-
-  const handleApproveComment = async (commentId: bigint) => {
-    try {
-      await approveComment.mutateAsync(commentId);
-      toast.success('Comment approved successfully');
-    } catch (error) {
-      console.error('Approve comment error:', error);
-      toast.error('Failed to approve comment');
     }
   };
 
@@ -117,9 +114,15 @@ export default function BlogFormDialog({
     setEditingContent(comment.content);
   };
 
-  const handleSaveEdit = async (commentId: bigint) => {
+  const handleSaveComment = async (commentId: bigint) => {
+    if (!blogPost?.id) return;
+
     try {
-      await updateComment.mutateAsync({ commentId, content: editingContent });
+      await updateComment.mutateAsync({
+        blogPostId: blogPost.id,
+        commentId,
+        content: editingContent
+      });
       toast.success('Comment updated successfully');
       setEditingCommentId(null);
       setEditingContent('');
@@ -134,112 +137,77 @@ export default function BlogFormDialog({
     setEditingContent('');
   };
 
-  // Organize comments into threaded structure
+  // Separate top-level comments and replies
   const topLevelComments = comments.filter(c => !c.parentId);
   const getReplies = (parentId: bigint) => 
     comments.filter(c => c.parentId?.toString() === parentId.toString());
 
   const renderComment = (comment: BlogComment, isReply: boolean = false) => {
     const isEditing = editingCommentId?.toString() === comment.id.toString();
-    const replies = getReplies(comment.id);
 
     return (
-      <div key={comment.id.toString()} className={isReply ? 'ml-8' : ''}>
-        <div
-          className={`p-4 rounded-lg border ${
-            comment.approved ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
-          } ${isReply ? 'mb-2' : 'mb-3'}`}
-        >
-          <div className="flex justify-between items-start mb-2">
-            <div>
-              <p className="font-semibold">{comment.name}</p>
-              <p className="text-sm text-gray-600">{comment.email}</p>
-              <p className="text-xs text-gray-500">
-                {new Date(Number(comment.createdAt) / 1000000).toLocaleString()}
-              </p>
-              {comment.parentId && (
-                <p className="text-xs text-blue-600 mt-1">↳ Reply</p>
-              )}
-            </div>
-            <div className="flex gap-2">
-              {!isEditing && (
-                <>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleEditComment(comment)}
-                    disabled={updateComment.isPending}
-                    className="text-blue-600 hover:text-blue-700"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                  {!comment.approved && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleApproveComment(comment.id)}
-                      disabled={approveComment.isPending}
-                      className="text-green-600 hover:text-green-700"
-                    >
-                      <CheckCircle className="h-4 w-4" />
-                    </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleDeleteComment(comment.id)}
-                    disabled={deleteComment.isPending}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-            </div>
+      <div 
+        key={comment.id.toString()} 
+        className={`p-4 rounded-lg border ${isReply ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-300'}`}
+      >
+        <div className="flex justify-between items-start mb-2">
+          <div>
+            <p className="font-semibold">{comment.name}</p>
+            <p className="text-xs text-gray-500">{comment.email}</p>
+            <p className="text-xs text-gray-400">
+              {new Date(Number(comment.createdAt) / 1000000).toLocaleString()}
+            </p>
           </div>
-          
-          {isEditing ? (
-            <div className="space-y-2">
-              <Textarea
-                value={editingContent}
-                onChange={(e) => setEditingContent(e.target.value)}
-                rows={3}
-                className="text-sm"
-              />
-              <div className="flex gap-2">
+          <div className="flex gap-2">
+            {isEditing ? (
+              <>
                 <Button
                   size="sm"
-                  onClick={() => handleSaveEdit(comment.id)}
+                  variant="ghost"
+                  onClick={() => handleSaveComment(comment.id)}
                   disabled={updateComment.isPending}
-                  className="bg-[#C90010] hover:bg-[#a00010]"
                 >
-                  Save
+                  <Save className="h-4 w-4" />
                 </Button>
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="ghost"
                   onClick={handleCancelEdit}
                   disabled={updateComment.isPending}
                 >
                   <X className="h-4 w-4" />
                 </Button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
-              {comment.approved && (
-                <p className="text-xs text-green-600 mt-2">✓ Approved</p>
-              )}
-            </>
-          )}
-        </div>
-        
-        {/* Render replies */}
-        {replies.length > 0 && (
-          <div className="space-y-2">
-            {replies.map(reply => renderComment(reply, true))}
+              </>
+            ) : (
+              <>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleEditComment(comment)}
+                >
+                  <Edit2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleDeleteComment(comment.id)}
+                  disabled={deleteComment.isPending}
+                >
+                  <Trash2 className="h-4 w-4 text-red-600" />
+                </Button>
+              </>
+            )}
           </div>
+        </div>
+        {isEditing ? (
+          <Textarea
+            value={editingContent}
+            onChange={(e) => setEditingContent(e.target.value)}
+            rows={3}
+            className="mt-2"
+          />
+        ) : (
+          <p className="text-sm text-gray-700 whitespace-pre-wrap">{comment.content}</p>
         )}
       </div>
     );
@@ -250,32 +218,45 @@ export default function BlogFormDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{blogPost ? 'Edit Blog Post' : 'Add Blog Post'}</DialogTitle>
+            <DialogTitle>{blogPost ? 'Edit Blog Post' : 'Create Blog Post'}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6">
-            {/* Basic Info Section */}
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                />
-              </div>
+          <div className="space-y-4">
+            {/* Basic Info */}
+            <div>
+              <Label htmlFor="title">Title *</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="Enter blog post title"
+              />
+            </div>
 
+            <div>
+              <Label htmlFor="content">Content *</Label>
+              <Textarea
+                id="content"
+                value={formData.content}
+                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                placeholder="Enter blog post content"
+                rows={8}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="author">Author</Label>
+                <Label htmlFor="author">Author *</Label>
                 <Input
                   id="author"
                   value={formData.author}
                   onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                  placeholder="Author name"
                 />
               </div>
 
               <div>
-                <Label htmlFor="publishDate">Publish Date</Label>
+                <Label htmlFor="publishDate">Publish Date *</Label>
                 <Input
                   id="publishDate"
                   type="date"
@@ -283,102 +264,127 @@ export default function BlogFormDialog({
                   onChange={(e) => setFormData({ ...formData, publishDate: e.target.value })}
                 />
               </div>
-
-              <div>
-                <Label htmlFor="content">Content</Label>
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  rows={8}
-                />
-              </div>
-
-              <div>
-                <Label>Featured Image</Label>
-                <div className="flex gap-2">
-                  <Input value={formData.imageUrl} readOnly />
-                  <Button type="button" onClick={() => setShowImagePicker(true)}>
-                    Select
-                  </Button>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="seoTitle">SEO Title</Label>
-                <Input
-                  id="seoTitle"
-                  value={formData.seoTitle}
-                  onChange={(e) => setFormData({ ...formData, seoTitle: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="seoDescription">SEO Description</Label>
-                <Textarea
-                  id="seoDescription"
-                  value={formData.seoDescription}
-                  onChange={(e) => setFormData({ ...formData, seoDescription: e.target.value })}
-                  rows={2}
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={formData.published}
-                  onCheckedChange={(checked) => setFormData({ ...formData, published: checked })}
-                />
-                <Label>Published</Label>
-              </div>
             </div>
 
-            {/* Interaction Stats Section (only for existing posts) */}
+            {/* Image */}
+            <div>
+              <Label>Featured Image</Label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  value={formData.imageUrl}
+                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                  placeholder="Image URL"
+                  readOnly
+                />
+                <Button type="button" onClick={() => setShowImagePicker(true)}>
+                  Select
+                </Button>
+              </div>
+              {formData.imageUrl && (
+                <img
+                  src={formData.imageUrl}
+                  alt="Preview"
+                  className="mt-2 w-full h-48 object-cover rounded"
+                />
+              )}
+            </div>
+
+            {/* SEO */}
+            <Separator />
+            <h3 className="font-semibold">SEO Settings</h3>
+
+            <div>
+              <Label htmlFor="seoTitle">SEO Title</Label>
+              <Input
+                id="seoTitle"
+                value={formData.seoTitle}
+                onChange={(e) => setFormData({ ...formData, seoTitle: e.target.value })}
+                placeholder="SEO title (defaults to title)"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="seoDescription">SEO Description</Label>
+              <Textarea
+                id="seoDescription"
+                value={formData.seoDescription}
+                onChange={(e) => setFormData({ ...formData, seoDescription: e.target.value })}
+                placeholder="SEO description"
+                rows={3}
+              />
+            </div>
+
+            {/* Publish Toggle */}
+            <div className="flex items-center gap-2">
+              <Switch
+                id="published"
+                checked={formData.published}
+                onCheckedChange={(checked) => setFormData({ ...formData, published: checked })}
+              />
+              <Label htmlFor="published">Published</Label>
+            </div>
+
+            {/* Interaction Stats (for existing posts) */}
             {blogPost && interactionSummary && (
               <>
                 <Separator />
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Interaction Statistics</h3>
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Views</p>
-                      <p className="text-2xl font-bold">{Number(blogPost.views)}</p>
-                    </div>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Likes</p>
-                      <p className="text-2xl font-bold">{Number(interactionSummary.likesCount)}</p>
-                    </div>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Shares</p>
-                      <p className="text-2xl font-bold">{Number(interactionSummary.sharesCount)}</p>
-                    </div>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Comments</p>
-                      <p className="text-2xl font-bold">{Number(interactionSummary.commentsCount)}</p>
-                    </div>
+                <h3 className="font-semibold">Interaction Statistics</h3>
+                <div className="grid grid-cols-4 gap-4 text-center">
+                  <div className="p-3 bg-gray-50 rounded">
+                    <p className="text-2xl font-bold">{Number(formData.views || 0)}</p>
+                    <p className="text-sm text-gray-600">Views</p>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded">
+                    <p className="text-2xl font-bold">{Number(interactionSummary.likesCount)}</p>
+                    <p className="text-sm text-gray-600">Likes</p>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded">
+                    <p className="text-2xl font-bold">{Number(interactionSummary.sharesCount)}</p>
+                    <p className="text-sm text-gray-600">Shares</p>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded">
+                    <p className="text-2xl font-bold">{Number(interactionSummary.commentsCount)}</p>
+                    <p className="text-sm text-gray-600">Comments</p>
                   </div>
                 </div>
               </>
             )}
 
-            {/* Comments Moderation Section (only for existing posts) */}
-            {blogPost && comments.length > 0 && (
+            {/* Comments Section (always show for existing posts) */}
+            {blogPost && (
               <>
                 <Separator />
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Comments ({comments.length})</h3>
+                <h3 className="font-semibold">Comments</h3>
+                {commentsLoading ? (
+                  <p className="text-sm text-gray-500">Loading comments...</p>
+                ) : comments.length === 0 ? (
+                  <p className="text-sm text-gray-500">No comments yet.</p>
+                ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {topLevelComments.map(comment => renderComment(comment))}
+                    {topLevelComments.map((comment) => {
+                      const replies = getReplies(comment.id);
+                      return (
+                        <div key={comment.id.toString()} className="space-y-2">
+                          {renderComment(comment, false)}
+                          {replies.length > 0 && (
+                            <div className="ml-6 space-y-2">
+                              {replies.map((reply) => renderComment(reply, true))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                </div>
+                )}
               </>
             )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit} disabled={isSaving} className="bg-[#C90010] hover:bg-[#a00010]">
+            <Button onClick={handleSubmit} disabled={isSaving}>
               {isSaving ? 'Saving...' : 'Save'}
             </Button>
           </DialogFooter>
@@ -388,7 +394,10 @@ export default function BlogFormDialog({
       <MediaPickerDialog
         open={showImagePicker}
         onOpenChange={setShowImagePicker}
-        onSelect={(url) => setFormData({ ...formData, imageUrl: url })}
+        onSelect={(url) => {
+          setFormData({ ...formData, imageUrl: url });
+          setShowImagePicker(false);
+        }}
         currentUrl={formData.imageUrl}
       />
     </>

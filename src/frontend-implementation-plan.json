@@ -1,98 +1,78 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Public blog interactions: like label + per-visitor like limit, threaded comments with moderation UI, and session-scoped view increments",
+  "title": "Admin Visitor Statistics: show extended metrics + auto-refresh (Footer unchanged)",
   "requirements": [
     {
-      "id": "REQ-116",
-      "summary": "Add a visible \"Like\" label in the interactions bar and prevent repeat likes per visitor per blogPostId on the public Blog Detail page.",
+      "id": "REQ-128",
+      "summary": "Expand the Admin Visitor Statistics page to display all requested extended metrics with consistent admin styling and English-only new text.",
       "acceptanceCriteria": [
-        "On the public Blog Detail page, the Like button shows the text label \"Like\" next to the heart icon and count.",
-        "After a visitor successfully likes an article once, subsequent clicks for the same article do not call the backend increment-like mutation again and the Like control is visibly disabled or otherwise prevented from re-liking for that same visitor.",
-        "The one-like-per-visitor restriction is scoped per blogPostId (liking one article does not block liking other articles).",
-        "Share and Comment actions remain unrestricted (no per-visitor limitation added)."
+        "Admin Visitor Statistics page shows cards/fields for all requested metrics (including Yesterday/Weekly/Monthly/Yearly/Online).",
+        "Any newly added labels/help text/toasts introduced by this change are in English.",
+        "Existing admin layout/routes remain unchanged (only the Visitor Stats content is expanded)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/blog/BlogInteractionsBar.tsx",
+          "path": "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
           "operation": "modify",
-          "description": "Update the Like control UI to include the text label \"Like\" (matching the existing Share/Comment label style), and implement per-visitor per-blogPostId like guarding using browser storage (e.g., localStorage key scoped by blogPostId) so repeat clicks do not call onLike and the control is visibly disabled once liked."
+          "description": "Replace the current 4-metric/admin-edit UI with a read-only extended metrics dashboard that renders: Total Visitors, Today Visitors, Yesterday Visitors, Weekly Visitors, Monthly Visitors, Yearly Visitors, Online Visitors, and Page Views, using existing admin card classes (e.g., admin-stat-card/title/value) and English labels."
         },
         {
-          "path": "frontend/src/pages/BlogDetailPage.tsx",
+          "path": "frontend/src/admin/hooks/useAdminCmsQueries.ts",
           "operation": "modify",
-          "description": "Wire the new per-visitor like state into the Blog Detail page flow so the UI reflects the one-like-per-visitor behavior for the current blogPostId without affecting Share/Comment behavior."
+          "description": "Add/adjust an admin query hook that fetches ExtendedVisitorStats via the existing authenticated backend capability (getExtendedVisitorStats(sessionToken)), and update Visitor Stats-related imports/types used by the admin page."
+        },
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Update frontend backend typings to include the VisitorStats type (Footer/public shape) and ensure admin typing for ExtendedVisitorStats aligns with the fields required by the admin page (todayTraffic, yesterdayTraffic, weeklyTraffic, monthlyTraffic, yearlyTraffic, onlineVisitors, totalVisitors, pageViews)."
         }
       ]
     },
     {
-      "id": "REQ-117",
-      "summary": "Render published comments below the article on the public Blog Detail page and support threaded replies with nested display and live UI updates after submit.",
+      "id": "REQ-129",
+      "summary": "Add automatic refresh on the Admin Visitor Statistics page with near-real-time polling for Online Visitors and periodic refresh for other metrics.",
       "acceptanceCriteria": [
-        "The public Blog Detail page renders a comment list section below the article (and below the interactions/form area), showing existing comments for that blogPostId.",
-        "The comment list supports replies: each top-level comment can be replied to, and replies render nested under their parent comment.",
-        "After submitting a new comment or a reply, the UI updates so the new item appears in the list without requiring a full page refresh.",
-        "Any new user-facing text introduced for the comments list/replies UI (buttons, placeholders, empty states, validation) is in English."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/blog/BlogCommentForm.tsx",
-          "operation": "modify",
-          "description": "Extend the comment form to support replying (e.g., accept an optional parent comment id and configurable header/submit labels) while keeping all new user-facing text in English."
-        },
-        {
-          "path": "frontend/src/components/blog/BlogCommentsThread.tsx",
-          "operation": "create",
-          "description": "Create a public comments thread renderer that groups comments by parentId and renders nested replies under their parent, including a per-comment \"Reply\" action that opens a reply form. Ensure all new user-facing text is English."
-        },
-        {
-          "path": "frontend/src/pages/BlogDetailPage.tsx",
-          "operation": "modify",
-          "description": "Fetch and render the comment list section below the interactions/form area using existing blog comments query hooks; wire reply submissions to call the existing add comment mutation with parentId, and ensure the list updates via React Query invalidation without a full page refresh. Ensure any new UI text is English."
-        }
-      ]
-    },
-    {
-      "id": "REQ-118",
-      "summary": "Extend the existing admin Blog editor dialog to moderate threaded comments by allowing admins to edit and delete individual comments/replies (and keep new admin UI text in English).",
-      "acceptanceCriteria": [
-        "Backend supports storing a comment as either a top-level comment or a reply tied to a parent comment (threaded structure) in stable, upgrade-safe persistence.",
-        "Public API supports: (1) fetching approved comments (including replies) for a blogPostId, and (2) creating a top-level comment or a reply for a blogPostId.",
-        "Admin API supports: editing an individual comment (at minimum the content) and deleting an individual comment (whether top-level or reply).",
-        "The existing admin Blog editor dialog (/admin blog management area) is updated so admins can edit and delete individual comments (not only delete-all), and the admin UI remains in English for any new text added."
+        "Online Visitors value updates automatically via client polling (e.g., React Query refetchInterval) without a full page reload.",
+        "Non-real-time counters also refresh automatically on an interval appropriate for admin monitoring.",
+        "No changes are made to public (non-/admin) pages as part of implementing admin refresh behavior."
       ],
       "file_operations": [
         {
           "path": "frontend/src/admin/hooks/useAdminCmsQueries.ts",
           "operation": "modify",
-          "description": "Add an admin mutation hook for updating an individual blog comment's content (wrapping the existing backend capability) and invalidate the relevant admin/public comment queries on success."
+          "description": "Configure the Extended Visitor Stats admin query hook with React Query polling (refetchInterval) and sensible caching (e.g., small staleTime) so Online Visitors updates near-real-time while other counters refresh automatically."
         },
         {
-          "path": "frontend/src/admin/components/BlogFormDialog.tsx",
+          "path": "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
           "operation": "modify",
-          "description": "Update the existing Comments moderation section to (1) render comments in a threaded/nested view using parentId, and (2) provide per-comment edit and delete controls for both top-level comments and replies. Keep any newly introduced admin UI text in English."
+          "description": "Wire the page to the polling hook and ensure loading/error states remain consistent with admin styling; keep all new user-facing text in English."
         }
       ]
     },
     {
-      "id": "REQ-119",
-      "summary": "Increment blog post views when a visitor opens the public Blog Detail page (session-scoped per visitor per article) and ensure the incremented views value is used in admin views counters.",
+      "id": "REQ-130",
+      "summary": "Ensure the public Footer continues to show only the existing four visitor-stat rows with no markup/layout changes, while keeping values sourced from backend-tracked data.",
       "acceptanceCriteria": [
-        "When a visitor opens a Blog Detail page, the system increments that blog post’s views count via a backend method, and the blog post’s views value returned by the public blog post query reflects the increment.",
-        "The view increment occurs at most once per visitor per article within a reasonable single browsing session (to avoid multiple increments from re-renders/navigation loops).",
-        "The /admin Blog management UI shows the same views value for the article as stored in the backend (i.e., the counter used by admin is actually updated by public visits).",
-        "Any new user-facing text introduced by this change is in English."
+        "No markup/layout changes are made to frontend/src/components/layout/Footer.tsx that would alter what is displayed (still 4 rows: Total Visitors, Active Users, Page Views, Today Traffic).",
+        "Footer does not display any of the new admin-only metrics (Yesterday/Weekly/Monthly/Yearly/Online).",
+        "Footer values are sourced from backend-tracked values (not hardcoded), with behavior consistent with existing site expectations."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/layout/Footer.tsx",
           "operation": "modify",
-          "description": "Add a public hook that triggers the backend capability to increment-and-return the blog post views count, and update/invalidate the relevant blog post queries so the UI reflects the updated views value."
+          "description": "Do not change the Footer’s visitor-stats markup/rows; only verify that it still renders exactly the same four items and does not introduce any admin-only metrics."
         },
         {
-          "path": "frontend/src/pages/BlogDetailPage.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "On Blog Detail page load, call the views increment hook at most once per browsing session per blogPostId (e.g., sessionStorage key scoped by blogPostId) to avoid multiple increments from re-renders, and ensure the displayed views count reflects the updated value. Ensure any new user-facing text is English."
+          "description": "Implement useGetPublicVisitorStats to actually fetch the existing public visitor stats shape from the backend (totalVisitors, activeUsers, pageViews, todayTraffic) and optionally poll at a reasonable interval so Footer values reflect backend-tracked real-time behavior (without changing the Footer UI)."
+        },
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Ensure the backend interface typing includes the public visitor stats read capability used by useGetPublicVisitorStats and includes a VisitorStats type matching the Footer’s four displayed fields."
         }
       ]
     }

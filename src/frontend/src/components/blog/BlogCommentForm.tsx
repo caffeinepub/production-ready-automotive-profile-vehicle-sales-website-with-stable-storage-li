@@ -151,10 +151,6 @@ export default function BlogCommentForm({
           </Button>
         )}
       </div>
-
-      <p className="text-xs text-gray-500">
-        Your comment will be reviewed before being published.
-      </p>
     </form>
   );
 }
