@@ -40,6 +40,7 @@ export interface BlogCommentInput {
     name: string;
     blogPostId: bigint;
     email: string;
+    parentId?: bigint;
 }
 export interface MediaAsset {
     id: bigint;
@@ -116,6 +117,7 @@ export interface BlogComment {
     blogPostId: bigint;
     email: string;
     approved: boolean;
+    parentId?: bigint;
 }
 export interface TechnicalSpecs {
     weight: string;
@@ -178,6 +180,7 @@ export interface backendInterface {
     deletePromotion(sessionToken: string, id: bigint): Promise<boolean>;
     deleteTestimonial(sessionToken: string, id: bigint): Promise<boolean>;
     deleteVehicle(sessionToken: string, id: bigint): Promise<boolean>;
+    getAndIncrementBlogPostViews(blogPostId: bigint): Promise<BlogPost | null>;
     getBlogComments(blogPostId: bigint): Promise<Array<BlogComment>>;
     getBlogInteractionSummary(blogPostId: bigint): Promise<BlogInteractionSummary>;
     getBlogPost(id: bigint): Promise<BlogPost | null>;
@@ -203,6 +206,7 @@ export interface backendInterface {
     likeProduct(itemId: bigint): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     shareProduct(itemId: bigint, platform: string): Promise<void>;
+    updateBlogComment(sessionToken: string, commentId: bigint, content: string): Promise<void>;
     updateBlogPost(sessionToken: string, post: BlogPost): Promise<boolean>;
     updatePromotion(sessionToken: string, promotion: Promotion): Promise<boolean>;
     updateTestimonial(sessionToken: string, testimonial: Testimonial): Promise<boolean>;

@@ -122,6 +122,38 @@ export function useGetPublicVisitorStats() {
   });
 }
 
+// Product interaction hooks - public, no authentication required
+
+export function useLikeProduct() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (itemId: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.likeProduct(itemId);
+    },
+    onSuccess: (_, itemId) => {
+      queryClient.invalidateQueries({ queryKey: ['productInteraction', itemId.toString()] });
+    }
+  });
+}
+
+export function useShareProduct() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ itemId, platform }: { itemId: bigint; platform: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.shareProduct(itemId, platform);
+    },
+    onSuccess: (_, { itemId }) => {
+      queryClient.invalidateQueries({ queryKey: ['productInteraction', itemId.toString()] });
+    }
+  });
+}
+
 // Blog interaction hooks - public, no authentication required
 
 export function useGetBlogInteractionSummary(blogPostId: bigint | undefined) {
@@ -191,75 +223,56 @@ export function useAddBlogComment() {
       if (!actor) throw new Error('Actor not available');
       return actor.addBlogComment(commentInput);
     },
-    onSuccess: (_, commentInput) => {
-      queryClient.invalidateQueries({ queryKey: ['blogInteractionSummary', commentInput.blogPostId.toString()] });
-      queryClient.invalidateQueries({ queryKey: ['blogComments', commentInput.blogPostId.toString()] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['blogComments', variables.blogPostId.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['blogInteractionSummary', variables.blogPostId.toString()] });
     }
   });
 }
 
-// Public mutation hooks - no authentication required
-
-export function useAddContact() {
+export function useIncrementBlogPostViews() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (blogPostId: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getAndIncrementBlogPostViews(blogPostId);
+    },
+    onSuccess: (updatedPost, blogPostId) => {
+      if (updatedPost) {
+        queryClient.setQueryData(['blogPost', blogPostId.toString()], updatedPost);
+        queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
+      }
+    }
+  });
+}
+
+// Contact form submission - public, no authentication required
+export function useAddContact() {
+  const { actor } = useActor();
 
   return useMutation({
     mutationFn: async (contact: Contact) => {
       if (!actor) throw new Error('Actor not available');
       return actor.addContact(contact);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contacts'] });
     }
   });
 }
 
+// Credit simulation submission - public, no authentication required
 export function useAddCreditSimulation() {
   const { actor } = useActor();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (simulation: CreditSimulation) => {
       if (!actor) throw new Error('Actor not available');
       return actor.addCreditSimulation(simulation);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['creditSimulations'] });
     }
   });
 }
 
-export function useLikeProduct() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (itemId: bigint) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.likeProduct(itemId);
-    },
-    onSuccess: (_, itemId) => {
-      queryClient.invalidateQueries({ queryKey: ['productInteraction', itemId.toString()] });
-    }
-  });
-}
-
-export function useShareProduct() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ itemId, platform }: { itemId: bigint; platform: string }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.shareProduct(itemId, platform);
-    },
-    onSuccess: (_, { itemId }) => {
-      queryClient.invalidateQueries({ queryKey: ['productInteraction', itemId.toString()] });
-    }
-  });
-}
-
+// Visitor tracking - public, no authentication required
 export function useIncrementPageView() {
   const { actor } = useActor();
 
@@ -282,8 +295,7 @@ export function useIncrementVisitor() {
   });
 }
 
-// User profile hooks - require user authentication
-
+// User profile management - requires authentication
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
 
@@ -294,13 +306,14 @@ export function useGetCallerUserProfile() {
       return actor.getCallerUserProfile();
     },
     enabled: !!actor && !actorFetching,
-    retry: false
+    retry: false,
   });
 
+  // Return custom state that properly reflects actor dependency
   return {
     ...query,
     isLoading: actorFetching || query.isLoading,
-    isFetched: !!actor && query.isFetched
+    isFetched: !!actor && query.isFetched,
   };
 }
 
@@ -316,23 +329,5 @@ export function useSaveCallerUserProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
     }
-  });
-}
-
-export function useIsCallerAdmin() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<boolean>({
-    queryKey: ['isCallerAdmin'],
-    queryFn: async () => {
-      if (!actor) return false;
-      try {
-        return await actor.isCallerAdmin();
-      } catch {
-        return false;
-      }
-    },
-    enabled: !!actor && !isFetching,
-    retry: false
   });
 }

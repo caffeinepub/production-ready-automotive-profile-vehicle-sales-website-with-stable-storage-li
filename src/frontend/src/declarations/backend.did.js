@@ -24,6 +24,7 @@ export const BlogCommentInput = IDL.Record({
   'name' : IDL.Text,
   'blogPostId' : IDL.Nat,
   'email' : IDL.Text,
+  'parentId' : IDL.Opt(IDL.Nat),
 });
 export const Time = IDL.Int;
 export const BlogComment = IDL.Record({
@@ -34,6 +35,7 @@ export const BlogComment = IDL.Record({
   'blogPostId' : IDL.Nat,
   'email' : IDL.Text,
   'approved' : IDL.Bool,
+  'parentId' : IDL.Opt(IDL.Nat),
 });
 export const Contact = IDL.Record({
   'tenor' : IDL.Opt(IDL.Nat),
@@ -223,6 +225,7 @@ export const idlService = IDL.Service({
   'deletePromotion' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
   'deleteTestimonial' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
   'deleteVehicle' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
+  'getAndIncrementBlogPostViews' : IDL.Func([IDL.Nat], [IDL.Opt(BlogPost)], []),
   'getBlogComments' : IDL.Func([IDL.Nat], [IDL.Vec(BlogComment)], ['query']),
   'getBlogInteractionSummary' : IDL.Func(
       [IDL.Nat],
@@ -264,6 +267,7 @@ export const idlService = IDL.Service({
   'likeProduct' : IDL.Func([IDL.Nat], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'shareProduct' : IDL.Func([IDL.Nat, IDL.Text], [], []),
+  'updateBlogComment' : IDL.Func([IDL.Text, IDL.Nat, IDL.Text], [], []),
   'updateBlogPost' : IDL.Func([IDL.Text, BlogPost], [IDL.Bool], []),
   'updatePromotion' : IDL.Func([IDL.Text, Promotion], [IDL.Bool], []),
   'updateTestimonial' : IDL.Func([IDL.Text, Testimonial], [IDL.Bool], []),
@@ -290,6 +294,7 @@ export const idlFactory = ({ IDL }) => {
     'name' : IDL.Text,
     'blogPostId' : IDL.Nat,
     'email' : IDL.Text,
+    'parentId' : IDL.Opt(IDL.Nat),
   });
   const Time = IDL.Int;
   const BlogComment = IDL.Record({
@@ -300,6 +305,7 @@ export const idlFactory = ({ IDL }) => {
     'blogPostId' : IDL.Nat,
     'email' : IDL.Text,
     'approved' : IDL.Bool,
+    'parentId' : IDL.Opt(IDL.Nat),
   });
   const Contact = IDL.Record({
     'tenor' : IDL.Opt(IDL.Nat),
@@ -489,6 +495,11 @@ export const idlFactory = ({ IDL }) => {
     'deletePromotion' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
     'deleteTestimonial' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
     'deleteVehicle' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
+    'getAndIncrementBlogPostViews' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Opt(BlogPost)],
+        [],
+      ),
     'getBlogComments' : IDL.Func([IDL.Nat], [IDL.Vec(BlogComment)], ['query']),
     'getBlogInteractionSummary' : IDL.Func(
         [IDL.Nat],
@@ -530,6 +541,7 @@ export const idlFactory = ({ IDL }) => {
     'likeProduct' : IDL.Func([IDL.Nat], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'shareProduct' : IDL.Func([IDL.Nat, IDL.Text], [], []),
+    'updateBlogComment' : IDL.Func([IDL.Text, IDL.Nat, IDL.Text], [], []),
     'updateBlogPost' : IDL.Func([IDL.Text, BlogPost], [IDL.Bool], []),
     'updatePromotion' : IDL.Func([IDL.Text, Promotion], [IDL.Bool], []),
     'updateTestimonial' : IDL.Func([IDL.Text, Testimonial], [IDL.Bool], []),

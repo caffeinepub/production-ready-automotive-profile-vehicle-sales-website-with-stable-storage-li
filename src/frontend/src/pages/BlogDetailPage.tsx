@@ -1,8 +1,9 @@
 import { useParams } from '@tanstack/react-router';
-import { useGetBlogPost, useGetBlogInteractionSummary, useIncrementBlogLike, useIncrementBlogShare, useAddBlogComment } from '../hooks/useQueries';
+import { useGetBlogPost, useGetBlogInteractionSummary, useIncrementBlogLike, useIncrementBlogShare, useAddBlogComment, useGetBlogComments, useIncrementBlogPostViews } from '../hooks/useQueries';
 import { useEffect, useState } from 'react';
 import BlogInteractionsBar from '../components/blog/BlogInteractionsBar';
 import BlogCommentForm from '../components/blog/BlogCommentForm';
+import BlogCommentsThread from '../components/blog/BlogCommentsThread';
 import { toast } from 'sonner';
 
 export default function BlogDetailPage() {
@@ -10,11 +11,27 @@ export default function BlogDetailPage() {
   const blogPostId = BigInt(id);
   const { data: post, isLoading } = useGetBlogPost(blogPostId);
   const { data: interactionSummary } = useGetBlogInteractionSummary(blogPostId);
+  const { data: comments = [] } = useGetBlogComments(blogPostId);
   const incrementLike = useIncrementBlogLike();
   const incrementShare = useIncrementBlogShare();
   const addComment = useAddBlogComment();
+  const incrementViews = useIncrementBlogPostViews();
 
   const [isCommentFormOpen, setIsCommentFormOpen] = useState(false);
+  const [formResetKey, setFormResetKey] = useState(0);
+
+  // Increment views once per session
+  useEffect(() => {
+    if (post) {
+      const viewedKey = `blog_viewed_${blogPostId.toString()}`;
+      const hasViewed = sessionStorage.getItem(viewedKey) === 'true';
+      
+      if (!hasViewed) {
+        incrementViews.mutate(blogPostId);
+        sessionStorage.setItem(viewedKey, 'true');
+      }
+    }
+  }, [post, blogPostId]);
 
   useEffect(() => {
     if (post) {
@@ -62,16 +79,18 @@ export default function BlogDetailPage() {
     }
   };
 
-  const handleCommentSubmit = async (data: { name: string; email: string; content: string }) => {
+  const handleCommentSubmit = async (data: { name: string; email: string; content: string; parentId?: bigint }) => {
     try {
       await addComment.mutateAsync({
         blogPostId,
         name: data.name,
         email: data.email,
-        content: data.content
+        content: data.content,
+        parentId: data.parentId
       });
       toast.success('Comment submitted! It will be reviewed before being published.');
-      setIsCommentFormOpen(false);
+      // Reset form by incrementing the reset key
+      setFormResetKey(prev => prev + 1);
     } catch (error) {
       console.error('Comment error:', error);
       toast.error('Failed to submit comment');
@@ -134,9 +153,20 @@ export default function BlogDetailPage() {
             <BlogCommentForm
               onSubmit={handleCommentSubmit}
               isSubmitting={addComment.isPending}
+              resetKey={formResetKey}
             />
           </div>
         )}
+
+        {/* Comments Thread */}
+        <div className="mt-12">
+          <BlogCommentsThread
+            comments={comments}
+            onReply={handleCommentSubmit}
+            isSubmitting={addComment.isPending}
+            resetKey={formResetKey}
+          />
+        </div>
       </article>
     </div>
   );

@@ -1,76 +1,70 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T00:53:21.890Z",
-  "summary": "Diff adds new public blog interaction components (interaction bar + comment form), wires some new React Query hooks, and extends the admin blog editor dialog to display interaction summary and perform comment moderation actions. Backend shows new interaction/comment-related types, but the diff excerpt does not provide evidence of the required new canister methods or stable/upgrade-safe persistence implementation.",
+  "generatedAt": "2026-02-15T01:59:54.754Z",
+  "summary": "Diff implements like label + per-visitor like prevention via localStorage, adds public threaded comments UI components and reply form, introduces a backend migration and updated BlogComment type with parentId, adds admin comment moderation hooks/UI, and adds frontend view-counter increment once per session via sessionStorage. Some requirements cannot be fully verified from the truncated backend/frontend hook diffs (notably the actual backend APIs and query invalidation/UI refresh behavior).",
   "missing_requirements": [
     {
-      "id": "REQ-109",
-      "requirement": "Add canister-backed, upgrade-safe stable persistence for blog post interactions (likes, shares, comments) as additive collections without breaking existing blog CRUD signatures.",
-      "reason": "The diff snippet for backend/main.mo shows new types (BlogInteraction, BlogComment, BlogInteractionSummary, BlogCommentInput) but does not show any stable variables/collections, nor upgrade hooks (e.g., preupgrade/postupgrade) or other persistence mechanisms that demonstrate upgrade-safe storage for likes/shares/comments.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-110",
-      "requirement": "Expose new backend methods for public blog interactions: get interaction summary, increment like, increment share(platform), add comment, and fetch comments; callable from public without admin auth.",
-      "reason": "No backend method implementations/signatures are shown in the diff summary—only type additions are visible—so there is insufficient evidence that the required public methods exist and are unauthenticated.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-107",
-      "requirement": "On /blog/$id, insert a left-aligned 3-icon interaction row directly below the article content area without altering existing layout beyond insertion.",
-      "reason": "BlogDetailPage.tsx is truncated before showing where BlogInteractionsBar is rendered relative to the article content, so placement and the 'additive only' layout constraint cannot be verified from the provided diff excerpt.",
+      "id": "REQ-117",
+      "requirement": "After submitting a new comment or a reply, the UI updates so the new item appears in the list without requiring a full page refresh.",
+      "reason": "BlogDetailPage resets the form after submit, but the diff summary does not show evidence that the comments query is invalidated/refetched or that the new comment/reply is appended to the rendered list. The relevant React Query mutation implementation is truncated/not shown.",
       "evidence": [
         "frontend/src/pages/BlogDetailPage.tsx",
-        "frontend/src/components/blog/BlogInteractionsBar.tsx"
+        "frontend/src/hooks/useQueries.ts (truncated)"
       ]
     },
     {
-      "id": "REQ-108",
-      "requirement": "Submitting the public comment form persists the comment then clears the form and refreshes interaction data (at least comment count) without full reload.",
-      "reason": "While BlogCommentForm exists and BlogDetailPage submits via useAddBlogComment, the diff excerpt does not show the mutation hook implementation (e.g., query invalidation/refetch). Also the form reset-on-success behavior is not explicitly shown (BlogDetailPage closes the form, but the form reset is not demonstrated in the provided excerpt).",
+      "id": "REQ-118",
+      "requirement": "Backend public/admin APIs to support fetching approved comments (including replies), creating top-level/reply comments, and admin edit/delete of individual comments/replies.",
+      "reason": "The backend data model and migration for parentId are shown, and the admin frontend calls appear to exist, but the diff summary does not include the actual backend method implementations/endpoints for these APIs (file is truncated before methods), so the API requirements cannot be confirmed from provided evidence.",
       "evidence": [
-        "frontend/src/components/blog/BlogCommentForm.tsx",
+        "backend/main.mo (truncated)",
+        "frontend/src/admin/hooks/useAdminCmsQueries.ts (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-119",
+      "requirement": "Visiting a public Blog Detail page increments views via a backend method, and the returned blog post views reflects the increment (also visible in admin).",
+      "reason": "Frontend calls a hook to increment views and gates it with sessionStorage, but the diff summary does not show the backend method implementation that actually persists the increment, nor that subsequent blog post fetch reflects the updated views. The hook implementation is truncated.",
+      "evidence": [
         "frontend/src/pages/BlogDetailPage.tsx",
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/hooks/useQueries.ts (truncated)",
+        "backend/main.mo (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Admin comment approval/moderation action (approve comment) in addition to delete.",
-      "reason": "REQ-112 requires listing comments and deleting them; it does not request an approval workflow. The diff adds useApproveBlogComment and an approval handler/toasts.",
-      "evidence": [
-        "frontend/src/admin/components/BlogFormDialog.tsx",
-        "frontend/src/admin/hooks/useAdminCmsQueries.ts"
-      ]
-    },
-    {
-      "description": "Public comment form enforces additional validation rules and includes a Clear button and a 'reviewed before being published' notice.",
-      "reason": "REQ-108 specifies exact fields (Name, Email, Comment) and persistence behavior, but does not request minimum length validation, a reset/clear action, or an explicit moderation notice.",
-      "evidence": [
-        "frontend/src/components/blog/BlogCommentForm.tsx"
-      ]
-    },
-    {
-      "description": "Interaction bar displays share/comment counts and includes tooltip helper text.",
-      "reason": "REQ-107 requires a love count formatted as \"❤️ (N)\" and icons for share/comment; it does not request displaying share/comment counts or tooltips.",
+      "description": "Added tooltip UX text around Like/Share/Comment actions (e.g., 'You already liked this article', 'Share this article').",
+      "reason": "REQ-116 only requires a visible Like label and one-like-per-visitor behavior; tooltips are additional UI behavior/text not requested.",
       "evidence": [
         "frontend/src/components/blog/BlogInteractionsBar.tsx"
+      ]
+    },
+    {
+      "description": "Added client-side comment form validation rules (required fields, email regex, minimum 10 characters) and related error messages.",
+      "reason": "REQ-117 requires comments/replies UI and English text, but does not specify validation rules or minimum lengths; these are additional behavioral requirements.",
+      "evidence": [
+        "frontend/src/components/blog/BlogCommentForm.tsx (truncated)"
+      ]
+    },
+    {
+      "description": "Implemented Share behavior using the native Web Share API with clipboard fallback and separate platform values ('native'/'clipboard').",
+      "reason": "BuildRequest explicitly states Share should remain unrestricted and does not request altering share mechanics/platform tracking; this appears to extend share behavior beyond the stated requirements.",
+      "evidence": [
+        "frontend/src/pages/BlogDetailPage.tsx (truncated)"
       ]
     }
   ],
   "confidence": 0.62,
   "changed_files": [
     "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
     "frontend/src/admin/components/BlogFormDialog.tsx",
     "frontend/src/admin/hooks/useAdminCmsQueries.ts",
     "frontend/src/components/blog/BlogCommentForm.tsx",
+    "frontend/src/components/blog/BlogCommentsThread.tsx",
     "frontend/src/components/blog/BlogInteractionsBar.tsx",
     "frontend/src/hooks/useQueries.ts",
     "frontend/src/pages/BlogDetailPage.tsx",

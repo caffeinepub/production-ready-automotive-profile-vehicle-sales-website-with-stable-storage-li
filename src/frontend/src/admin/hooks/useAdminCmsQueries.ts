@@ -394,20 +394,20 @@ export function useDeleteBlogPost() {
   });
 }
 
-// Blog comment admin hooks
+// Blog comment moderation hooks (admin-only)
 
 export function useGetBlogCommentsAdmin(blogPostId: bigint | undefined) {
   const { actor, isFetching } = useActor();
   const token = getAdminToken();
 
   return useQuery<BlogComment[]>({
-    queryKey: ['adminBlogComments', blogPostId?.toString(), token],
+    queryKey: ['blogCommentsAdmin', blogPostId?.toString(), token],
     queryFn: async () => {
       if (!actor || !blogPostId) return [];
-      if (!token) throw new Error('Admin session required');
+      // Admin sees all comments (approved and unapproved)
       return actor.getBlogComments(blogPostId);
     },
-    enabled: !!actor && !isFetching && !!token && !!blogPostId
+    enabled: !!actor && !isFetching && !!blogPostId && !!token
   });
 }
 
@@ -420,10 +420,11 @@ export function useDeleteBlogComment() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      await actor.deleteBlogComment(token, commentId);
+      return actor.deleteBlogComment(token, commentId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminBlogComments'] });
+      queryClient.invalidateQueries({ queryKey: ['blogCommentsAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['blogComments'] });
       queryClient.invalidateQueries({ queryKey: ['blogInteractionSummary'] });
     }
   });
@@ -438,10 +439,28 @@ export function useApproveBlogComment() {
       if (!actor) throw new Error('Actor not available');
       const token = getAdminToken();
       if (!token) throw new Error('Admin session required');
-      await actor.approveBlogComment(token, commentId);
+      return actor.approveBlogComment(token, commentId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminBlogComments'] });
+      queryClient.invalidateQueries({ queryKey: ['blogCommentsAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['blogComments'] });
+    }
+  });
+}
+
+export function useUpdateBlogComment() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ commentId, content }: { commentId: bigint; content: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      const token = getAdminToken();
+      if (!token) throw new Error('Admin session required');
+      return actor.updateBlogComment(token, commentId, content);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogCommentsAdmin'] });
       queryClient.invalidateQueries({ queryKey: ['blogComments'] });
     }
   });

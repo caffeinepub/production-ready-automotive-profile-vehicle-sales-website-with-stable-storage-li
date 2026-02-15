@@ -1,86 +1,74 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T00:53:21.896Z",
+  "generatedAt": "2026-02-15T01:59:54.761Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 6,
+    "total": 4,
     "implemented": 4,
     "items": [
       {
-        "id": "REQ-107",
-        "summary": "Add a minimal blog post interactions UI to the public Blog Detail page that renders a left-aligned horizontal row of 3 small, aesthetic, minimalist icons directly below the article content area: (1) Love with a visible count formatted like \"❤️ (7)\" (use the current blog post’s persisted like count), (2) Share (click triggers share action tracking), and (3) Comment (toggles the comment form visibility). This must be an additive change that does not alter the existing blog article layout structure beyond inserting this interaction block.",
+        "id": "REQ-116",
+        "summary": "Update the public Blog interactions bar so the Like action includes a visible text label \"Like\" (to match the existing \"Share\" and \"Comment\" label style), and restrict Like so each visitor can only like a given blog article once per blogPostId.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/BlogDetailPage.tsx",
-          "frontend/src/components/blog/BlogInteractionsBar.tsx"
+          "frontend/src/components/blog/BlogInteractionsBar.tsx",
+          "frontend/src/pages/BlogDetailPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/BlogDetailPage.tsx",
-          "frontend/src/components/blog/BlogInteractionsBar.tsx"
+          "frontend/src/components/blog/BlogInteractionsBar.tsx",
+          "frontend/src/pages/BlogDetailPage.tsx"
         ]
       },
       {
-        "id": "REQ-108",
-        "summary": "Implement the public comment form UI that appears under the blog interaction icons when Comment is clicked, with exactly these fields: Name, Email, Comment. Submitting the form must persist the comment to the canister and then clear the form and update the displayed comment count/state for that post. Use English for any new user-facing text introduced by this feature (placeholders, buttons, validation errors, empty states).",
+        "id": "REQ-117",
+        "summary": "Display the published blog comments directly below the article content on the public Blog Detail page, and support threaded replies so visitors can reply to an existing comment and see replies rendered nested under the parent comment.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/blog/BlogCommentForm.tsx",
+          "frontend/src/components/blog/BlogCommentsThread.tsx",
           "frontend/src/pages/BlogDetailPage.tsx"
         ],
         "matchedFiles": [
           "frontend/src/components/blog/BlogCommentForm.tsx",
+          "frontend/src/components/blog/BlogCommentsThread.tsx",
           "frontend/src/pages/BlogDetailPage.tsx"
         ]
       },
       {
-        "id": "REQ-109",
-        "summary": "Add canister-backed, upgrade-safe stable persistence for blog post interactions: article likes, article shares, and article comments. This must be implemented as additive collections (do not remove or repurpose existing collections) and must not break or change existing method signatures that the current frontend/admin already uses (e.g., existing blog CRUD).",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-110",
-        "summary": "Expose new backend methods required for the public blog interactions flow: (1) fetch interaction summary for a given blogPostId (at minimum: likesCount, sharesCount, commentsCount), (2) increment like for a given blogPostId, (3) increment share for a given blogPostId (accept a platform string), (4) add a comment for a given blogPostId with Name/Email/Comment, and (5) fetch comments for a given blogPostId for public display if needed by the UI. These methods must be safe to call from the public site and must not require admin session tokens.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-111",
-        "summary": "Wire the new blog-interaction backend methods into the React Query public hooks layer (`frontend/src/hooks/useQueries.ts`) and integrate them into `frontend/src/pages/BlogDetailPage.tsx` so the interaction row (Love count, Share, Comment toggle + form submission) works end-to-end without breaking existing blog loading, SEO metadata behavior, or page rendering.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/BlogDetailPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/BlogDetailPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-112",
-        "summary": "Extend the /admin Blog editor experience (without changing existing routes or overall admin layout) to surface blog interaction data and allow comment moderation within the admin blog management area. At minimum: show read-only interaction counts for the selected blog post and provide an admin-only view to list comments for that post and delete them. All admin user-facing text introduced must be in English.",
+        "id": "REQ-118",
+        "summary": "Extend the backend blog comment data model and APIs to support threaded comments (replies) and provide admin-only moderation capabilities to edit and delete individual comments/replies from the existing /admin Blog management experience.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-          "frontend/src/admin/components/BlogFormDialog.tsx",
-          "frontend/src/admin/pages/BlogAdminPage.tsx"
+          "frontend/src/admin/components/BlogFormDialog.tsx"
         ],
         "matchedFiles": [
           "frontend/src/admin/hooks/useAdminCmsQueries.ts",
           "frontend/src/admin/components/BlogFormDialog.tsx"
+        ]
+      },
+      {
+        "id": "REQ-119",
+        "summary": "Activate the article Views counter so that visiting a public Blog Detail page increments that blog post’s views count, and the updated views value is reflected in the existing admin panel views counter for the same article.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/BlogDetailPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/BlogDetailPage.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
@@ -90,6 +78,7 @@
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
     "frontend/src/components/blog/BlogCommentForm.tsx",
+    "frontend/src/components/blog/BlogCommentsThread.tsx",
     "frontend/src/components/blog/BlogInteractionsBar.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",

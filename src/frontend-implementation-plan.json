@@ -1,99 +1,98 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Blog interactions UI + comment flow wired to canister interactions with admin comment moderation (frontend-only)",
+  "title": "Public blog interactions: like label + per-visitor like limit, threaded comments with moderation UI, and session-scoped view increments",
   "requirements": [
     {
-      "id": "REQ-107",
-      "summary": "Add an additive 3-icon interaction row (Love count, Share, Comment toggle) directly under the blog article content on Blog Detail without changing existing layout structure.",
+      "id": "REQ-116",
+      "summary": "Add a visible \"Like\" label in the interactions bar and prevent repeat likes per visitor per blogPostId on the public Blog Detail page.",
       "acceptanceCriteria": [
-        "On `/blog/$id`, a 3-icon interaction row appears directly under the article (left-aligned): Love (with count), Share, Comment.",
-        "The Love count is rendered in the format \"❤️ (N)\" where N matches persisted data for that blog post.",
-        "Clicking the Comment icon toggles a comment form area directly below the icons; clicking again hides it.",
-        "No other public page structure or routing changes occur as part of this requirement."
+        "On the public Blog Detail page, the Like button shows the text label \"Like\" next to the heart icon and count.",
+        "After a visitor successfully likes an article once, subsequent clicks for the same article do not call the backend increment-like mutation again and the Like control is visibly disabled or otherwise prevented from re-liking for that same visitor.",
+        "The one-like-per-visitor restriction is scoped per blogPostId (liking one article does not block liking other articles).",
+        "Share and Comment actions remain unrestricted (no per-visitor limitation added)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/BlogDetailPage.tsx",
+          "path": "frontend/src/components/blog/BlogInteractionsBar.tsx",
           "operation": "modify",
-          "description": "Insert a new left-aligned, horizontal interaction block directly below the existing article content area (additive only): Love (render as \"❤️ (N)\" from canister-backed summary), Share (triggers share tracking), Comment (toggles the comment form visibility). Use minimalist icon buttons (e.g., lucide-react icons consistent with other pages) and shadcn-ui Button styling where appropriate; verify the component's usage instructions before implementing."
+          "description": "Update the Like control UI to include the text label \"Like\" (matching the existing Share/Comment label style), and implement per-visitor per-blogPostId like guarding using browser storage (e.g., localStorage key scoped by blogPostId) so repeat clicks do not call onLike and the control is visibly disabled once liked."
         },
         {
-          "path": "frontend/src/components/blog/BlogInteractionsBar.tsx",
-          "operation": "create",
-          "description": "Create a reusable public blog interactions bar component rendering the three minimalist actions (Love with \"❤️ (N)\", Share, Comment toggle) in a left-aligned horizontal row, designed to be embedded under the blog article content without re-structuring the page. Use shadcn-ui Button (and optionally Tooltip/Separator if available) and lucide-react icons for a clean aesthetic; verify the component's usage instructions before implementing."
+          "path": "frontend/src/pages/BlogDetailPage.tsx",
+          "operation": "modify",
+          "description": "Wire the new per-visitor like state into the Blog Detail page flow so the UI reflects the one-like-per-visitor behavior for the current blogPostId without affecting Share/Comment behavior."
         }
       ]
     },
     {
-      "id": "REQ-108",
-      "summary": "Implement the public Name/Email/Comment form UI under the interaction icons and persist comments via canister, clearing and refreshing interaction state after submit.",
+      "id": "REQ-117",
+      "summary": "Render published comments below the article on the public Blog Detail page and support threaded replies with nested display and live UI updates after submit.",
       "acceptanceCriteria": [
-        "The comment form includes inputs for Name, Email, and Comment, and a submit button.",
-        "Submitting creates a persisted comment for the current blog post and resets the form on success.",
-        "After successful submit, the UI refreshes interaction data (at least comment count) without a full page reload.",
-        "All newly introduced user-facing strings for this feature are in English."
+        "The public Blog Detail page renders a comment list section below the article (and below the interactions/form area), showing existing comments for that blogPostId.",
+        "The comment list supports replies: each top-level comment can be replied to, and replies render nested under their parent comment.",
+        "After submitting a new comment or a reply, the UI updates so the new item appears in the list without requiring a full page refresh.",
+        "Any new user-facing text introduced for the comments list/replies UI (buttons, placeholders, empty states, validation) is in English."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/blog/BlogCommentForm.tsx",
+          "operation": "modify",
+          "description": "Extend the comment form to support replying (e.g., accept an optional parent comment id and configurable header/submit labels) while keeping all new user-facing text in English."
+        },
+        {
+          "path": "frontend/src/components/blog/BlogCommentsThread.tsx",
           "operation": "create",
-          "description": "Create a public comment form component with exactly these fields: Name, Email, Comment, plus a submit button. Provide English-only placeholders/labels, client-side validation messages, and a submitting state. Use shadcn-ui Input/Textarea/Button for consistent styling; verify the component's usage instructions before implementing."
+          "description": "Create a public comments thread renderer that groups comments by parentId and renders nested replies under their parent, including a per-comment \"Reply\" action that opens a reply form. Ensure all new user-facing text is English."
         },
         {
           "path": "frontend/src/pages/BlogDetailPage.tsx",
           "operation": "modify",
-          "description": "Render the new comment form component directly below the interaction bar when the Comment icon is toggled open. Wire submit to the comment mutation, clear the form on success, and refresh interaction summary state via React Query invalidation (no full page reload). Ensure any new public strings introduced here are in English."
+          "description": "Fetch and render the comment list section below the interactions/form area using existing blog comments query hooks; wire reply submissions to call the existing add comment mutation with parentId, and ensure the list updates via React Query invalidation without a full page refresh. Ensure any new UI text is English."
         }
       ]
     },
     {
-      "id": "REQ-111",
-      "summary": "Add React Query public hooks for blog interactions in useQueries.ts and integrate them into BlogDetailPage end-to-end while preserving existing blog loading and SEO behavior.",
+      "id": "REQ-118",
+      "summary": "Extend the existing admin Blog editor dialog to moderate threaded comments by allowing admins to edit and delete individual comments/replies (and keep new admin UI text in English).",
       "acceptanceCriteria": [
-        "`useQueries.ts` includes new hooks for article interactions and these hooks call the new backend methods.",
-        "`BlogDetailPage.tsx` continues to load and render the blog content exactly as before, plus the new interaction UI.",
-        "Like/share/comment actions update counts via React Query invalidation/refetch (no hard refresh required).",
-        "No changes are introduced to immutable frontend paths listed in SYSTEM_CONTEXT."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Extend the public React Query hook layer with blog interaction hooks that call existing backend capabilities from the actor: getBlogInteractionSummary, incrementBlogLike, incrementBlogShare (platform string), addBlogComment, and (if needed by UI) getBlogComments. Ensure mutations invalidate/refetch the correct interaction queries (and comments query where applicable) to update counts without a hard refresh."
-        },
-        {
-          "path": "frontend/src/pages/BlogDetailPage.tsx",
-          "operation": "modify",
-          "description": "Integrate the new interaction hooks into BlogDetailPage while keeping existing blog rendering and metadata updates intact (document title + meta description behavior unchanged). Ensure the interaction bar uses the summary query and mutations, and that share/like/comment update counts via React Query refetch/invalidation."
-        }
-      ]
-    },
-    {
-      "id": "REQ-112",
-      "summary": "Extend the existing /admin blog management UI to show read-only interaction counts for a selected blog post and provide an admin-only comment list with delete moderation.",
-      "acceptanceCriteria": [
-        "In the /admin blog management flow, an admin can view interaction counts for a blog post (likes/shares/comments).",
-        "Admins can view a list of comments for a blog post and delete individual comments.",
-        "Comment deletion persists (deleted comments no longer appear after refresh).",
-        "No existing admin blog CRUD (create/edit/publish/delete posts) is broken by these additions.",
-        "All newly introduced admin UI text is in English."
+        "Backend supports storing a comment as either a top-level comment or a reply tied to a parent comment (threaded structure) in stable, upgrade-safe persistence.",
+        "Public API supports: (1) fetching approved comments (including replies) for a blogPostId, and (2) creating a top-level comment or a reply for a blogPostId.",
+        "Admin API supports: editing an individual comment (at minimum the content) and deleting an individual comment (whether top-level or reply).",
+        "The existing admin Blog editor dialog (/admin blog management area) is updated so admins can edit and delete individual comments (not only delete-all), and the admin UI remains in English for any new text added."
       ],
       "file_operations": [
         {
           "path": "frontend/src/admin/hooks/useAdminCmsQueries.ts",
           "operation": "modify",
-          "description": "Add admin-only React Query hooks for blog interaction moderation within the existing admin hooks module: fetch blog interaction summary for a blog post, fetch comments for a blog post, and delete a comment (requires existing admin session token). Ensure query keys include the blogPostId and that delete invalidates the related comments/summary queries."
+          "description": "Add an admin mutation hook for updating an individual blog comment's content (wrapping the existing backend capability) and invalidate the relevant admin/public comment queries on success."
         },
         {
           "path": "frontend/src/admin/components/BlogFormDialog.tsx",
           "operation": "modify",
-          "description": "Augment the existing blog editor dialog (without changing routes/layout) to show a read-only 'Interaction' section for existing posts (likes/shares/comments counts) and an admin-only 'Comments' section listing comments for the current post with a per-comment delete action. Use existing shadcn-ui components (buttons, dialogs) to keep admin styling consistent; verify the component's usage instructions before implementing. Ensure all new admin text is in English."
+          "description": "Update the existing Comments moderation section to (1) render comments in a threaded/nested view using parentId, and (2) provide per-comment edit and delete controls for both top-level comments and replies. Keep any newly introduced admin UI text in English."
+        }
+      ]
+    },
+    {
+      "id": "REQ-119",
+      "summary": "Increment blog post views when a visitor opens the public Blog Detail page (session-scoped per visitor per article) and ensure the incremented views value is used in admin views counters.",
+      "acceptanceCriteria": [
+        "When a visitor opens a Blog Detail page, the system increments that blog post’s views count via a backend method, and the blog post’s views value returned by the public blog post query reflects the increment.",
+        "The view increment occurs at most once per visitor per article within a reasonable single browsing session (to avoid multiple increments from re-renders/navigation loops).",
+        "The /admin Blog management UI shows the same views value for the article as stored in the backend (i.e., the counter used by admin is actually updated by public visits).",
+        "Any new user-facing text introduced by this change is in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a public hook that triggers the backend capability to increment-and-return the blog post views count, and update/invalidate the relevant blog post queries so the UI reflects the updated views value."
         },
         {
-          "path": "frontend/src/admin/pages/BlogAdminPage.tsx",
+          "path": "frontend/src/pages/BlogDetailPage.tsx",
           "operation": "modify",
-          "description": "Wire the enhanced BlogFormDialog moderation UI into the admin blog management flow by ensuring the selected post context is passed as-is and that the dialog can be used for viewing interaction counts and moderating comments without impacting existing CRUD actions or the overall admin layout. Ensure any new admin-facing strings introduced here are in English."
+          "description": "On Blog Detail page load, call the views increment hook at most once per browsing session per blogPostId (e.g., sessionStorage key scoped by blogPostId) to avoid multiple increments from re-renders, and ensure the displayed views count reflects the updated value. Ensure any new user-facing text is English."
         }
       ]
     }

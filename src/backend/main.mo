@@ -9,12 +9,14 @@ import Blob "mo:core/Blob";
 import Array "mo:core/Array";
 import Debug "mo:core/Debug";
 import List "mo:core/List";
-
+import Migration "migration";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 
+// Add migration with-clause for persistent actor state changes
+(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -175,6 +177,7 @@ actor {
   public type BlogComment = {
     id : Nat;
     blogPostId : Nat;
+    parentId : ?Nat;
     name : Text;
     email : Text;
     content : Text;
@@ -190,6 +193,7 @@ actor {
 
   public type BlogCommentInput = {
     blogPostId : Nat;
+    parentId : ?Nat;
     name : Text;
     email : Text;
     content : Text;
@@ -683,6 +687,30 @@ actor {
     blogPosts.values().toArray();
   };
 
+  public shared ({ caller }) func getAndIncrementBlogPostViews(blogPostId : Nat) : async ?BlogPost {
+    // Public endpoint - increments view count and returns BlogPost
+    switch (blogPosts.get(blogPostId)) {
+      case (?blogPost) {
+        let updatedBlogPost = {
+          id = blogPost.id;
+          title = blogPost.title;
+          content = blogPost.content;
+          author = blogPost.author;
+          publishDate = blogPost.publishDate;
+          imageUrl = blogPost.imageUrl;
+          seoTitle = blogPost.seoTitle;
+          seoDescription = blogPost.seoDescription;
+          views = blogPost.views + 1;
+          likes = blogPost.likes;
+          published = blogPost.published;
+        };
+        blogPosts.add(blogPostId, updatedBlogPost);
+        ?updatedBlogPost;
+      };
+      case (null) { null };
+    };
+  };
+
   public query ({ caller }) func getBlogPost(id : Nat) : async ?BlogPost {
     blogPosts.get(id);
   };
@@ -737,26 +765,6 @@ actor {
     };
   };
 
-  public shared ({ caller }) func addBlogComment(blogCommentInput : BlogCommentInput) : async BlogComment {
-    // Public endpoint - no authorization required (guests can comment)
-    let comment : BlogComment = {
-      id = nextBlogCommentId;
-      blogPostId = blogCommentInput.blogPostId;
-      name = blogCommentInput.name;
-      email = blogCommentInput.email;
-      content = blogCommentInput.content;
-      createdAt = Time.now();
-      approved = false;
-    };
-
-    blogComments.add(nextBlogCommentId, comment);
-    nextBlogCommentId += 1;
-
-    updateBlogInteractionCounts(blogCommentInput.blogPostId, false, false);
-
-    comment;
-  };
-
   public query ({ caller }) func getBlogComments(blogPostId : Nat) : async [BlogComment] {
     // Public endpoint - returns only approved comments for non-admins
     let allComments = blogComments.values().toArray();
@@ -777,6 +785,27 @@ actor {
     };
   };
 
+  public shared ({ caller }) func addBlogComment(blogCommentInput : BlogCommentInput) : async BlogComment {
+    // Public endpoint - no authorization required (guests can comment)
+    let comment : BlogComment = {
+      id = nextBlogCommentId;
+      blogPostId = blogCommentInput.blogPostId;
+      parentId = blogCommentInput.parentId;
+      name = blogCommentInput.name;
+      email = blogCommentInput.email;
+      content = blogCommentInput.content;
+      createdAt = Time.now();
+      approved = false;
+    };
+
+    blogComments.add(nextBlogCommentId, comment);
+    nextBlogCommentId += 1;
+
+    updateBlogInteractionCounts(blogCommentInput.blogPostId, false, false);
+
+    comment;
+  };
+
   public shared ({ caller }) func approveBlogComment(sessionToken : Text, commentId : Nat) : async () {
     // Admin-only endpoint
     if (not isAdminAuthorized(sessionToken, "Failed approveBlogComment")) {
@@ -788,6 +817,7 @@ actor {
         let approvedComment = {
           id = comment.id;
           blogPostId = comment.blogPostId;
+          parentId = comment.parentId;
           name = comment.name;
           email = comment.email;
           content = comment.content;
@@ -809,6 +839,30 @@ actor {
     blogComments.remove(commentId);
   };
 
+  public shared ({ caller }) func updateBlogComment(sessionToken : Text, commentId : Nat, content : Text) : async () {
+    // Admin-only endpoint
+    if (not isAdminAuthorized(sessionToken, "Failed updateBlogComment")) {
+      Runtime.trap("Unauthorized: Only admins can update blog comments");
+    };
+
+    switch (blogComments.get(commentId)) {
+      case (?comment) {
+        let updatedComment = {
+          id = comment.id;
+          blogPostId = comment.blogPostId;
+          parentId = comment.parentId;
+          name = comment.name;
+          email = comment.email;
+          content = content;
+          createdAt = comment.createdAt;
+          approved = comment.approved;
+        };
+        blogComments.add(commentId, updatedComment);
+      };
+      case (null) {};
+    };
+  };
+
   func updateBlogInteractionCounts(blogPostId : Nat, incrementLikes : Bool, incrementShares : Bool) {
     let currentInteraction = blogInteractions.get(blogPostId);
 
@@ -827,8 +881,8 @@ actor {
     };
 
     let commentsCount = switch (currentInteraction) {
-      case (?interaction) { interaction.commentsCount };
-      case (null) { 0 };
+      case (?interaction) { interaction.commentsCount + 1 };
+      case (null) { 1 };
     };
 
     let updatedInteraction = {

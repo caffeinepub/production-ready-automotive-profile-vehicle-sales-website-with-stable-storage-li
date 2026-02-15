@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-minimal-blog-post-interactions-ui-to-the-public-blog-detail-page-that-renders-a-left-aligned-horizontal-row-of-3-small-aesthetic-minimalist-icons-directly-below-the-article-content-area-1-love-with-a-visible-count-formatted-like-7-use-the-current-blog-post-s-persisted-like-count-2-share-click-triggers-share-action-tracking-and-3-comment-toggles-the-comment-form-visibility-this-must-be-an-additive-change-that-does-not-alter-the-existing-blog-article-layout-structure-beyond-inserting-this-interaction-block",
-      "featureTitle": "Add a minimal blog post interactions UI to the public Blog Detail page that renders a left-aligned horizontal row of 3 small, aesthetic, minimalist icons directly below the article content area: (1) Love with a visible count formatted like \"❤️ (7)\" (use the current blog post’s persisted like count), (2) Share (click triggers share action tracking), and (3) Comment (toggles the comment form visibility). This must be an additive change that does not alter the existing blog article layout structure beyond inserting this interaction block.",
+      "featureId": "feature-update-the-public-blog-interactions-bar-so-the-like-action-includes-a-visible-text-label-like-to-match-the-existing-share-and-comment-label-style-and-restrict-like-so-each-visitor-can-only-like-a-given-blog-article-once-per-blogpostid",
+      "featureTitle": "Update the public Blog interactions bar so the Like action includes a visible text label \"Like\" (to match the existing \"Share\" and \"Comment\" label style), and restrict Like so each visitor can only like a given blog article once per blogPostId.",
       "files": [
         "frontend/src/components/blog/BlogInteractionsBar.tsx",
         "frontend/src/pages/BlogDetailPage.tsx"
@@ -18,15 +18,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-107"
+        "REQ-116"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-the-public-comment-form-ui-that-appears-under-the-blog-interaction-icons-when-comment-is-clicked-with-exactly-these-fields-name-email-comment-submitting-the-form-must-persist-the-comment-to-the-canister-and-then-clear-the-form-and-update-the-displayed-comment-count-state-for-that-post-use-english-for-any-new-user-facing-text-introduced-by-this-feature-placeholders-buttons-validation-errors-empty-states",
-      "featureTitle": "Implement the public comment form UI that appears under the blog interaction icons when Comment is clicked, with exactly these fields: Name, Email, Comment. Submitting the form must persist the comment to the canister and then clear the form and update the displayed comment count/state for that post. Use English for any new user-facing text introduced by this feature (placeholders, buttons, validation errors, empty states).",
+      "featureId": "feature-display-the-published-blog-comments-directly-below-the-article-content-on-the-public-blog-detail-page-and-support-threaded-replies-so-visitors-can-reply-to-an-existing-comment-and-see-replies-rendered-nested-under-the-parent-comment",
+      "featureTitle": "Display the published blog comments directly below the article content on the public Blog Detail page, and support threaded replies so visitors can reply to an existing comment and see replies rendered nested under the parent comment.",
       "files": [
         "frontend/src/components/blog/BlogCommentForm.tsx",
+        "frontend/src/components/blog/BlogCommentsThread.tsx",
         "frontend/src/pages/BlogDetailPage.tsx"
       ],
       "components": [
@@ -39,34 +40,13 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-108"
+        "REQ-117"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-wire-the-new-blog-interaction-backend-methods-into-the-react-query-public-hooks-layer-frontend-src-hooks-usequeries-ts-and-integrate-them-into-frontend-src-pages-blogdetailpage-tsx-so-the-interaction-row-love-count-share-comment-toggle-form-submission-works-end-to-end-without-breaking-existing-blog-loading-seo-metadata-behavior-or-page-rendering",
-      "featureTitle": "Wire the new blog-interaction backend methods into the React Query public hooks layer (`frontend/src/hooks/useQueries.ts`) and integrate them into `frontend/src/pages/BlogDetailPage.tsx` so the interaction row (Love count, Share, Comment toggle + form submission) works end-to-end without breaking existing blog loading, SEO metadata behavior, or page rendering.",
-      "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/BlogDetailPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-111"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-extend-the-admin-blog-editor-experience-without-changing-existing-routes-or-overall-admin-layout-to-surface-blog-interaction-data-and-allow-comment-moderation-within-the-admin-blog-management-area-at-minimum-show-read-only-interaction-counts-for-the-selected-blog-post-and-provide-an-admin-only-view-to-list-comments-for-that-post-and-delete-them-all-admin-user-facing-text-introduced-must-be-in-english",
-      "featureTitle": "Extend the /admin Blog editor experience (without changing existing routes or overall admin layout) to surface blog interaction data and allow comment moderation within the admin blog management area. At minimum: show read-only interaction counts for the selected blog post and provide an admin-only view to list comments for that post and delete them. All admin user-facing text introduced must be in English.",
+      "featureId": "feature-extend-the-backend-blog-comment-data-model-and-apis-to-support-threaded-comments-replies-and-provide-admin-only-moderation-capabilities-to-edit-and-delete-individual-comments-replies-from-the-existing-admin-blog-management-experience",
+      "featureTitle": "Extend the backend blog comment data model and APIs to support threaded comments (replies) and provide admin-only moderation capabilities to edit and delete individual comments/replies from the existing /admin Blog management experience.",
       "files": [
         "frontend/src/admin/components/BlogFormDialog.tsx",
         "frontend/src/admin/hooks/useAdminCmsQueries.ts"
@@ -81,7 +61,28 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-112"
+        "REQ-118"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-activate-the-article-views-counter-so-that-visiting-a-public-blog-detail-page-increments-that-blog-post-s-views-count-and-the-updated-views-value-is-reflected-in-the-existing-admin-panel-views-counter-for-the-same-article",
+      "featureTitle": "Activate the article Views counter so that visiting a public Blog Detail page increments that blog post’s views count, and the updated views value is reflected in the existing admin panel views counter for the same article.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/BlogDetailPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-119"
       ],
       "confidence": "high"
     }

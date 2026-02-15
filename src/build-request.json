@@ -1,144 +1,113 @@
 {
   "kind": "build_request",
-  "title": "Re-implement blog post interactions (love/share/comments) with stable persistence without breaking pages or existing data",
-  "priority": "high",
+  "title": "Enhance public blog interactions: Like label + one-like-per-visitor, threaded comments with admin moderation, and article view counter activation",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-107",
-      "text": "Add a minimal blog post interactions UI to the public Blog Detail page that renders a left-aligned horizontal row of 3 small, aesthetic, minimalist icons directly below the article content area: (1) Love with a visible count formatted like \"❤️ (7)\" (use the current blog post’s persisted like count), (2) Share (click triggers share action tracking), and (3) Comment (toggles the comment form visibility). This must be an additive change that does not alter the existing blog article layout structure beyond inserting this interaction block.",
+      "id": "REQ-116",
+      "text": "Update the public Blog interactions bar so the Like action includes a visible text label \"Like\" (to match the existing \"Share\" and \"Comment\" label style), and restrict Like so each visitor can only like a given blog article once per blogPostId.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages-5",
-          "recent-messages-8"
+          "msg-1"
         ],
         "quotes": [
-          "Tambahkan Icon kecil estetik dan minimalis dibawah postingan blog (contoh : ❤️ (7)) , yaitu icon Love untuk menyukai, share untuk membagikan halaman, dan komentar untuk komen artikel, letakkan icon berjajar tepat dibawah artikel sebelah kiri. Kolom komentar : (Nama, Email, Komentar) akan muncul dibawahnya ketika icon komentar di klik.",
-          "Ya kerjakan ulang dengan benar jangan sampai merusak struktur halaman dan database."
+          "Tambahkan text 'Like' pada icon Love seperti pada icon share dan komen agar serasi.",
+          "Batasi klik Like agar setiap pengunjung hanya dapat mengklik Like 1x disetiap halaman artikel. Hanya Like, untuk share dan komentar bebas."
         ]
       },
       "acceptanceCriteria": [
-        "On `/blog/$id`, a 3-icon interaction row appears directly under the article (left-aligned): Love (with count), Share, Comment.",
-        "The Love count is rendered in the format \"❤️ (N)\" where N matches persisted data for that blog post.",
-        "Clicking the Comment icon toggles a comment form area directly below the icons; clicking again hides it.",
-        "No other public page structure or routing changes occur as part of this requirement."
+        "On the public Blog Detail page, the Like button shows the text label \"Like\" next to the heart icon and count.",
+        "After a visitor successfully likes an article once, subsequent clicks for the same article do not call the backend increment-like mutation again and the Like control is visibly disabled or otherwise prevented from re-liking for that same visitor.",
+        "The one-like-per-visitor restriction is scoped per blogPostId (liking one article does not block liking other articles).",
+        "Share and Comment actions remain unrestricted (no per-visitor limitation added)."
       ]
     },
     {
-      "id": "REQ-108",
-      "text": "Implement the public comment form UI that appears under the blog interaction icons when Comment is clicked, with exactly these fields: Name, Email, Comment. Submitting the form must persist the comment to the canister and then clear the form and update the displayed comment count/state for that post. Use English for any new user-facing text introduced by this feature (placeholders, buttons, validation errors, empty states).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "recent-messages-5"
-        ],
-        "quotes": [
-          "Kolom komentar : (Nama, Email, Komentar) akan muncul dibawahnya ketika icon komentar di klik."
-        ]
-      },
-      "acceptanceCriteria": [
-        "The comment form includes inputs for Name, Email, and Comment, and a submit button.",
-        "Submitting creates a persisted comment for the current blog post and resets the form on success.",
-        "After successful submit, the UI refreshes interaction data (at least comment count) without a full page reload.",
-        "All newly introduced user-facing strings for this feature are in English."
-      ]
-    },
-    {
-      "id": "REQ-109",
-      "text": "Add canister-backed, upgrade-safe stable persistence for blog post interactions: article likes, article shares, and article comments. This must be implemented as additive collections (do not remove or repurpose existing collections) and must not break or change existing method signatures that the current frontend/admin already uses (e.g., existing blog CRUD).",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "recent-messages-5",
-          "recent-messages-8"
-        ],
-        "quotes": [
-          "Simpan di stable database dan editor blog dipanel admin.",
-          "jangan sampai merusak struktur stable database dan panel admin yang sudah bagus."
-        ]
-      },
-      "acceptanceCriteria": [
-        "There are dedicated persistent data structures for: (a) per-blog-post likes count, (b) per-blog-post share counts (at least total, optionally by platform), and (c) comments with fields name/email/comment and timestamps, associated to a blogPostId.",
-        "Interaction data survives canister redeploy/upgrade according to the project’s stable persistence approach.",
-        "Existing blog post CRUD behavior and data (BlogPost records) continue to load and save as before."
-      ]
-    },
-    {
-      "id": "REQ-110",
-      "text": "Expose new backend methods required for the public blog interactions flow: (1) fetch interaction summary for a given blogPostId (at minimum: likesCount, sharesCount, commentsCount), (2) increment like for a given blogPostId, (3) increment share for a given blogPostId (accept a platform string), (4) add a comment for a given blogPostId with Name/Email/Comment, and (5) fetch comments for a given blogPostId for public display if needed by the UI. These methods must be safe to call from the public site and must not require admin session tokens.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "recent-messages-5"
-        ],
-        "quotes": [
-          "Tambahkan Icon kecil estetik dan minimalis dibawah postingan blog ... Love ... share ... komentar ...",
-          "Simpan di stable database ..."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend provides callable methods to like, share, and comment on a blog post from the public frontend without admin authentication.",
-        "Backend provides a query to retrieve the interaction counts for a blog post.",
-        "Backend provides a query to retrieve comments for a blog post (even if the UI initially only uses counts).",
-        "All methods return consistent results across repeated calls, and interaction counts reflect persisted values."
-      ]
-    },
-    {
-      "id": "REQ-111",
-      "text": "Wire the new blog-interaction backend methods into the React Query public hooks layer (`frontend/src/hooks/useQueries.ts`) and integrate them into `frontend/src/pages/BlogDetailPage.tsx` so the interaction row (Love count, Share, Comment toggle + form submission) works end-to-end without breaking existing blog loading, SEO metadata behavior, or page rendering.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "recent-messages-5",
-          "recent-messages-8"
-        ],
-        "quotes": [
-          "Pembaruan ini hanya penambahan fitur untuk interaksi dengan pengunjung, jangan sampai merusak struktur stable database ...",
-          "Ya kerjakan ulang ... jangan sampai merusak struktur halaman ..."
-        ]
-      },
-      "acceptanceCriteria": [
-        "`useQueries.ts` includes new hooks for article interactions and these hooks call the new backend methods.",
-        "`BlogDetailPage.tsx` continues to load and render the blog content exactly as before, plus the new interaction UI.",
-        "Like/share/comment actions update counts via React Query invalidation/refetch (no hard refresh required).",
-        "No changes are introduced to immutable frontend paths listed in SYSTEM_CONTEXT."
-      ]
-    },
-    {
-      "id": "REQ-112",
-      "text": "Extend the /admin Blog editor experience (without changing existing routes or overall admin layout) to surface blog interaction data and allow comment moderation within the admin blog management area. At minimum: show read-only interaction counts for the selected blog post and provide an admin-only view to list comments for that post and delete them. All admin user-facing text introduced must be in English.",
+      "id": "REQ-117",
+      "text": "Display the published blog comments directly below the article content on the public Blog Detail page, and support threaded replies so visitors can reply to an existing comment and see replies rendered nested under the parent comment.",
       "target": "both",
       "source": {
         "messageIds": [
-          "recent-messages-5"
+          "msg-1"
         ],
         "quotes": [
-          "Simpan di stable database dan editor blog dipanel admin."
+          "Tampilkan langsung komentar yang sudah di posting pengunjung dibawah artikel. Dapat diedit dan dihapus diadmin panel.",
+          "Buat komentar yang tampil bisa dibalas oleh pengunjung lain."
         ]
       },
       "acceptanceCriteria": [
-        "In the /admin blog management flow, an admin can view interaction counts for a blog post (likes/shares/comments).",
-        "Admins can view a list of comments for a blog post and delete individual comments.",
-        "Comment deletion persists (deleted comments no longer appear after refresh).",
-        "No existing admin blog CRUD (create/edit/publish/delete posts) is broken by these additions.",
-        "All newly introduced admin UI text is in English."
+        "The public Blog Detail page renders a comment list section below the article (and below the interactions/form area), showing existing comments for that blogPostId.",
+        "The comment list supports replies: each top-level comment can be replied to, and replies render nested under their parent comment.",
+        "After submitting a new comment or a reply, the UI updates so the new item appears in the list without requiring a full page refresh.",
+        "Any new user-facing text introduced for the comments list/replies UI (buttons, placeholders, empty states, validation) is in English."
+      ]
+    },
+    {
+      "id": "REQ-118",
+      "text": "Extend the backend blog comment data model and APIs to support threaded comments (replies) and provide admin-only moderation capabilities to edit and delete individual comments/replies from the existing /admin Blog management experience.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Dapat diedit dan dihapus diadmin panel.",
+          "Buat komentar yang tampil bisa dibalas oleh pengunjung lain."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend supports storing a comment as either a top-level comment or a reply tied to a parent comment (threaded structure) in stable, upgrade-safe persistence.",
+        "Public API supports: (1) fetching approved comments (including replies) for a blogPostId, and (2) creating a top-level comment or a reply for a blogPostId.",
+        "Admin API supports: editing an individual comment (at minimum the content) and deleting an individual comment (whether top-level or reply).",
+        "The existing admin Blog editor dialog (/admin blog management area) is updated so admins can edit and delete individual comments (not only delete-all), and the admin UI remains in English for any new text added."
+      ]
+    },
+    {
+      "id": "REQ-119",
+      "text": "Activate the article Views counter so that visiting a public Blog Detail page increments that blog post’s views count, and the updated views value is reflected in the existing admin panel views counter for the same article.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Aktifkan Views counter halaman artikel yang sudah ada pada admin panel."
+        ]
+      },
+      "acceptanceCriteria": [
+        "When a visitor opens a Blog Detail page, the system increments that blog post’s views count via a backend method, and the blog post’s views value returned by the public blog post query reflects the increment.",
+        "The view increment occurs at most once per visitor per article within a reasonable single browsing session (to avoid multiple increments from re-renders/navigation loops).",
+        "The /admin Blog management UI shows the same views value for the article as stored in the backend (i.e., the counter used by admin is actually updated by public visits).",
+        "Any new user-facing text introduced by this change is in English."
       ]
     }
   ],
   "constraints": [
-    "Do not break existing public page structure, routing, or SEO behavior; only add the blog interaction block and comment UI under the blog article in Blog Detail.",
-    "Do not change or remove existing backend method signatures currently used by the frontend/admin for blog CRUD; add new methods for interactions instead.",
-    "Do not corrupt, reset, or lose existing persisted CMS content; interaction persistence must be additive and upgrade-safe.",
-    "Do not modify any frontend files listed as immutable in SYSTEM_CONTEXT.",
-    "Use English for any new user-facing text added by this change (public and admin)."
+    "Do not modify any files under frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui (compose only).",
+    "Keep the existing public blog page layout structure intact beyond adding the requested comment list/replies rendering below the article and minor label additions in the interactions bar.",
+    "Backend must remain single-actor (all Motoko logic in backend/main.mo). Only add backend/migration.mo changes if a stable-state upgrade is required by the data model changes.",
+    "Use English for any new user-facing text introduced by these changes (public and admin)."
   ],
   "nonGoals": [
-    "Implementing third-party social APIs for sharing (only track share actions and optionally open standard share links).",
-    "Adding real-time/live comment updates across multiple clients.",
-    "Adding Internet Identity requirements for liking/sharing/commenting beyond what the app already uses."
+    "Do not add any per-visitor restriction for Share or Comment beyond the requested Like limitation.",
+    "Do not introduce third-party authentication or external databases/services.",
+    "Do not redesign the overall admin layout or change admin routes; only extend the existing blog management/editor experience to support comment edit/delete and replies moderation."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [
+      "Use English for any new user-facing text introduced by blog interaction/comment/view changes."
+    ],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

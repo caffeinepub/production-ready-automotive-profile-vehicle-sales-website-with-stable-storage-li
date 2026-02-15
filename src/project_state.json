@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 47,
+  "projectStateVersion": 51,
   "summary": "Automotive company profile + vehicle sales website with production-ready backend/frontend separation, stable persistence (upgrade/redeploy safe), live CMS admin panel, media manager, SEO/performance, product & article interactions, and seeded content.",
   "architectural_notes": [
     "Use stable persistence only (no in-memory) and ensure upgrade/redeploy-safe data migrations with auto-restore after redeploy.",
@@ -619,6 +619,54 @@
         "REQ-112"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-public-blog-interactions-ui-so-the-love-action-renders-only-one-heart-icon-no-duplicate-heart-emoji-and-the-heart-is-uncolored-by-default-then-changes-color-only-after-the-visitor-clicks-it-without-changing-the-share-icon-button-ui-or-behavior",
+      "title": "Update the public Blog interactions UI so the Love action renders only one heart icon (no duplicate heart emoji) and the heart is uncolored by default, then changes color only after the visitor clicks it, without changing the Share icon/button UI or behavior.",
+      "reqIds": [
+        "REQ-113"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-public-blog-detail-page-comment-submission-flow-remains-the-same-ux-form-toast-but-after-a-successful-submission-the-form-is-cleared-and-the-ui-reflects-the-updated-comment-count-via-the-existing-react-query-invalidations",
+      "title": "Ensure the public Blog Detail page comment submission flow remains the same UX (form + toast) but, after a successful submission, the form is cleared and the UI reflects the updated comment count via the existing React Query invalidations.",
+      "reqIds": [
+        "REQ-115"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-public-blog-interactions-bar-so-the-like-action-includes-a-visible-text-label-like-to-match-the-existing-share-and-comment-label-style-and-restrict-like-so-each-visitor-can-only-like-a-given-blog-article-once-per-blogpostid",
+      "title": "Update the public Blog interactions bar so the Like action includes a visible text label \"Like\" (to match the existing \"Share\" and \"Comment\" label style), and restrict Like so each visitor can only like a given blog article once per blogPostId.",
+      "reqIds": [
+        "REQ-116"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-display-the-published-blog-comments-directly-below-the-article-content-on-the-public-blog-detail-page-and-support-threaded-replies-so-visitors-can-reply-to-an-existing-comment-and-see-replies-rendered-nested-under-the-parent-comment",
+      "title": "Display the published blog comments directly below the article content on the public Blog Detail page, and support threaded replies so visitors can reply to an existing comment and see replies rendered nested under the parent comment.",
+      "reqIds": [
+        "REQ-117"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-the-backend-blog-comment-data-model-and-apis-to-support-threaded-comments-replies-and-provide-admin-only-moderation-capabilities-to-edit-and-delete-individual-comments-replies-from-the-existing-admin-blog-management-experience",
+      "title": "Extend the backend blog comment data model and APIs to support threaded comments (replies) and provide admin-only moderation capabilities to edit and delete individual comments/replies from the existing /admin Blog management experience.",
+      "reqIds": [
+        "REQ-118"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-activate-the-article-views-counter-so-that-visiting-a-public-blog-detail-page-increments-that-blog-post-s-views-count-and-the-updated-views-value-is-reflected-in-the-existing-admin-panel-views-counter-for-the-same-article",
+      "title": "Activate the article Views counter so that visiting a public Blog Detail page increments that blog post’s views count, and the updated views value is reflected in the existing admin panel views counter for the same article.",
+      "reqIds": [
+        "REQ-119"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -1140,6 +1188,50 @@
       "reqIds": [
         "REQ-110"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-110",
+      "summary": "Fix public blog comment submission so that submitting the comment form actually persists the comment in the backend storage and updates the corresponding blog post interaction counts (commentsCount) returned by the backend for that blogPostId.",
+      "reqIds": [
+        "REQ-114"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-111",
+      "summary": "Public Blog interactions UI: add visible text label \"Like\" next to the Love/heart icon so it matches the Share and Comment actions (UI consistency; do not change layout beyond adding the label).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-112",
+      "summary": "Public Blog Like behavior: restrict Like so each visitor can like a given blog article only once (per blogPostId). Only Like is restricted; Share and Comment remain unlimited.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-113",
+      "summary": "Public Blog comments display: render the list of posted comments directly below the blog article; after a successful comment submission, show the new comment immediately in the list.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-114",
+      "summary": "Admin comment moderation: in /admin Blog management, allow admins to edit and delete individual blog comments (not just delete-all), for comments displayed on the public blog detail page.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-115",
+      "summary": "Public comment replies (threaded comments): allow visitors to reply to existing comments on a blog article and display replies nested under the parent comment; include admin moderation support for replies.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-116",
+      "summary": "Enable/activate the Blog article Views counter so public blog detail page views are tracked and reflected in the existing /admin panel views counter for each article.",
+      "reqIds": [],
       "status": "pending"
     }
   ],

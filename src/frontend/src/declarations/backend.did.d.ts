@@ -18,12 +18,14 @@ export interface BlogComment {
   'blogPostId' : bigint,
   'email' : string,
   'approved' : boolean,
+  'parentId' : [] | [bigint],
 }
 export interface BlogCommentInput {
   'content' : string,
   'name' : string,
   'blogPostId' : bigint,
   'email' : string,
+  'parentId' : [] | [bigint],
 }
 export interface BlogInteractionSummary {
   'sharesCount' : bigint,
@@ -209,6 +211,7 @@ export interface _SERVICE {
   'deletePromotion' : ActorMethod<[string, bigint], boolean>,
   'deleteTestimonial' : ActorMethod<[string, bigint], boolean>,
   'deleteVehicle' : ActorMethod<[string, bigint], boolean>,
+  'getAndIncrementBlogPostViews' : ActorMethod<[bigint], [] | [BlogPost]>,
   'getBlogComments' : ActorMethod<[bigint], Array<BlogComment>>,
   'getBlogInteractionSummary' : ActorMethod<[bigint], BlogInteractionSummary>,
   'getBlogPost' : ActorMethod<[bigint], [] | [BlogPost]>,
@@ -237,6 +240,7 @@ export interface _SERVICE {
   'likeProduct' : ActorMethod<[bigint], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'shareProduct' : ActorMethod<[bigint, string], undefined>,
+  'updateBlogComment' : ActorMethod<[string, bigint, string], undefined>,
   'updateBlogPost' : ActorMethod<[string, BlogPost], boolean>,
   'updatePromotion' : ActorMethod<[string, Promotion], boolean>,
   'updateTestimonial' : ActorMethod<[string, Testimonial], boolean>,

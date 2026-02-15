@@ -1,19 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 
 interface BlogCommentFormProps {
-  onSubmit: (data: { name: string; email: string; content: string }) => void;
+  onSubmit: (data: { name: string; email: string; content: string; parentId?: bigint }) => void;
   isSubmitting: boolean;
+  resetKey?: number;
+  parentId?: bigint;
+  parentAuthor?: string;
+  onCancel?: () => void;
 }
 
-export default function BlogCommentForm({ onSubmit, isSubmitting }: BlogCommentFormProps) {
+export default function BlogCommentForm({ 
+  onSubmit, 
+  isSubmitting, 
+  resetKey = 0,
+  parentId,
+  parentAuthor,
+  onCancel
+}: BlogCommentFormProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [content, setContent] = useState('');
   const [errors, setErrors] = useState<{ name?: string; email?: string; content?: string }>({});
+
+  // Reset form when resetKey changes
+  useEffect(() => {
+    if (resetKey > 0) {
+      setName('');
+      setEmail('');
+      setContent('');
+      setErrors({});
+    }
+  }, [resetKey]);
 
   const validateForm = () => {
     const newErrors: { name?: string; email?: string; content?: string } = {};
@@ -45,7 +66,12 @@ export default function BlogCommentForm({ onSubmit, isSubmitting }: BlogCommentF
       return;
     }
 
-    onSubmit({ name: name.trim(), email: email.trim(), content: content.trim() });
+    onSubmit({ 
+      name: name.trim(), 
+      email: email.trim(), 
+      content: content.trim(),
+      parentId 
+    });
   };
 
   const handleReset = () => {
@@ -57,12 +83,14 @@ export default function BlogCommentForm({ onSubmit, isSubmitting }: BlogCommentF
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 p-6 bg-gray-50 rounded-lg border border-gray-200">
-      <h3 className="text-lg font-semibold mb-4">Leave a Comment</h3>
+      <h3 className="text-lg font-semibold mb-4">
+        {parentId ? `Reply to ${parentAuthor}` : 'Leave a Comment'}
+      </h3>
 
       <div>
-        <Label htmlFor="comment-name">Name *</Label>
+        <Label htmlFor={`comment-name-${parentId || 'main'}`}>Name *</Label>
         <Input
-          id="comment-name"
+          id={`comment-name-${parentId || 'main'}`}
           type="text"
           placeholder="Your name"
           value={name}
@@ -77,9 +105,9 @@ export default function BlogCommentForm({ onSubmit, isSubmitting }: BlogCommentF
       </div>
 
       <div>
-        <Label htmlFor="comment-email">Email *</Label>
+        <Label htmlFor={`comment-email-${parentId || 'main'}`}>Email *</Label>
         <Input
-          id="comment-email"
+          id={`comment-email-${parentId || 'main'}`}
           type="email"
           placeholder="your.email@example.com"
           value={email}
@@ -94,9 +122,9 @@ export default function BlogCommentForm({ onSubmit, isSubmitting }: BlogCommentF
       </div>
 
       <div>
-        <Label htmlFor="comment-content">Comment *</Label>
+        <Label htmlFor={`comment-content-${parentId || 'main'}`}>Comment *</Label>
         <Textarea
-          id="comment-content"
+          id={`comment-content-${parentId || 'main'}`}
           placeholder="Share your thoughts..."
           value={content}
           onChange={(e) => {
@@ -112,11 +140,16 @@ export default function BlogCommentForm({ onSubmit, isSubmitting }: BlogCommentF
 
       <div className="flex gap-2">
         <Button type="submit" disabled={isSubmitting} className="bg-[#C90010] hover:bg-[#a00010]">
-          {isSubmitting ? 'Submitting...' : 'Submit Comment'}
+          {isSubmitting ? 'Submitting...' : parentId ? 'Submit Reply' : 'Submit Comment'}
         </Button>
         <Button type="button" variant="outline" onClick={handleReset} disabled={isSubmitting}>
           Clear
         </Button>
+        {parentId && onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+            Cancel
+          </Button>
+        )}
       </div>
 
       <p className="text-xs text-gray-500">
