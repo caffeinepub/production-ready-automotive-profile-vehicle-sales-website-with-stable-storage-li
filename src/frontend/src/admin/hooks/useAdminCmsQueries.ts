@@ -9,6 +9,7 @@ import type {
   Contact,
   CreditSimulation,
   MediaAsset,
+  SimpleMediaAsset,
   ExtendedVisitorStats,
   UserProfile,
   SiteBanner,
@@ -283,35 +284,53 @@ export function useDeleteCreditSimulation() {
   });
 }
 
-// Media Assets
+// Media Assets - now using SimpleMediaAsset type from backend
 export function useGetMediaAssets() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<MediaAsset[]>({
+  return useQuery<SimpleMediaAsset[]>({
     queryKey: ['mediaAssets'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       const token = getSessionToken();
 
-      // Fetch media assets in pages to avoid 2MB IC limit
-      const PAGE_SIZE = 50n; // Conservative page size
-      let allAssets: MediaAsset[] = [];
+      // Fetch media assets in smaller pages with deduplication
+      const PAGE_SIZE = 30n;
+      const MAX_PAGES = 100;
+      const allAssets: SimpleMediaAsset[] = [];
+      const seenIds = new Set<string>();
       let offset = 0n;
-      let hasMore = true;
+      let pageCount = 0;
 
-      while (hasMore) {
+      while (pageCount < MAX_PAGES) {
         const page = await actor.getMediaAssets(token, offset, PAGE_SIZE);
         
         if (page.length === 0) {
-          hasMore = false;
-        } else {
-          allAssets = [...allAssets, ...page];
-          offset += BigInt(page.length);
-          
-          // If we got fewer items than requested, we've reached the end
-          if (page.length < Number(PAGE_SIZE)) {
-            hasMore = false;
+          break;
+        }
+
+        // Deduplicate by ID
+        let newItemsCount = 0;
+        for (const asset of page) {
+          const idStr = asset.id.toString();
+          if (!seenIds.has(idStr)) {
+            seenIds.add(idStr);
+            allAssets.push(asset);
+            newItemsCount++;
           }
+        }
+
+        // If no new items were added, we're seeing duplicates - stop
+        if (newItemsCount === 0) {
+          break;
+        }
+
+        offset += BigInt(page.length);
+        pageCount++;
+
+        // If we got fewer items than requested, we've reached the end
+        if (page.length < Number(PAGE_SIZE)) {
+          break;
         }
       }
 

@@ -7,12 +7,15 @@ import Time "mo:core/Time";
 import Iter "mo:core/Iter";
 import Int "mo:core/Int";
 import Array "mo:core/Array";
+import Debug "mo:core/Debug";
 
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   type AdminUserId = Nat;
   type BlogPostId = Nat;
@@ -147,6 +150,16 @@ actor {
   public type CreditSimulation = Contact;
 
   public type MediaAsset = {
+    id : Nat;
+    url : Text;
+    typ : Text;
+    size : Nat;
+    folder : Text;
+    legacyDataUrl : ?Text;
+    externalBlob : ?Storage.ExternalBlob;
+  };
+
+  public type SimpleMediaAsset = {
     id : Nat;
     url : Text;
     typ : Text;
@@ -733,6 +746,8 @@ actor {
     asset : MediaAsset,
   ) : async Bool {
     let _session = requireAdminSession(sessionToken);
+    Debug.print("Creating media asset " # asset.id.toText() # " with type " # asset.typ);
+
     mediaAssets.add(asset.id, asset);
     true;
   };
@@ -742,6 +757,7 @@ actor {
     id : Nat,
   ) : async Bool {
     let _session = requireAdminSession(sessionToken);
+    Debug.print("Deleting media asset " # id.toText());
     mediaAssets.remove(id);
     true;
   };
@@ -750,24 +766,37 @@ actor {
     sessionToken : Text,
     offset : Nat,
     limit : Nat,
-  ) : async [MediaAsset] {
+  ) : async [SimpleMediaAsset] {
     let _session = requireAdminSession(sessionToken);
 
-    // Convert Map to Array
     let allAssets = mediaAssets.values().toArray();
     let totalAssets = allAssets.size();
 
-    // Calculate the upper bound for the slice
     let safeLimit = if (limit > 1000) { 1000 } else { limit };
     let end = if (offset + safeLimit > totalAssets) {
       totalAssets;
     } else { offset + safeLimit };
 
     if (offset >= totalAssets) {
-      [];
-    } else if (offset >= totalAssets) {
-      [];
-    } else { allAssets.sliceToArray(offset, end) };
+      Debug.print("Requested offset " # offset.toText() # " is out of range (max: " # totalAssets.toText() # ")");
+      return [];
+    };
+
+    let paginatedAssets = allAssets.sliceToArray(offset, end);
+
+    let simplifiedAssets = paginatedAssets.map(
+      func(asset) {
+        {
+          id = asset.id;
+          url = asset.url;
+          typ = asset.typ;
+          size = asset.size;
+          folder = asset.folder;
+        };
+      }
+    );
+
+    simplifiedAssets;
   };
 
   // Product interactions

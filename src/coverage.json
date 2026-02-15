@@ -1,42 +1,61 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T08:37:20.778Z",
+  "generatedAt": "2026-02-15T09:43:34.725Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 1,
+    "total": 4,
+    "implemented": 0,
     "items": [
       {
-        "id": "REQ-148",
-        "summary": "Update the backend media listing so the admin Media Manager can load large libraries without triggering the Internet Computer 2MB per-response payload limit. Implement pagination/chunking for listing media assets so no single call returns a payload > 2MB.",
+        "id": "REQ-153",
+        "summary": "Fix the Admin Media Library failure where listing media triggers the Internet Computer response-size limit (IC0504 / \"ic0.msg_reply_data_append: application payload size ... cannot be larger than 2097152\") by ensuring the backend media listing returns a paginated/chunked response and strictly honors the existing frontend call signature `getMediaAssets(sessionToken, offset, limit)` so no single response can exceed 2MB.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-149",
-        "summary": "Keep the existing admin Media Manager UI behavior unchanged while adapting the data-fetching layer to use the new paginated/chunked backend listing so the UI still receives a single combined MediaAsset[] result.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/admin/hooks/useAdminCmsQueries.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/admin/hooks/useAdminCmsQueries.ts"
-        ]
+        "id": "REQ-154",
+        "summary": "Stop returning large `data:` URLs in the media listing payload. Keep the existing frontend upload payload unchanged (it still sends a `data:` URL today), but update the backend so `createMediaAsset` stores the underlying bytes in canister storage and returns/saves a compact retrievable URL (HTTP gateway URL/path) in `MediaAsset.url`, so listing remains small and images can still render via `<img src=...>`.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-155",
+        "summary": "Maintain backward compatibility for previously stored media records that already contain `data:` URLs so the library can still display them without exceeding payload limits. If needed, perform a lazy on-read conversion (data URL -> stored bytes -> compact URL) when those legacy items are encountered during listing or retrieval, without requiring any admin UI workflow changes.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-156",
+        "summary": "Add minimal backend-side diagnostic logging (using `Debug.print`) specifically for Media Library listing and upload paths to help diagnose future failures without changing any public/admin UI. Logs must not include sensitive data or raw image bytes.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/admin/components/BlogFormDialog.tsx",
+    "frontend/src/admin/components/PromotionFormDialog.tsx",
+    "frontend/src/admin/components/TestimonialFormDialog.tsx",
+    "frontend/src/admin/components/VehicleFormDialog.tsx",
+    "frontend/src/admin/components/media/MediaManagerPanel.tsx",
+    "frontend/src/admin/components/media/MediaPickerDialog.tsx",
+    "frontend/src/admin/components/vehicles/CommercialFeaturesEditor.tsx",
     "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+    "frontend/src/admin/pages/VehiclesAdminPage.tsx",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
     "frontend/src/declarations/backend.did.d.ts",

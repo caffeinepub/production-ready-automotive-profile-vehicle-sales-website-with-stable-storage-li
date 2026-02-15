@@ -79,11 +79,14 @@ export const BlogPost = IDL.Record({
   'imageUrl' : IDL.Text,
   'seoDescription' : IDL.Text,
 });
+export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const MediaAsset = IDL.Record({
   'id' : IDL.Nat,
   'typ' : IDL.Text,
   'url' : IDL.Text,
+  'externalBlob' : IDL.Opt(ExternalBlob),
   'size' : IDL.Nat,
+  'legacyDataUrl' : IDL.Opt(IDL.Text),
   'folder' : IDL.Text,
 });
 export const Promotion = IDL.Record({
@@ -169,6 +172,13 @@ export const ExtendedVisitorStats = IDL.Record({
   'onlineVisitors' : IDL.Nat,
   'pageViews' : IDL.Nat,
   'weeklyTraffic' : IDL.Nat,
+});
+export const SimpleMediaAsset = IDL.Record({
+  'id' : IDL.Nat,
+  'typ' : IDL.Text,
+  'url' : IDL.Text,
+  'size' : IDL.Nat,
+  'folder' : IDL.Text,
 });
 export const Interaction = IDL.Record({
   'itemId' : IDL.Nat,
@@ -273,7 +283,7 @@ export const idlService = IDL.Service({
   'getMainBannerImageUrls' : IDL.Func([], [IDL.Vec(IDL.Text)], []),
   'getMediaAssets' : IDL.Func(
       [IDL.Text, IDL.Nat, IDL.Nat],
-      [IDL.Vec(MediaAsset)],
+      [IDL.Vec(SimpleMediaAsset)],
       [],
     ),
   'getProductInteraction' : IDL.Func(
@@ -389,11 +399,14 @@ export const idlFactory = ({ IDL }) => {
     'imageUrl' : IDL.Text,
     'seoDescription' : IDL.Text,
   });
+  const ExternalBlob = IDL.Vec(IDL.Nat8);
   const MediaAsset = IDL.Record({
     'id' : IDL.Nat,
     'typ' : IDL.Text,
     'url' : IDL.Text,
+    'externalBlob' : IDL.Opt(ExternalBlob),
     'size' : IDL.Nat,
+    'legacyDataUrl' : IDL.Opt(IDL.Text),
     'folder' : IDL.Text,
   });
   const Promotion = IDL.Record({
@@ -479,6 +492,13 @@ export const idlFactory = ({ IDL }) => {
     'onlineVisitors' : IDL.Nat,
     'pageViews' : IDL.Nat,
     'weeklyTraffic' : IDL.Nat,
+  });
+  const SimpleMediaAsset = IDL.Record({
+    'id' : IDL.Nat,
+    'typ' : IDL.Text,
+    'url' : IDL.Text,
+    'size' : IDL.Nat,
+    'folder' : IDL.Text,
   });
   const Interaction = IDL.Record({
     'itemId' : IDL.Nat,
@@ -595,7 +615,7 @@ export const idlFactory = ({ IDL }) => {
     'getMainBannerImageUrls' : IDL.Func([], [IDL.Vec(IDL.Text)], []),
     'getMediaAssets' : IDL.Func(
         [IDL.Text, IDL.Nat, IDL.Nat],
-        [IDL.Vec(MediaAsset)],
+        [IDL.Vec(SimpleMediaAsset)],
         [],
       ),
     'getProductInteraction' : IDL.Func(

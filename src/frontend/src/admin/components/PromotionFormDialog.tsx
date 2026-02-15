@@ -127,18 +127,19 @@ export default function PromotionFormDialog({
 
             <div className="flex items-center gap-2">
               <Switch
+                id="published"
                 checked={formData.published}
                 onCheckedChange={(checked) => setFormData({ ...formData, published: checked })}
               />
-              <Label>Published</Label>
+              <Label htmlFor="published">Published</Label>
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit} disabled={isSaving} className="bg-[#C90010] hover:bg-[#a00010]">
+            <Button onClick={handleSubmit} disabled={isSaving}>
               {isSaving ? 'Saving...' : 'Save'}
             </Button>
           </DialogFooter>
@@ -148,8 +149,10 @@ export default function PromotionFormDialog({
       <MediaPickerDialog
         open={showImagePicker}
         onOpenChange={setShowImagePicker}
-        onSelect={(url) => setFormData({ ...formData, imageUrl: url })}
-        currentUrl={formData.imageUrl}
+        onSelect={(url) => {
+          setFormData({ ...formData, imageUrl: url });
+          setShowImagePicker(false);
+        }}
       />
     </>
   );

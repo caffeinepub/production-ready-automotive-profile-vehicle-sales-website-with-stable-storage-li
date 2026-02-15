@@ -90,6 +90,7 @@ export interface ExtendedVisitorStats {
   'pageViews' : bigint,
   'weeklyTraffic' : bigint,
 }
+export type ExternalBlob = Uint8Array;
 export interface Interaction {
   'itemId' : bigint,
   'sharesFacebook' : bigint,
@@ -102,7 +103,9 @@ export interface MediaAsset {
   'id' : bigint,
   'typ' : string,
   'url' : string,
+  'externalBlob' : [] | [ExternalBlob],
   'size' : bigint,
+  'legacyDataUrl' : [] | [string],
   'folder' : string,
 }
 export interface Promotion {
@@ -113,6 +116,13 @@ export interface Promotion {
   'description' : string,
   'imageUrl' : string,
   'validUntil' : string,
+}
+export interface SimpleMediaAsset {
+  'id' : bigint,
+  'typ' : string,
+  'url' : string,
+  'size' : bigint,
+  'folder' : string,
 }
 export interface SiteBanner {
   'id' : string,
@@ -243,7 +253,10 @@ export interface _SERVICE {
   'getExtendedVisitorStats' : ActorMethod<[string], ExtendedVisitorStats>,
   'getFooterVisitorStats' : ActorMethod<[], ExtendedVisitorStats>,
   'getMainBannerImageUrls' : ActorMethod<[], Array<string>>,
-  'getMediaAssets' : ActorMethod<[string, bigint, bigint], Array<MediaAsset>>,
+  'getMediaAssets' : ActorMethod<
+    [string, bigint, bigint],
+    Array<SimpleMediaAsset>
+  >,
   'getProductInteraction' : ActorMethod<[bigint], [] | [Interaction]>,
   'getPromotion' : ActorMethod<[bigint], [] | [Promotion]>,
   'getPromotions' : ActorMethod<[], Array<Promotion>>,

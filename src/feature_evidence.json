@@ -1,25 +1,4 @@
 {
   "kind": "feature_evidence_report",
-  "features": [
-    {
-      "featureId": "feature-keep-the-existing-admin-media-manager-ui-behavior-unchanged-while-adapting-the-data-fetching-layer-to-use-the-new-paginated-chunked-backend-listing-so-the-ui-still-receives-a-single-combined-mediaasset-result",
-      "featureTitle": "Keep the existing admin Media Manager UI behavior unchanged while adapting the data-fetching layer to use the new paginated/chunked backend listing so the UI still receives a single combined MediaAsset[] result.",
-      "files": [
-        "frontend/src/admin/hooks/useAdminCmsQueries.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-149"
-      ],
-      "confidence": "high"
-    }
-  ]
+  "features": []
 }

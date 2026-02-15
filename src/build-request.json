@@ -1,59 +1,95 @@
 {
   "kind": "build_request",
-  "title": "Paginate media asset listing to avoid IC 2MB response limit",
+  "title": "Fix Admin Media Library image loading (IC 2MB payload error) with correct chunking + URL-based assets",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-148",
-      "text": "Update the backend media listing so the admin Media Manager can load large libraries without triggering the Internet Computer 2MB per-response payload limit. Implement pagination/chunking for listing media assets so no single call returns a payload > 2MB.",
+      "id": "REQ-153",
+      "text": "Fix the Admin Media Library failure where listing media triggers the Internet Computer response-size limit (IC0504 / \"ic0.msg_reply_data_append: application payload size ... cannot be larger than 2097152\") by ensuring the backend media listing returns a paginated/chunked response and strictly honors the existing frontend call signature `getMediaAssets(sessionToken, offset, limit)` so no single response can exceed 2MB.",
       "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-user-1",
-          "msg-user-2"
-        ],
-        "quotes": [
-          "Perbaiki backend media agar getMediaAssets() menggunakan pagination/chunk agar tidak melewati limit 2MB IC.",
-          "application payload size (2392377) cannot be larger than 2097152"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Calling the media-asset listing API with a large number of media assets no longer results in an IC reject with 'application payload size ... cannot be larger than 2097152'.",
-        "Backend provides a paginated/chunked way to fetch media assets (e.g., page size/limit + cursor/offset) such that each response is safely below 2MB even for very large libraries.",
-        "Pagination ordering is stable across pages (deterministic ordering by id or created order) so the frontend can safely merge pages.",
-        "The paginated listing method requires the same admin session token authorization as existing admin CMS methods (no public access)."
-      ]
-    },
-    {
-      "id": "REQ-149",
-      "text": "Keep the existing admin Media Manager UI behavior unchanged while adapting the data-fetching layer to use the new paginated/chunked backend listing so the UI still receives a single combined MediaAsset[] result.",
-      "target": "frontend",
       "source": {
         "messageIds": [
           "msg-user-1"
         ],
         "quotes": [
-          "Jangan ubah tampilan atau hal yang tidak diperintahkan."
+          "Media tidak bisa menampilkan gambar yang diupload, tolong perbaiki dengan cara yang tepat agar tidak menghabiskan kredit",
+          "Canister violated contract: ic0.msg_reply_data_append: application payload size (3187974) cannot be larger than 2097152 ... Method name: getMediaAssets"
         ]
       },
       "acceptanceCriteria": [
-        "No visual/layout changes are made to the /admin Media Manager pages or components; only data-fetching behavior changes are allowed.",
-        "The React Query hook used by the admin media library continues to resolve to a single array of MediaAsset items (same shape as before) and the existing grid renders as it does today.",
-        "The admin Media page loads successfully with large media libraries and displays media assets without showing the payload-size error.",
-        "If a page fetch fails, the error handling remains consistent with current behavior (e.g., MediaManagerPanel shows an error message); no new user-facing copy is introduced unless strictly required, and any new text is in English."
+        "Calling `getMediaAssets(sessionToken, offset, limit)` with a small `limit` (e.g., 30) never returns a reply larger than the IC 2MB limit, even when the media library contains many items and/or large uploads.",
+        "The backend implementation uses `offset` and `limit` to return only a slice/page of assets (not the full library).",
+        "Paging is deterministic (stable ordering across calls), so the frontend paging loop in `frontend/src/admin/hooks/useAdminCmsQueries.ts` can reach the end without repeating the same items indefinitely.",
+        "The Admin Media Library page `/admin/media` loads without the IC0504 error and shows the existing media items list/grid."
+      ]
+    },
+    {
+      "id": "REQ-154",
+      "text": "Stop returning large `data:` URLs in the media listing payload. Keep the existing frontend upload payload unchanged (it still sends a `data:` URL today), but update the backend so `createMediaAsset` stores the underlying bytes in canister storage and returns/saves a compact retrievable URL (HTTP gateway URL/path) in `MediaAsset.url`, so listing remains small and images can still render via `<img src=...>`.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-user-1"
+        ],
+        "quotes": [
+          "Media tidak bisa menampilkan gambar yang diupload"
+        ]
+      },
+      "acceptanceCriteria": [
+        "After uploading an image from `/admin/media`, the newly created `MediaAsset.url` persisted by the backend is a compact retrievable URL/path (not a base64 `data:` URL).",
+        "The Admin Media Library can render thumbnails/previews for uploaded images using the returned compact URL (no frontend UI changes required).",
+        "Media listing payload size remains small even when many images exist, because it does not include embedded base64 image bodies in each `MediaAsset` record."
+      ]
+    },
+    {
+      "id": "REQ-155",
+      "text": "Maintain backward compatibility for previously stored media records that already contain `data:` URLs so the library can still display them without exceeding payload limits. If needed, perform a lazy on-read conversion (data URL -> stored bytes -> compact URL) when those legacy items are encountered during listing or retrieval, without requiring any admin UI workflow changes.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-user-1"
+        ],
+        "quotes": [
+          "Media tidak bisa menampilkan gambar yang diupload"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Existing legacy media assets (stored with `data:` URLs) remain visible in the Admin Media Library after this fix.",
+        "Legacy assets do not cause the listing endpoint to exceed the 2MB limit.",
+        "If a legacy asset is converted, subsequent listings return the compact URL for that asset."
+      ]
+    },
+    {
+      "id": "REQ-156",
+      "text": "Add minimal backend-side diagnostic logging (using `Debug.print`) specifically for Media Library listing and upload paths to help diagnose future failures without changing any public/admin UI. Logs must not include sensitive data or raw image bytes.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-user-1"
+        ],
+        "quotes": [
+          "tolong perbaiki dengan cara yang tepat agar tidak menghabiskan kredit"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When `getMediaAssets` is called, the backend logs (at minimum) the requested `offset`, `limit`, and the count of items returned.",
+        "When `createMediaAsset` processes an upload, the backend logs (at minimum) the media id, mime type, and byte-size stored, without logging the base64/data URL content.",
+        "No user-facing text/UI is changed for this logging requirement."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in `backend/main.mo` (no additional backend services).",
+    "Use English for any new user-facing text (no new Indonesian UI strings).",
     "Do not modify any immutable frontend paths listed in SYSTEM_CONTEXT.",
-    "Do not change admin/public UI visuals, layout, routes, or storage keys; only minimal frontend data-fetching changes are allowed to support pagination.",
-    "Use English for any user-facing text introduced by these changes."
+    "Keep existing admin UI behavior and flows unchanged; avoid refactors that would consume unnecessary credits.",
+    "Backend must remain a single Motoko actor (all logic in `backend/main.mo`).",
+    "Preserve the existing frontend calling convention for media listing: `actor.getMediaAssets(token, offset, PAGE_SIZE)` (do not require new frontend parameters or storage keys)."
   ],
   "nonGoals": [
-    "Redesigning the Media Manager UI (grid layout, search UI, buttons, styling).",
-    "Changing how media upload works or changing media file formats/compression behavior.",
-    "Migrating or altering existing stored media assets beyond what is strictly necessary to support paginated listing."
+    "Redesigning the /admin Media Manager UI.",
+    "Adding new media features (folders UX changes, tagging, bulk actions).",
+    "Changing the frontend upload mechanism or requiring multipart uploads; backend must adapt to the current upload payload.",
+    "Implementing third-party storage/CDN integration."
   ],
   "imageRequirements": {
     "required": [],

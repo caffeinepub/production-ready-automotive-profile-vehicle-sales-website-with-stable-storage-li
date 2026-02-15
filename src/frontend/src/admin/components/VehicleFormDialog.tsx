@@ -24,7 +24,6 @@ interface VehicleFormDialogProps {
   vehicle: Vehicle | null;
   onSave: (vehicle: Vehicle) => void;
   isSaving: boolean;
-  isCommercial: boolean;
 }
 
 export default function VehicleFormDialog({
@@ -32,8 +31,7 @@ export default function VehicleFormDialog({
   onOpenChange,
   vehicle,
   onSave,
-  isSaving,
-  isCommercial
+  isSaving
 }: VehicleFormDialogProps) {
   const [formData, setFormData] = useState<Partial<Vehicle>>({
     name: '',
@@ -41,10 +39,9 @@ export default function VehicleFormDialog({
     price: 0n,
     imageUrl: '',
     videoUrl: '',
-    brochure: '',
-    published: false,
-    isCommercial,
     variants: [],
+    isCommercial: false,
+    brochure: '',
     specs: {
       engine: '',
       transmission: '',
@@ -54,16 +51,8 @@ export default function VehicleFormDialog({
       suspension: '',
       additionalFeatures: []
     },
-    commercialFeatures: isCommercial ? {
-      economical: false,
-      power: false,
-      speed: false,
-      capacity: false,
-      bus: false,
-      fourByTwo: false,
-      sixByTwo: false,
-      sixByFour: false
-    } : undefined
+    commercialFeatures: undefined,
+    published: false
   });
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [showBrochurePicker, setShowBrochurePicker] = useState(false);
@@ -78,10 +67,9 @@ export default function VehicleFormDialog({
         price: 0n,
         imageUrl: '',
         videoUrl: '',
-        brochure: '',
-        published: false,
-        isCommercial,
         variants: [],
+        isCommercial: false,
+        brochure: '',
         specs: {
           engine: '',
           transmission: '',
@@ -91,19 +79,11 @@ export default function VehicleFormDialog({
           suspension: '',
           additionalFeatures: []
         },
-        commercialFeatures: isCommercial ? {
-          economical: false,
-          power: false,
-          speed: false,
-          capacity: false,
-          bus: false,
-          fourByTwo: false,
-          sixByTwo: false,
-          sixByFour: false
-        } : undefined
+        commercialFeatures: undefined,
+        published: false
       });
     }
-  }, [vehicle, isCommercial, open]);
+  }, [vehicle, open]);
 
   const handleSubmit = () => {
     const vehicleData: Vehicle = {
@@ -113,10 +93,9 @@ export default function VehicleFormDialog({
       price: formData.price || 0n,
       imageUrl: formData.imageUrl || '',
       videoUrl: formData.videoUrl || undefined,
-      brochure: formData.brochure || '',
-      published: formData.published || false,
-      isCommercial,
       variants: formData.variants || [],
+      isCommercial: formData.isCommercial || false,
+      brochure: formData.brochure || '',
       specs: formData.specs || {
         engine: '',
         transmission: '',
@@ -126,7 +105,8 @@ export default function VehicleFormDialog({
         suspension: '',
         additionalFeatures: []
       },
-      commercialFeatures: formData.commercialFeatures
+      commercialFeatures: formData.commercialFeatures,
+      published: formData.published || false
     };
     onSave(vehicleData);
   };
@@ -143,11 +123,11 @@ export default function VehicleFormDialog({
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="basic">Basic Info</TabsTrigger>
               <TabsTrigger value="variants">Variants</TabsTrigger>
-              <TabsTrigger value="specs">Specifications</TabsTrigger>
-              {isCommercial && <TabsTrigger value="commercial">Commercial</TabsTrigger>}
+              <TabsTrigger value="specs">Technical Specs</TabsTrigger>
+              <TabsTrigger value="commercial">Commercial</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="basic" className="space-y-4 mt-4">
+            <TabsContent value="basic" className="space-y-4">
               <div>
                 <Label htmlFor="name">Name</Label>
                 <Input
@@ -163,12 +143,12 @@ export default function VehicleFormDialog({
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
+                  rows={4}
                 />
               </div>
 
               <div>
-                <Label htmlFor="price">Price (Rp)</Label>
+                <Label htmlFor="price">Base Price (IDR)</Label>
                 <Input
                   id="price"
                   type="number"
@@ -188,15 +168,6 @@ export default function VehicleFormDialog({
               </div>
 
               <div>
-                <Label htmlFor="videoUrl">Video URL (optional)</Label>
-                <Input
-                  id="videoUrl"
-                  value={formData.videoUrl || ''}
-                  onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                />
-              </div>
-
-              <div>
                 <Label>Brochure</Label>
                 <div className="flex gap-2">
                   <Input value={formData.brochure} readOnly />
@@ -206,23 +177,43 @@ export default function VehicleFormDialog({
                 </div>
               </div>
 
+              <div>
+                <Label htmlFor="videoUrl">Video URL (optional)</Label>
+                <Input
+                  id="videoUrl"
+                  value={formData.videoUrl || ''}
+                  onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value || undefined })}
+                  placeholder="https://youtube.com/..."
+                />
+              </div>
+
               <div className="flex items-center gap-2">
                 <Switch
+                  id="isCommercial"
+                  checked={formData.isCommercial}
+                  onCheckedChange={(checked) => setFormData({ ...formData, isCommercial: checked })}
+                />
+                <Label htmlFor="isCommercial">Commercial Vehicle</Label>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="published"
                   checked={formData.published}
                   onCheckedChange={(checked) => setFormData({ ...formData, published: checked })}
                 />
-                <Label>Published</Label>
+                <Label htmlFor="published">Published</Label>
               </div>
             </TabsContent>
 
-            <TabsContent value="variants" className="mt-4">
+            <TabsContent value="variants">
               <VariantsEditor
                 variants={formData.variants || []}
                 onChange={(variants) => setFormData({ ...formData, variants })}
               />
             </TabsContent>
 
-            <TabsContent value="specs" className="mt-4">
+            <TabsContent value="specs">
               <TechnicalSpecsEditor
                 specs={formData.specs || {
                   engine: '',
@@ -237,30 +228,19 @@ export default function VehicleFormDialog({
               />
             </TabsContent>
 
-            {isCommercial && (
-              <TabsContent value="commercial" className="mt-4">
-                <CommercialFeaturesEditor
-                  features={formData.commercialFeatures || {
-                    economical: false,
-                    power: false,
-                    speed: false,
-                    capacity: false,
-                    bus: false,
-                    fourByTwo: false,
-                    sixByTwo: false,
-                    sixByFour: false
-                  }}
-                  onChange={(features) => setFormData({ ...formData, commercialFeatures: features })}
-                />
-              </TabsContent>
-            )}
+            <TabsContent value="commercial">
+              <CommercialFeaturesEditor
+                features={formData.commercialFeatures}
+                onChange={(features) => setFormData({ ...formData, commercialFeatures: features })}
+              />
+            </TabsContent>
           </Tabs>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit} disabled={isSaving} className="bg-[#C90010] hover:bg-[#a00010]">
+            <Button onClick={handleSubmit} disabled={isSaving}>
               {isSaving ? 'Saving...' : 'Save'}
             </Button>
           </DialogFooter>
@@ -270,15 +250,19 @@ export default function VehicleFormDialog({
       <MediaPickerDialog
         open={showImagePicker}
         onOpenChange={setShowImagePicker}
-        onSelect={(url) => setFormData({ ...formData, imageUrl: url })}
-        currentUrl={formData.imageUrl}
+        onSelect={(url) => {
+          setFormData({ ...formData, imageUrl: url });
+          setShowImagePicker(false);
+        }}
       />
 
       <MediaPickerDialog
         open={showBrochurePicker}
         onOpenChange={setShowBrochurePicker}
-        onSelect={(url) => setFormData({ ...formData, brochure: url })}
-        currentUrl={formData.brochure}
+        onSelect={(url) => {
+          setFormData({ ...formData, brochure: url });
+          setShowBrochurePicker(false);
+        }}
       />
     </>
   );

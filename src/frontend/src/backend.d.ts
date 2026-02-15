@@ -7,6 +7,13 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export class ExternalBlob {
+    getBytes(): Promise<Uint8Array<ArrayBuffer>>;
+    getDirectURL(): string;
+    static fromURL(url: string): ExternalBlob;
+    static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
+    withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
+}
 export interface Promotion {
     id: bigint;
     terms: string;
@@ -41,8 +48,16 @@ export interface MediaAsset {
     id: bigint;
     typ: string;
     url: string;
+    externalBlob?: ExternalBlob;
     size: bigint;
+    legacyDataUrl?: string;
     folder: string;
+}
+export interface Variant {
+    features: Array<string>;
+    isPremium: boolean;
+    name: string;
+    priceAdjustment: bigint;
 }
 export interface ExtendedVisitorStats {
     todayTraffic: bigint;
@@ -54,25 +69,7 @@ export interface ExtendedVisitorStats {
     pageViews: bigint;
     weeklyTraffic: bigint;
 }
-export interface Variant {
-    features: Array<string>;
-    isPremium: boolean;
-    name: string;
-    priceAdjustment: bigint;
-}
 export interface CreditSimulation {
-    tenor?: bigint;
-    downPayment?: number;
-    date: string;
-    name: string;
-    unit: string;
-    email: string;
-    message: string;
-    address: string;
-    notes?: string;
-    phoneNumber: string;
-}
-export interface Contact {
     tenor?: bigint;
     downPayment?: number;
     date: string;
@@ -104,6 +101,18 @@ export interface Vehicle {
     videoUrl?: string;
     isCommercial: boolean;
 }
+export interface Contact {
+    tenor?: bigint;
+    downPayment?: number;
+    date: string;
+    name: string;
+    unit: string;
+    email: string;
+    message: string;
+    address: string;
+    notes?: string;
+    phoneNumber: string;
+}
 export interface CommercialVehicleFeatures {
     bus: boolean;
     sixByTwo: boolean;
@@ -124,6 +133,13 @@ export interface TechnicalSpecs {
     engine: string;
 }
 export type BlogPostId = bigint;
+export interface SimpleMediaAsset {
+    id: bigint;
+    typ: string;
+    url: string;
+    size: bigint;
+    folder: string;
+}
 export interface BlogComment {
     id: bigint;
     content: string;
@@ -206,7 +222,7 @@ export interface backendInterface {
     getExtendedVisitorStats(sessionToken: string): Promise<ExtendedVisitorStats>;
     getFooterVisitorStats(): Promise<ExtendedVisitorStats>;
     getMainBannerImageUrls(): Promise<Array<string>>;
-    getMediaAssets(sessionToken: string, offset: bigint, limit: bigint): Promise<Array<MediaAsset>>;
+    getMediaAssets(sessionToken: string, offset: bigint, limit: bigint): Promise<Array<SimpleMediaAsset>>;
     getProductInteraction(itemId: bigint): Promise<Interaction | null>;
     getPromotion(id: bigint): Promise<Promotion | null>;
     getPromotions(): Promise<Array<Promotion>>;

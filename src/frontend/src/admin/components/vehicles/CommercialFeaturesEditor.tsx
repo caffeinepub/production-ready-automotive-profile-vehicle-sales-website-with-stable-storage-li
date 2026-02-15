@@ -3,15 +3,26 @@ import { Checkbox } from '@/components/ui/checkbox';
 import type { CommercialVehicleFeatures } from '../../../backend';
 
 interface CommercialFeaturesEditorProps {
-  features: CommercialVehicleFeatures;
-  onChange: (features: CommercialVehicleFeatures) => void;
+  features: CommercialVehicleFeatures | undefined;
+  onChange: (features: CommercialVehicleFeatures | undefined) => void;
 }
 
 export default function CommercialFeaturesEditor({ features, onChange }: CommercialFeaturesEditorProps) {
+  const currentFeatures: CommercialVehicleFeatures = features || {
+    economical: false,
+    power: false,
+    speed: false,
+    capacity: false,
+    bus: false,
+    fourByTwo: false,
+    sixByTwo: false,
+    sixByFour: false
+  };
+
   const handleToggle = (key: keyof CommercialVehicleFeatures) => {
     onChange({
-      ...features,
-      [key]: !features[key]
+      ...currentFeatures,
+      [key]: !currentFeatures[key]
     });
   };
 
@@ -24,7 +35,7 @@ export default function CommercialFeaturesEditor({ features, onChange }: Commerc
         <div className="flex items-center space-x-2">
           <Checkbox
             id="economical"
-            checked={features.economical}
+            checked={currentFeatures.economical}
             onCheckedChange={() => handleToggle('economical')}
           />
           <Label htmlFor="economical" className="cursor-pointer">Economical</Label>
@@ -33,7 +44,7 @@ export default function CommercialFeaturesEditor({ features, onChange }: Commerc
         <div className="flex items-center space-x-2">
           <Checkbox
             id="power"
-            checked={features.power}
+            checked={currentFeatures.power}
             onCheckedChange={() => handleToggle('power')}
           />
           <Label htmlFor="power" className="cursor-pointer">Power</Label>
@@ -42,7 +53,7 @@ export default function CommercialFeaturesEditor({ features, onChange }: Commerc
         <div className="flex items-center space-x-2">
           <Checkbox
             id="speed"
-            checked={features.speed}
+            checked={currentFeatures.speed}
             onCheckedChange={() => handleToggle('speed')}
           />
           <Label htmlFor="speed" className="cursor-pointer">Speed</Label>
@@ -51,7 +62,7 @@ export default function CommercialFeaturesEditor({ features, onChange }: Commerc
         <div className="flex items-center space-x-2">
           <Checkbox
             id="capacity"
-            checked={features.capacity}
+            checked={currentFeatures.capacity}
             onCheckedChange={() => handleToggle('capacity')}
           />
           <Label htmlFor="capacity" className="cursor-pointer">Capacity</Label>
@@ -60,7 +71,7 @@ export default function CommercialFeaturesEditor({ features, onChange }: Commerc
         <div className="flex items-center space-x-2">
           <Checkbox
             id="bus"
-            checked={features.bus}
+            checked={currentFeatures.bus}
             onCheckedChange={() => handleToggle('bus')}
           />
           <Label htmlFor="bus" className="cursor-pointer">Bus</Label>
@@ -69,7 +80,7 @@ export default function CommercialFeaturesEditor({ features, onChange }: Commerc
         <div className="flex items-center space-x-2">
           <Checkbox
             id="fourByTwo"
-            checked={features.fourByTwo}
+            checked={currentFeatures.fourByTwo}
             onCheckedChange={() => handleToggle('fourByTwo')}
           />
           <Label htmlFor="fourByTwo" className="cursor-pointer">4x2</Label>
@@ -78,7 +89,7 @@ export default function CommercialFeaturesEditor({ features, onChange }: Commerc
         <div className="flex items-center space-x-2">
           <Checkbox
             id="sixByTwo"
-            checked={features.sixByTwo}
+            checked={currentFeatures.sixByTwo}
             onCheckedChange={() => handleToggle('sixByTwo')}
           />
           <Label htmlFor="sixByTwo" className="cursor-pointer">6x2</Label>
@@ -87,7 +98,7 @@ export default function CommercialFeaturesEditor({ features, onChange }: Commerc
         <div className="flex items-center space-x-2">
           <Checkbox
             id="sixByFour"
-            checked={features.sixByFour}
+            checked={currentFeatures.sixByFour}
             onCheckedChange={() => handleToggle('sixByFour')}
           />
           <Label htmlFor="sixByFour" className="cursor-pointer">6x4</Label>

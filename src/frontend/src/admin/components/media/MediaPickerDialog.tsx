@@ -15,59 +15,49 @@ interface MediaPickerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelect: (url: string) => void;
-  currentUrl?: string;
+  folder?: string;
 }
 
 export default function MediaPickerDialog({
   open,
   onOpenChange,
   onSelect,
-  currentUrl,
+  folder,
 }: MediaPickerDialogProps) {
   const { data: mediaAssets = [], isLoading, isError, error, refetch } = useGetMediaAssets();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedUrl, setSelectedUrl] = useState<string | null>(currentUrl || null);
+  const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
 
-  const filteredAssets = mediaAssets.filter((asset) =>
-    asset.url.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredAssets = mediaAssets
+    .filter((asset) => !folder || asset.folder === folder)
+    .filter((asset) => asset.url.toLowerCase().includes(searchQuery.toLowerCase()));
 
   const handleSelect = () => {
     if (selectedUrl) {
       onSelect(selectedUrl);
       onOpenChange(false);
+      setSelectedUrl(null);
     }
   };
 
-  if (isLoading) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>Select Media</DialogTitle>
-          </DialogHeader>
-          <div className="text-center py-8">Loading media library...</div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  const handleRetry = () => {
+    refetch();
+  };
 
   if (isError) {
     const errorMessage = error?.message || 'Unknown error';
-    const isSessionError = errorMessage.includes('session') || errorMessage.includes('Unauthorized');
-    
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-4xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>Select Media</DialogTitle>
           </DialogHeader>
-          <div className="text-center py-8 text-gray-500">
-            {isSessionError ? 'Session expired. Please refresh the page.' : `Error: ${errorMessage}`}
+          <div className="text-center py-12">
+            <p className="text-red-500 mb-4">Error loading media: {errorMessage}</p>
+            <Button onClick={handleRetry} variant="outline">
+              Retry
+            </Button>
           </div>
-          <DialogFooter>
-            <Button onClick={() => refetch()}>Retry</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     );
@@ -75,13 +65,13 @@ export default function MediaPickerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-4xl max-h-[80vh]">
         <DialogHeader>
           <DialogTitle>Select Media</DialogTitle>
         </DialogHeader>
 
-        <div className="flex items-center gap-2 px-6">
-          <div className="relative flex-1">
+        <div className="space-y-4">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
               type="text"
@@ -91,71 +81,53 @@ export default function MediaPickerDialog({
               className="pl-10"
             />
           </div>
-        </div>
 
-        <div className="flex-1 overflow-y-auto px-6">
-          {filteredAssets.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              {searchQuery ? 'No media found matching your search.' : 'No media yet.'}
+          {isLoading ? (
+            <div className="text-center py-12 text-gray-500">Loading media...</div>
+          ) : filteredAssets.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              {searchQuery ? 'No media found matching your search.' : 'No media available.'}
             </div>
-          )}
-
-          {filteredAssets.length > 0 && (
-            <div className="grid grid-cols-3 md:grid-cols-4 gap-4 py-4">
-              {filteredAssets.map((asset) => {
-                const isImage = asset.typ.startsWith('image/');
-                const isSelected = selectedUrl === asset.url;
-
-                return (
-                  <div
-                    key={asset.id.toString()}
-                    onClick={() => setSelectedUrl(asset.url)}
-                    className={`relative cursor-pointer border-2 rounded-lg overflow-hidden transition-all ${
-                      isSelected
-                        ? 'border-[#C90010] ring-2 ring-[#C90010] ring-opacity-50'
-                        : 'border-gray-200 hover:border-gray-400'
-                    }`}
-                  >
-                    <div className="aspect-square bg-gray-100 flex items-center justify-center">
-                      {isImage ? (
-                        <img
-                          src={asset.url}
-                          alt="Media asset"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = '/assets/generated/vehicle-passenger-placeholder.dim_1200x800.png';
-                          }}
-                        />
-                      ) : (
-                        <div className="text-gray-400 text-xs text-center p-2">
-                          {asset.typ || 'File'}
-                        </div>
-                      )}
-                    </div>
-                    {isSelected && (
-                      <div className="absolute inset-0 bg-[#C90010] bg-opacity-20 flex items-center justify-center">
-                        <div className="bg-[#C90010] text-white rounded-full w-8 h-8 flex items-center justify-center">
-                          ✓
-                        </div>
+          ) : (
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-4 max-h-96 overflow-y-auto">
+              {filteredAssets.map((asset) => (
+                <div
+                  key={asset.id.toString()}
+                  className={`relative cursor-pointer border-2 rounded-lg overflow-hidden transition-all ${
+                    selectedUrl === asset.url
+                      ? 'border-blue-500 ring-2 ring-blue-200'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setSelectedUrl(asset.url)}
+                >
+                  <div className="aspect-square bg-gray-100 flex items-center justify-center">
+                    {asset.typ.startsWith('image/') ? (
+                      <img
+                        src={asset.url}
+                        alt="Media asset"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/assets/generated/vehicle-passenger-placeholder.dim_1200x800.png';
+                        }}
+                      />
+                    ) : (
+                      <div className="text-gray-400 text-xs text-center p-2">
+                        {asset.typ}
                       </div>
                     )}
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
         </div>
 
-        <DialogFooter className="px-6 pb-6">
+        <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button
-            onClick={handleSelect}
-            disabled={!selectedUrl}
-            className="admin-btn-primary"
-          >
+          <Button onClick={handleSelect} disabled={!selectedUrl}>
             Select
           </Button>
         </DialogFooter>

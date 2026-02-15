@@ -1,24 +1,6 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin Media Manager: adapt media listing hook to backend pagination while preserving UI behavior",
-  "requirements": [
-    {
-      "id": "REQ-149",
-      "summary": "Adapt admin media library data-fetching to use the backend's paginated media listing while keeping the existing /admin Media Manager UI behavior unchanged (still resolves to a single combined MediaAsset[]).",
-      "acceptanceCriteria": [
-        "No visual/layout changes are made to the /admin Media Manager pages or components; only data-fetching behavior changes are allowed.",
-        "The React Query hook used by the admin media library continues to resolve to a single array of MediaAsset items (same shape as before) and the existing grid renders as it does today.",
-        "The admin Media page loads successfully with large media libraries and displays media assets without showing the payload-size error.",
-        "If a page fetch fails, the error handling remains consistent with current behavior (e.g., MediaManagerPanel shows an error message); no new user-facing copy is introduced unless strictly required, and any new text is in English."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-          "operation": "modify",
-          "description": "Update useGetMediaAssets() to call the paginated backend capability (getMediaAssets(sessionToken, offset, limit)) and internally fetch successive pages (with a conservative limit) until completion, concatenating results into a single MediaAsset[] return value. Ensure ordering is preserved by appending pages in fetch order, and keep existing React Query behaviors (queryKey, enabled gating on actor, retry policy) so MediaManagerPanel/MediaPickerDialog error/loading UI remains unchanged."
-        }
-      ]
-    }
-  ]
+  "title": "Frontend-only plan: No changes required for backend-only Media Library payload fix",
+  "requirements": []
 }

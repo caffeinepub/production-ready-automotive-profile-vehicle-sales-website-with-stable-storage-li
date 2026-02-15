@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 65,
+  "projectStateVersion": 69,
   "summary": "Automotive company profile + vehicle sales website with production-ready backend/frontend separation, stable persistence (upgrade/redeploy safe), live CMS admin panel, media manager, SEO/performance, product & article interactions, and seeded content.",
   "architectural_notes": [
     "Use stable persistence only (no in-memory) and ensure upgrade/redeploy-safe data migrations with auto-restore after redeploy.",
@@ -843,6 +843,30 @@
         "REQ-149"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-fix-the-admin-media-manager-data-loading-issue-results-are-still-the-same-by-ensuring-the-admin-media-library-can-reliably-load-and-display-all-existing-media-assets-end-to-end-using-the-current-paginated-fetching-approach-frontend-hook-loops-pages-without-hitting-the-internet-computer-2mb-response-limit-and-without-requiring-any-admin-ui-workflow-changes",
+      "title": "Fix the Admin Media Manager data-loading issue “results are still the same” by ensuring the Admin Media library can reliably load and display all existing media assets end-to-end using the current paginated fetching approach (frontend hook loops pages) without hitting the Internet Computer 2MB response limit and without requiring any admin UI workflow changes.",
+      "reqIds": [
+        "REQ-150"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-2-mode-admin-sidebar-in-the-main-admin-layout-expanded-mode-shows-nav-icons-label-text-collapsed-mode-shows-icons-only-provide-a-toggle-control-in-the-sidebar-to-switch-between-modes-default-behavior-on-mobile-view-must-be-collapsed-icons-only-for-space-efficiency",
+      "title": "Add a 2-mode Admin sidebar in the main admin layout: Expanded mode shows nav icons + label text; Collapsed mode shows icons only. Provide a toggle control in the sidebar to switch between modes. Default behavior on mobile view must be Collapsed (icons-only) for space efficiency.",
+      "reqIds": [
+        "REQ-151"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-only-the-logout-button-and-its-label-icon-styling-if-needed-to-use-a-more-contrasting-color-for-visibility-in-the-admin-sidebar-without-changing-any-other-admin-panel-colors",
+      "title": "Update only the Logout button (and its label/icon styling if needed) to use a more contrasting color for visibility in the admin sidebar, without changing any other admin panel colors.",
+      "reqIds": [
+        "REQ-152"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -1561,6 +1585,50 @@
       "summary": "Update the backend media listing so the admin Media Manager can load large libraries without triggering the Internet Computer 2MB per-response payload limit. Implement pagination/chunking for listing media assets so no single call returns a payload > 2MB.",
       "reqIds": [
         "REQ-148"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-143",
+      "summary": "Admin sidebar: add a 2-mode collapse/expand toggle—expanded shows icons + text; collapsed shows icons only. On mobile, default to collapsed (icons-only) for space efficiency.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-144",
+      "summary": "Admin Logout UI: update the Logout button and its text to use a more contrasting color for visibility, without changing any other colors in the admin panel.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-145",
+      "summary": "Fix the Admin Media Library failure where listing media triggers the Internet Computer response-size limit (IC0504 / \"ic0.msg_reply_data_append: application payload size ... cannot be larger than 2097152\") by ensuring the backend media listing returns a paginated/chunked response and strictly honors the existing frontend call signature `getMediaAssets(sessionToken, offset, limit)` so no single response can exceed 2MB.",
+      "reqIds": [
+        "REQ-153"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-146",
+      "summary": "Stop returning large `data:` URLs in the media listing payload. Keep the existing frontend upload payload unchanged (it still sends a `data:` URL today), but update the backend so `createMediaAsset` stores the underlying bytes in canister storage and returns/saves a compact retrievable URL (HTTP gateway URL/path) in `MediaAsset.url`, so listing remains small and images can still render via `<img src=...>`.",
+      "reqIds": [
+        "REQ-154"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-147",
+      "summary": "Maintain backward compatibility for previously stored media records that already contain `data:` URLs so the library can still display them without exceeding payload limits. If needed, perform a lazy on-read conversion (data URL -> stored bytes -> compact URL) when those legacy items are encountered during listing or retrieval, without requiring any admin UI workflow changes.",
+      "reqIds": [
+        "REQ-155"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-148",
+      "summary": "Add minimal backend-side diagnostic logging (using `Debug.print`) specifically for Media Library listing and upload paths to help diagnose future failures without changing any public/admin UI. Logs must not include sensitive data or raw image bytes.",
+      "reqIds": [
+        "REQ-156"
       ],
       "status": "pending"
     }

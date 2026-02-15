@@ -139,7 +139,6 @@ export default function VehiclesAdminPage() {
         vehicle={editItem}
         onSave={handleSave}
         isSaving={createVehicle.isPending || updateVehicle.isPending}
-        isCommercial={category === 'commercial'}
       />
 
       <ConfirmDeleteDialog

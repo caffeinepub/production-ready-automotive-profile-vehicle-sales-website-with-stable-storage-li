@@ -1,9 +1,9 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from '@tanstack/react-router';
 import { useAdminSession } from './hooks/useAdminSession';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Car, FileText, MessageSquare, Star, LayoutDashboard, Image, BarChart, User, LogOut, Truck, Bug } from 'lucide-react';
+import { Car, FileText, MessageSquare, Star, LayoutDashboard, Image, BarChart, User, LogOut, Truck, Bug, Menu, X } from 'lucide-react';
 import './styles/adminTheme.css';
 
 interface AdminLayoutProps {
@@ -15,6 +15,25 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const queryClient = useQueryClient();
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Sidebar collapse state - default to collapsed on mobile
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  // Update collapse state on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768 && !isCollapsed) {
+        setIsCollapsed(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isCollapsed]);
 
   const handleLogout = async () => {
     await logout();
@@ -53,52 +72,55 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       return itemCategory === currentCategory;
     }
 
-    // For other routes, match pathname only
-    return itemPathname === currentPathname;
+    // For other routes, match pathname exactly
+    return currentPathname === itemPathname;
   };
 
   return (
-    <div className="admin-scope min-h-screen admin-main-bg">
-      <div className="flex">
-        <aside className="w-64 admin-sidebar text-white min-h-screen flex flex-col">
-          <div className="p-6 border-b border-white/10">
-            <h2 className="text-2xl font-bold tracking-tight">Admin CMS</h2>
-            <p className="text-sm text-white/70 mt-1">Content Management</p>
-          </div>
-          <nav className="flex-1 p-4 space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = isNavItemActive(item.path);
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`admin-nav-item flex items-center gap-3 px-4 py-3 text-sm rounded-lg transition-all ${
-                    isActive ? 'active' : ''
-                  }`}
-                >
-                  <Icon className="admin-nav-icon h-5 w-5" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-          <div className="p-4 border-t border-white/10">
-            <Button 
-              onClick={handleLogout} 
-              variant="outline" 
-              className="w-full text-white border-white/30 hover:bg-white/10 hover:text-white"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
-          </div>
-        </aside>
-
-        <main className="flex-1 admin-content">
-          {children}
-        </main>
-      </div>
+    <div className="admin-layout">
+      <aside className={`admin-sidebar ${isCollapsed ? 'admin-sidebar-collapsed' : 'admin-sidebar-expanded'}`}>
+        <div className="admin-sidebar-header">
+          <h1 className={`admin-sidebar-title ${isCollapsed ? 'hidden' : ''}`}>Admin Panel</h1>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="admin-sidebar-toggle"
+            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {isCollapsed ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />}
+          </Button>
+        </div>
+        <nav className="admin-nav">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = isNavItemActive(item.path);
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`admin-nav-item ${isActive ? 'admin-nav-item-active' : ''}`}
+              >
+                <Icon className="admin-nav-icon" />
+                {!isCollapsed && <span className="admin-nav-label">{item.label}</span>}
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="admin-sidebar-footer">
+          <Button
+            onClick={handleLogout}
+            variant="ghost"
+            className="admin-logout-button"
+          >
+            <LogOut className="admin-nav-icon" />
+            {!isCollapsed && <span className="admin-nav-label">Logout</span>}
+          </Button>
+        </div>
+      </aside>
+      <main className={`admin-main ${isCollapsed ? 'admin-main-expanded' : ''}`}>
+        {children}
+      </main>
     </div>
   );
 }

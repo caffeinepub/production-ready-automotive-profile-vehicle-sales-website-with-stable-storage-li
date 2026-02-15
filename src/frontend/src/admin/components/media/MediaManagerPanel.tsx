@@ -61,67 +61,47 @@ export default function MediaManagerPanel() {
         </div>
       </div>
 
-      {filteredAssets.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          {searchQuery ? 'No media found matching your search.' : 'No media yet.'}
+      {filteredAssets.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          {searchQuery ? 'No media found matching your search.' : 'No media uploaded yet.'}
         </div>
-      )}
-
-      {filteredAssets.length > 0 && (
+      ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filteredAssets.map((asset) => {
-            const isImage = asset.typ.startsWith('image/');
-            const isVideo = asset.typ.startsWith('video/');
-
-            return (
-              <div
-                key={asset.id.toString()}
-                className="relative group border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <div className="aspect-square bg-gray-100 flex items-center justify-center">
-                  {isImage && (
-                    <img
-                      src={asset.url}
-                      alt="Media asset"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/assets/generated/vehicle-passenger-placeholder.dim_1200x800.png';
-                      }}
-                    />
-                  )}
-                  {isVideo && (
-                    <video
-                      src={asset.url}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLVideoElement;
-                        target.style.display = 'none';
-                      }}
-                    />
-                  )}
-                  {!isImage && !isVideo && (
-                    <div className="text-gray-400 text-sm text-center p-4">
-                      {asset.typ || 'Unknown type'}
-                    </div>
-                  )}
-                </div>
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDelete(asset.id)}
-                    disabled={deleteMediaAsset.isPending}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-                <div className="p-2 bg-white">
-                  <p className="text-xs text-gray-500 truncate">{asset.folder}</p>
-                </div>
+          {filteredAssets.map((asset) => (
+            <div key={asset.id.toString()} className="relative group border rounded-lg overflow-hidden">
+              <div className="aspect-square bg-gray-100 flex items-center justify-center">
+                {asset.typ.startsWith('image/') ? (
+                  <img
+                    src={asset.url}
+                    alt="Media asset"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/assets/generated/vehicle-passenger-placeholder.dim_1200x800.png';
+                    }}
+                  />
+                ) : (
+                  <div className="text-gray-400 text-sm text-center p-4">
+                    {asset.typ}
+                  </div>
+                )}
               </div>
-            );
-          })}
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => handleDelete(asset.id)}
+                  disabled={deleteMediaAsset.isPending}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="p-2 bg-white border-t">
+                <p className="text-xs text-gray-500 truncate">{asset.folder || 'General'}</p>
+                <p className="text-xs text-gray-400">{(Number(asset.size) / 1024).toFixed(1)} KB</p>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

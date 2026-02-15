@@ -403,7 +403,6 @@ export default function BlogFormDialog({
           setFormData({ ...formData, imageUrl: url });
           setShowImagePicker(false);
         }}
-        currentUrl={formData.imageUrl}
       />
     </>
   );

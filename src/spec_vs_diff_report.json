@@ -1,39 +1,96 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T08:37:20.773Z",
-  "summary": "Backend pagination required by REQ-148 is not evidenced in the provided diff summary (backend/main.mo excerpt shows only imports/types). Frontend appears to add paginated media fetching in the React Query layer (per frontend-file-summaries.txt), but the diff summary also indicates numerous unrelated UI/visual/styling changes that were not requested and may violate the “no UI changes” constraint.",
+  "generatedAt": "2026-02-15T09:43:34.720Z",
+  "summary": "The diff shows groundwork for media asset schema migration (adding legacyDataUrl/externalBlob) and significant frontend/admin UI changes (media manager/picker, multiple form dialogs, vehicles admin page). However, the diff summary does not provide clear evidence that the backend now (1) paginates `getMediaAssets` deterministically to stay under 2MB, (2) stores uploaded bytes and returns compact retrievable URLs instead of `data:` URLs, (3) lazily converts legacy `data:` URLs, or (4) adds the requested `Debug.print` diagnostics. Additionally, many unrelated frontend UI changes appear to be introduced beyond the requested backend-only fix focus.",
   "missing_requirements": [
     {
-      "id": "REQ-148",
-      "requirement": "Update the backend media listing to implement pagination/chunking so no single response exceeds the IC 2MB limit; stable deterministic ordering across pages; admin-session-token authorization (no public access).",
-      "reason": "The diff snippet for backend/main.mo is truncated and does not show any new or modified media-listing method, pagination parameters (limit/cursor/offset), stable ordering, or token-guarded paginated endpoint. No other backend files were changed.",
+      "id": "REQ-153",
+      "requirement": "Backend `getMediaAssets(sessionToken, offset, limit)` must return a deterministic slice/page (honoring offset/limit) so replies never exceed the IC 2MB limit and `/admin/media` loads without IC0504.",
+      "reason": "The diff summary does not show any implementation of `getMediaAssets` logic (offset/limit slicing, deterministic ordering, or response-size safeguards). Only type changes are visible in the truncated `backend/main.mo` excerpt.",
       "evidence": [
-        "backend/main.mo (truncated; no listing/pagination changes visible in excerpt)"
+        "backend/main.mo (truncated; no getMediaAssets implementation shown)"
+      ]
+    },
+    {
+      "id": "REQ-154",
+      "requirement": "Backend must stop returning `data:` URLs in media listings; `createMediaAsset` must store bytes and persist/return a compact retrievable URL in `MediaAsset.url` while keeping the upload payload unchanged.",
+      "reason": "No `createMediaAsset` implementation (parsing data URL, storing bytes, generating gateway/path URL) is shown in the diff summary. The only visible backend change is the addition of fields to `MediaAsset` and a migration module.",
+      "evidence": [
+        "backend/main.mo (truncated; no createMediaAsset implementation shown)",
+        "backend/migration.mo"
+      ]
+    },
+    {
+      "id": "REQ-155",
+      "requirement": "Backward compatibility for legacy media records with `data:` URLs, with lazy on-read conversion to stored bytes + compact URL so listing stays under 2MB and legacy assets remain visible.",
+      "reason": "While `backend/migration.mo` sets `legacyDataUrl = ?oldMediaAsset.url`, the diff summary does not show any backend listing/retrieval code that performs lazy conversion or ensures legacy assets don’t bloat listing payloads.",
+      "evidence": [
+        "backend/migration.mo",
+        "backend/main.mo (truncated; no lazy conversion logic shown)"
+      ]
+    },
+    {
+      "id": "REQ-156",
+      "requirement": "Add minimal backend diagnostic logging via `Debug.print` for media listing and upload paths (offset/limit/count for listing; id/mime/byte-size for upload) without logging sensitive data/bytes.",
+      "reason": "Although `Debug` is imported in `backend/main.mo`, the diff summary does not show any `Debug.print` statements in `getMediaAssets` or `createMediaAsset` paths.",
+      "evidence": [
+        "backend/main.mo (imports Debug; truncated; no Debug.print shown)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Multiple unrelated public/admin UI visual/layout/styling changes (home page banner slider/CTA banner, admin sidebar styling, CRUD table styling, various component text/label changes).",
-      "reason": "BuildRequest explicitly disallows changing admin/public UI visuals/layout/routes except minimal data-fetching changes to support pagination. The diff summary describes numerous UI changes unrelated to media pagination.",
+      "description": "Extensive frontend/admin UI refactors and feature changes across vehicles/promotions/testimonials/blog dialogs and admin layout/table components.",
+      "reason": "BuildRequest focuses on a backend fix for media listing size limits and URL-based assets; these broad UI/UX changes are not requested and may violate the constraint to keep existing admin UI behavior/flows unchanged.",
       "evidence": [
-        "frontend-file-summaries.txt"
+        "frontend/src/admin/pages/VehiclesAdminPage.tsx",
+        "frontend/src/admin/components/VehicleFormDialog.tsx",
+        "frontend/src/admin/components/PromotionFormDialog.tsx",
+        "frontend/src/admin/components/TestimonialFormDialog.tsx",
+        "frontend/src/admin/components/BlogFormDialog.tsx",
+        "frontend/src/admin/components/CrudTable.tsx (mentioned in frontend-file-summaries.txt)",
+        "frontend/src/admin/AdminLayout.tsx (mentioned in frontend-file-summaries.txt)"
       ]
     },
     {
-      "description": "Media manager page changes adding separate sections for Home Main Banner (slider) and Home CTA Banner configuration.",
-      "reason": "Not requested by REQ-148/REQ-149 and likely constitutes an admin UI/layout change beyond minimal data-fetching adjustments.",
+      "description": "Frontend media listing hook changed to implement its own pagination loop (30 items/page), deduplication, and safety limits.",
+      "reason": "REQ-153 requires the backend to honor the existing `getMediaAssets(token, offset, limit)` signature and return paged results; adding new frontend-side pagination/deduping logic was not requested (and may represent a behavioral change).",
       "evidence": [
-        "frontend-file-summaries.txt"
+        "frontend-file-summaries.txt (entry for frontend/src/admin/hooks/useAdminCmsQueries.ts)",
+        "frontend/src/admin/hooks/useAdminCmsQueries.ts (modified; truncated)"
+      ]
+    },
+    {
+      "description": "New admin media manager page sections for configuring Home Main Banner (slider) and Home CTA Banner.",
+      "reason": "The BuildRequest explicitly lists as non-goals redesigning the /admin Media Manager UI and adding new media features; adding banner configuration sections appears outside scope.",
+      "evidence": [
+        "frontend-file-summaries.txt (entry for frontend/src/admin/pages/MediaManagerPage.tsx)"
+      ]
+    },
+    {
+      "description": "New/changed user-facing English strings in admin media components (loading/error/search/empty states, confirmations, toasts).",
+      "reason": "While English-only text is allowed, these UI text changes are not necessary to satisfy the backend media payload requirements and may constitute unrequested UI behavior/text changes.",
+      "evidence": [
+        "frontend/src/admin/components/media/MediaManagerPanel.tsx",
+        "frontend/src/admin/components/media/MediaPickerDialog.tsx"
       ]
     }
   ],
   "confidence": 0.62,
   "changed_files": [
     "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
+    "frontend/src/admin/components/BlogFormDialog.tsx",
+    "frontend/src/admin/components/PromotionFormDialog.tsx",
+    "frontend/src/admin/components/TestimonialFormDialog.tsx",
+    "frontend/src/admin/components/VehicleFormDialog.tsx",
+    "frontend/src/admin/components/media/MediaManagerPanel.tsx",
+    "frontend/src/admin/components/media/MediaPickerDialog.tsx",
+    "frontend/src/admin/components/vehicles/CommercialFeaturesEditor.tsx",
     "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+    "frontend/src/admin/pages/VehiclesAdminPage.tsx",
     "project_state.json"
   ]
 }
