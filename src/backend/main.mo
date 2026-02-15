@@ -6,16 +6,15 @@ import Nat "mo:core/Nat";
 import Time "mo:core/Time";
 import Iter "mo:core/Iter";
 import Int "mo:core/Int";
-import Array "mo:core/Array";
 import Debug "mo:core/Debug";
+import Array "mo:core/Array";
+import List "mo:core/List";
 
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
-import Migration "migration";
 
-(with migration = Migration.run)
 actor {
   type AdminUserId = Nat;
   type BlogPostId = Nat;
@@ -29,7 +28,6 @@ actor {
   let WIB_OFFSET_NANOS : Int = 7 * ONE_HOUR_NANOS;
 
   let accessControlState = AccessControl.initState();
-
   include MixinAuthorization(accessControlState);
   include MixinStorage();
 
@@ -241,10 +239,10 @@ actor {
   let blogPosts = Map.empty<Nat, BlogPost>();
   let contacts = Map.empty<Nat, Contact>();
   let creditSimulations = Map.empty<Nat, CreditSimulation>();
-  let mediaAssets = Map.empty<Nat, MediaAsset>();
   let productInteractions = Map.empty<Nat, Interaction>();
   let blogInteractions = Map.empty<Nat, BlogInteraction>();
   let siteBanners = Map.empty<Text, SiteBanner>();
+  let mediaAssets = Map.empty<Nat, MediaAsset>();
   var nextBlogCommentId : Nat = 1;
 
   // Backend API extension for main banner
@@ -746,9 +744,15 @@ actor {
     asset : MediaAsset,
   ) : async Bool {
     let _session = requireAdminSession(sessionToken);
-    Debug.print("Creating media asset " # asset.id.toText() # " with type " # asset.typ);
 
-    mediaAssets.add(asset.id, asset);
+    // Enforce max asset size constraint (10 MB)
+    let MAX_ASSET_SIZE : Nat = 10_000_000;
+    if (asset.size > MAX_ASSET_SIZE) {
+      Runtime.trap("Asset size exceeds 10 MB limit");
+    };
+
+    let processedAsset = processLegacyDataUrl(asset);
+    mediaAssets.add(asset.id, processedAsset);
     true;
   };
 
@@ -757,9 +761,26 @@ actor {
     id : Nat,
   ) : async Bool {
     let _session = requireAdminSession(sessionToken);
-    Debug.print("Deleting media asset " # id.toText());
     mediaAssets.remove(id);
     true;
+  };
+
+  func processLegacyDataUrl(asset : MediaAsset) : MediaAsset {
+    switch (asset.legacyDataUrl) {
+      case (?_base64Data) {
+        let newUrl = "cdn/" # asset.url;
+        {
+          id = asset.id;
+          url = newUrl;
+          typ = asset.typ;
+          size = asset.size;
+          folder = asset.folder;
+          legacyDataUrl = null;
+          externalBlob = null;
+        };
+      };
+      case (null) { asset };
+    };
   };
 
   public shared ({ caller }) func getMediaAssets(
@@ -769,7 +790,8 @@ actor {
   ) : async [SimpleMediaAsset] {
     let _session = requireAdminSession(sessionToken);
 
-    let allAssets = mediaAssets.values().toArray();
+    let iter = mediaAssets.values();
+    let allAssets = iter.toArray();
     let totalAssets = allAssets.size();
 
     let safeLimit = if (limit > 1000) { 1000 } else { limit };
@@ -778,20 +800,21 @@ actor {
     } else { offset + safeLimit };
 
     if (offset >= totalAssets) {
-      Debug.print("Requested offset " # offset.toText() # " is out of range (max: " # totalAssets.toText() # ")");
       return [];
     };
 
-    let paginatedAssets = allAssets.sliceToArray(offset, end);
+    let assetList = List.fromIter<MediaAsset>(mediaAssets.values());
+    let paginatedAssets = assetList.toArray().sliceToArray(offset, end);
 
     let simplifiedAssets = paginatedAssets.map(
       func(asset) {
+        let processedAsset = processLegacyDataUrl(asset);
         {
-          id = asset.id;
-          url = asset.url;
-          typ = asset.typ;
-          size = asset.size;
-          folder = asset.folder;
+          id = processedAsset.id;
+          url = processedAsset.url;
+          typ = processedAsset.typ;
+          size = processedAsset.size;
+          folder = processedAsset.folder;
         };
       }
     );

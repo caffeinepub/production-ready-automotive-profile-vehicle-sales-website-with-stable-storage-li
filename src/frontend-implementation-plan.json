@@ -1,6 +1,6 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Frontend-only plan: No changes required for backend-only Media Library payload fix",
+  "title": "Retry redeploy (build + deploy) with no functional changes",
   "requirements": []
 }

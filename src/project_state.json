@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 69,
+  "projectStateVersion": 75,
   "summary": "Automotive company profile + vehicle sales website with production-ready backend/frontend separation, stable persistence (upgrade/redeploy safe), live CMS admin panel, media manager, SEO/performance, product & article interactions, and seeded content.",
   "architectural_notes": [
     "Use stable persistence only (no in-memory) and ensure upgrade/redeploy-safe data migrations with auto-restore after redeploy.",
@@ -1631,6 +1631,70 @@
         "REQ-156"
       ],
       "status": "pending"
+    },
+    {
+      "id": "AR-149",
+      "summary": "Update the backend `getMediaAssets` API to support pagination using `offset` and `limit` parameters, and ensure each call returns only a small page of results (not the full media library) while preserving the existing frontend call signature `actor.getMediaAssets(sessionToken, offset, limit)` used by the Admin Media Manager.",
+      "reqIds": [
+        "REQ-157"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-150",
+      "summary": "Refactor backend media listing so it never returns base64 `data:` URLs in `MediaAsset.url` and never includes base64 fields in listing results; the admin UI must receive real retrievable URLs/paths that can be used directly in `<img src=...>` for thumbnails.",
+      "reqIds": [
+        "REQ-158"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-151",
+      "summary": "Update the backend `createMediaAsset(sessionToken, asset)` implementation to treat incoming `asset.url` that is a base64 `data:` URL as an upload payload: store the underlying bytes in canister-backed blob storage and persist only a compact retrievable URL/path in the saved MediaAsset record; do not persist base64 in the media-assets collection.",
+      "reqIds": [
+        "REQ-159"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-152",
+      "summary": "Maintain backward compatibility for previously stored legacy media records that still contain base64 `data:` URLs by performing a lazy conversion when encountered: on read/list (or on first access), move the bytes into blob storage, replace the record’s URL with a compact retrievable URL/path, and clear any legacy base64 field so future listings stay small.",
+      "reqIds": [
+        "REQ-160"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-153",
+      "summary": "Implement lazy legacy-media auto-conversion in the backend so that when `getMediaAssets(sessionToken, offset, limit)` encounters a stored `MediaAsset` whose `url` contains a `data:` (base64) URL, the backend automatically converts it to canister blob storage and rewrites the stored record to use a compact retrievable blob URL instead of the `data:` URL.",
+      "reqIds": [
+        "REQ-161"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-154",
+      "summary": "Ensure `getMediaAssets` listing responses never include large base64 payloads after conversion, and ensure any legacy base64 fields are cleared/normalized on the stored record once conversion succeeds (e.g., update `legacyDataUrl` / other legacy fields as applicable) to keep paginated responses small and stable under the IC 2MB response limit.",
+      "reqIds": [
+        "REQ-162"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-155",
+      "summary": "Add minimal backend diagnostic logging for the lazy conversion path executed during `getMediaAssets` (conversion attempted, conversion succeeded, conversion failed reason) without logging any raw image bytes or other sensitive payloads.",
+      "reqIds": [
+        "REQ-163"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-156",
+      "summary": "Retry/re-run deployment (build + deploy) after the previous deployment error, without introducing functional changes",
+      "reqIds": [
+        "REQ-65"
+      ],
+      "status": "in_progress"
     }
   ],
   "gameProjectType": "none",
