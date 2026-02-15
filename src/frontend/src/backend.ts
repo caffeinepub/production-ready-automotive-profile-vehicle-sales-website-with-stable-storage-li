@@ -116,6 +116,13 @@ export interface BlogPost {
     imageUrl: string;
     seoDescription: string;
 }
+export type Time = bigint;
+export interface BlogCommentInput {
+    content: string;
+    name: string;
+    blogPostId: bigint;
+    email: string;
+}
 export interface MediaAsset {
     id: bigint;
     typ: string;
@@ -190,6 +197,15 @@ export interface CommercialVehicleFeatures {
     power: boolean;
     sixByFour: boolean;
 }
+export interface BlogComment {
+    id: bigint;
+    content: string;
+    name: string;
+    createdAt: Time;
+    blogPostId: bigint;
+    email: string;
+    approved: boolean;
+}
 export interface TechnicalSpecs {
     weight: string;
     additionalFeatures: Array<string>;
@@ -198,6 +214,11 @@ export interface TechnicalSpecs {
     suspension: string;
     dimensions: string;
     engine: string;
+}
+export interface BlogInteractionSummary {
+    sharesCount: bigint;
+    commentsCount: bigint;
+    likesCount: bigint;
 }
 export interface Interaction {
     itemId: bigint;
@@ -233,6 +254,7 @@ export interface backendInterface {
     _caffeineStorageRefillCashier(refillInformation: _CaffeineStorageRefillInformation | null): Promise<_CaffeineStorageRefillResult>;
     _caffeineStorageUpdateGatewayPrincipals(): Promise<void>;
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
+    addBlogComment(blogCommentInput: BlogCommentInput): Promise<BlogComment>;
     addContact(contact: Contact): Promise<boolean>;
     addCreditSimulation(simulation: CreditSimulation): Promise<boolean>;
     adminLogin(email: string, password: string): Promise<{
@@ -240,6 +262,7 @@ export interface backendInterface {
         role: string;
     } | null>;
     adminLogout(token: string): Promise<void>;
+    approveBlogComment(sessionToken: string, commentId: bigint): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createAdminUser(sessionToken: string, email: string, password: string, role: string): Promise<bigint | null>;
     createBlogPost(sessionToken: string, post: BlogPost): Promise<boolean>;
@@ -247,6 +270,7 @@ export interface backendInterface {
     createPromotion(sessionToken: string, promotion: Promotion): Promise<boolean>;
     createTestimonial(sessionToken: string, testimonial: Testimonial): Promise<boolean>;
     createVehicle(sessionToken: string, vehicle: Vehicle): Promise<boolean>;
+    deleteBlogComment(sessionToken: string, commentId: bigint): Promise<void>;
     deleteBlogPost(sessionToken: string, id: bigint): Promise<boolean>;
     deleteContact(sessionToken: string, id: bigint): Promise<boolean>;
     deleteCreditSimulation(sessionToken: string, id: bigint): Promise<boolean>;
@@ -254,6 +278,8 @@ export interface backendInterface {
     deletePromotion(sessionToken: string, id: bigint): Promise<boolean>;
     deleteTestimonial(sessionToken: string, id: bigint): Promise<boolean>;
     deleteVehicle(sessionToken: string, id: bigint): Promise<boolean>;
+    getBlogComments(blogPostId: bigint): Promise<Array<BlogComment>>;
+    getBlogInteractionSummary(blogPostId: bigint): Promise<BlogInteractionSummary>;
     getBlogPost(id: bigint): Promise<BlogPost | null>;
     getBlogPosts(): Promise<Array<BlogPost>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
@@ -269,6 +295,8 @@ export interface backendInterface {
     getVehicle(id: bigint): Promise<Vehicle | null>;
     getVehicles(): Promise<Array<Vehicle>>;
     getVisitorStats(sessionToken: string): Promise<VisitorStats | null>;
+    incrementBlogLike(blogPostId: bigint): Promise<bigint>;
+    incrementBlogShare(blogPostId: bigint, _platform: string): Promise<bigint>;
     incrementPageView(): Promise<void>;
     incrementVisitor(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
@@ -382,6 +410,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async addBlogComment(arg0: BlogCommentInput): Promise<BlogComment> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addBlogComment(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addBlogComment(arg0);
+            return result;
+        }
+    }
     async addContact(arg0: Contact): Promise<boolean> {
         if (this.processError) {
             try {
@@ -438,6 +480,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.adminLogout(arg0);
+            return result;
+        }
+    }
+    async approveBlogComment(arg0: string, arg1: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.approveBlogComment(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.approveBlogComment(arg0, arg1);
             return result;
         }
     }
@@ -539,6 +595,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async deleteBlogComment(arg0: string, arg1: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteBlogComment(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteBlogComment(arg0, arg1);
+            return result;
+        }
+    }
     async deleteBlogPost(arg0: string, arg1: bigint): Promise<boolean> {
         if (this.processError) {
             try {
@@ -634,6 +704,34 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.deleteVehicle(arg0, arg1);
+            return result;
+        }
+    }
+    async getBlogComments(arg0: bigint): Promise<Array<BlogComment>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getBlogComments(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getBlogComments(arg0);
+            return result;
+        }
+    }
+    async getBlogInteractionSummary(arg0: bigint): Promise<BlogInteractionSummary> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getBlogInteractionSummary(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getBlogInteractionSummary(arg0);
             return result;
         }
     }
@@ -845,6 +943,34 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.getVisitorStats(arg0);
             return from_candid_opt_n37(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async incrementBlogLike(arg0: bigint): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.incrementBlogLike(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.incrementBlogLike(arg0);
+            return result;
+        }
+    }
+    async incrementBlogShare(arg0: bigint, arg1: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.incrementBlogShare(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.incrementBlogShare(arg0, arg1);
+            return result;
         }
     }
     async incrementPageView(): Promise<void> {

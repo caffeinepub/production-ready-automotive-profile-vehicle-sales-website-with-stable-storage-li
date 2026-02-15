@@ -20,8 +20,8 @@ export default function HomePage() {
   );
 
   return (
-    <div className="space-y-12">
-      <section className="container mx-auto px-4 pt-8">
+    <div className="space-y-0">
+      <section className="container mx-auto px-4 pt-8 pb-12">
         <SectionTitle icon={Star} className="mb-6">
           Kendaraan Unggulan
         </SectionTitle>
@@ -32,9 +32,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-[#262729] py-12">
-        <div className="container mx-auto px-4">
-          <img src="/assets/generated/home-cta-banner.dim_1920x400.png" alt="CTA Banner" className="w-full h-[200px] md:h-[300px] object-cover rounded-lg" />
+      <section className="bg-[#262729] py-0">
+        <div className="w-full">
+          <img 
+            src="/assets/CTA Banner.png" 
+            alt="CTA Banner" 
+            className="w-full h-auto object-cover"
+          />
         </div>
       </section>
 
@@ -43,17 +47,17 @@ export default function HomePage() {
           <SectionTitle icon={Info} className="mb-4">
             Tentang Kami
           </SectionTitle>
-          <p className="text-base md:text-lg max-w-3xl">
+          <p className="text-base md:text-lg max-w-3xl mx-auto text-center">
             Kami adalah dealer otomotif terpercaya di Subang, menyediakan kendaraan berkualitas dan layanan terbaik selama lebih dari satu dekade. Komitmen kami adalah membantu Anda menemukan kendaraan yang sempurna sesuai kebutuhan Anda.
           </p>
         </div>
       </section>
 
-      <section className="container mx-auto px-4">
+      <section className="container mx-auto px-4 py-12">
         <SectionTitle icon={Search} className="mb-6">
           Cari Kendaraan
         </SectionTitle>
-        <div className="flex gap-4 mb-6">
+        <div className="flex gap-4 mb-6 max-w-2xl mx-auto">
           <Input
             placeholder="Cari berdasarkan nama kendaraan..."
             value={searchQuery}
@@ -73,7 +77,7 @@ export default function HomePage() {
         )}
       </section>
 
-      <section className="container mx-auto px-4 pb-8">
+      <section className="container mx-auto px-4 pb-12">
         <SectionTitle icon={BookOpen} className="mb-6">
           Blog Terbaru
         </SectionTitle>

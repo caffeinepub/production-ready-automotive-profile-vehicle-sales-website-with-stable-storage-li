@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 43,
+  "projectStateVersion": 47,
   "summary": "Automotive company profile + vehicle sales website with production-ready backend/frontend separation, stable persistence (upgrade/redeploy safe), live CMS admin panel, media manager, SEO/performance, product & article interactions, and seeded content.",
   "architectural_notes": [
     "Use stable persistence only (no in-memory) and ensure upgrade/redeploy-safe data migrations with auto-restore after redeploy.",
@@ -26,7 +26,7 @@
     "Media library authorization failure: admin login works but media endpoints return \"Unauthorized: Only admins can view media assets\" due to media service using a different auth source (e.g., principal whitelist) than CMS session auth.",
     "Admin CMS: PassengerVehicles and CommercialVehicles editor buttons both appear active (both red) when one is selected; tab/state styling logic likely incorrect."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-build-an-admin-authentication-and-authority-system-for-admin-supporting-email-password-login-multi-admin-accounts-and-role-based-access-control-seed-an-initial-super-admin-bound-to-principal-id-7aizr-qwhrg-kuvhe-yekzz-6nj4a-t6yeb-5gnrb-pjpwy-gp2ut-up3m5-3qe-as-owner-with-the-ability-to-manage-other-admins-and-roles",
@@ -531,6 +531,94 @@
         "REQ-99"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-replace-the-home-page-cta-banner-image-with-the-user-uploaded-file-cta-banner-png-and-adjust-layout-so-the-banner-touches-adjacent-sections-with-no-extra-vertical-spacing-while-keeping-the-cta-banner-section-background-color-unchanged",
+      "title": "Replace the Home page CTA banner image with the user-uploaded file `CTA Banner.png` and adjust layout so the banner touches adjacent sections with no extra vertical spacing, while keeping the CTA banner section background color unchanged.",
+      "reqIds": [
+        "REQ-100"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-home-page-cta-banner-image-full-bleed-on-mobile-edge-to-edge-with-no-left-right-container-padding-and-remove-any-rounded-corners-on-the-cta-banner-image-so-it-matches-a-full-width-banner-presentation",
+      "title": "Make the Home page CTA banner image full-bleed on mobile (edge-to-edge with no left/right container padding), and remove any rounded corners on the CTA banner image so it matches a full-width banner presentation.",
+      "reqIds": [
+        "REQ-101"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-mitsubishi-logo-used-in-the-public-navbar-and-footer-with-the-user-uploaded-file-logomitsubishi-png-use-it-as-the-displayed-logo-image",
+      "title": "Replace the Mitsubishi logo used in the public Navbar and Footer with the user-uploaded file `logomitsubishi.png` (use it as the displayed logo image).",
+      "reqIds": [
+        "REQ-102"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-website-icon-favicon-to-use-the-user-uploaded-logomitsubishi-png-so-browser-tabs-show-the-mitsubishi-icon",
+      "title": "Update the website icon (favicon) to use the user-uploaded `logomitsubishi.png` so browser tabs show the Mitsubishi icon.",
+      "reqIds": [
+        "REQ-103"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-public-site-footer-ui-to-match-the-user-uploaded-reference-image-img-20260214-235718-jpg-as-closely-as-possible-text-colors-icon-colors-icon-shapes-spacing-alignment-and-section-positioning-including-the-visitor-statistics-section",
+      "title": "Update the public-site Footer UI to match the user-uploaded reference image `IMG_20260214_235718.jpg` as closely as possible (text colors, icon colors, icon shapes, spacing, alignment, and section positioning), including the visitor statistics section.",
+      "reqIds": [
+        "REQ-104"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-center-align-section-titles-across-public-pages-by-updating-the-shared-sectiontitle-component-so-that-section-headings-render-centered-icon-title-centered-as-a-group",
+      "title": "Center-align section titles across PUBLIC pages by updating the shared `SectionTitle` component so that section headings render centered (icon + title centered as a group).",
+      "reqIds": [
+        "REQ-105"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-or-wire-public-visitor-statistics-fetching-in-the-footer-so-the-statistics-displayed-in-the-footer-reflect-canister-tracked-values-and-do-not-use-hardcoded-numbers",
+      "title": "Add or wire public visitor statistics fetching in the Footer so the statistics displayed in the Footer reflect canister-tracked values (and do not use hardcoded numbers).",
+      "reqIds": [
+        "REQ-106"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-minimal-blog-post-interactions-ui-to-the-public-blog-detail-page-that-renders-a-left-aligned-horizontal-row-of-3-small-aesthetic-minimalist-icons-directly-below-the-article-content-area-1-love-with-a-visible-count-formatted-like-7-use-the-current-blog-post-s-persisted-like-count-2-share-click-triggers-share-action-tracking-and-3-comment-toggles-the-comment-form-visibility-this-must-be-an-additive-change-that-does-not-alter-the-existing-blog-article-layout-structure-beyond-inserting-this-interaction-block",
+      "title": "Add a minimal blog post interactions UI to the public Blog Detail page that renders a left-aligned horizontal row of 3 small, aesthetic, minimalist icons directly below the article content area: (1) Love with a visible count formatted like \"❤️ (7)\" (use the current blog post’s persisted like count), (2) Share (click triggers share action tracking), and (3) Comment (toggles the comment form visibility). This must be an additive change that does not alter the existing blog article layout structure beyond inserting this interaction block.",
+      "reqIds": [
+        "REQ-107"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-public-comment-form-ui-that-appears-under-the-blog-interaction-icons-when-comment-is-clicked-with-exactly-these-fields-name-email-comment-submitting-the-form-must-persist-the-comment-to-the-canister-and-then-clear-the-form-and-update-the-displayed-comment-count-state-for-that-post-use-english-for-any-new-user-facing-text-introduced-by-this-feature-placeholders-buttons-validation-errors-empty-states",
+      "title": "Implement the public comment form UI that appears under the blog interaction icons when Comment is clicked, with exactly these fields: Name, Email, Comment. Submitting the form must persist the comment to the canister and then clear the form and update the displayed comment count/state for that post. Use English for any new user-facing text introduced by this feature (placeholders, buttons, validation errors, empty states).",
+      "reqIds": [
+        "REQ-108"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-the-new-blog-interaction-backend-methods-into-the-react-query-public-hooks-layer-frontend-src-hooks-usequeries-ts-and-integrate-them-into-frontend-src-pages-blogdetailpage-tsx-so-the-interaction-row-love-count-share-comment-toggle-form-submission-works-end-to-end-without-breaking-existing-blog-loading-seo-metadata-behavior-or-page-rendering",
+      "title": "Wire the new blog-interaction backend methods into the React Query public hooks layer (`frontend/src/hooks/useQueries.ts`) and integrate them into `frontend/src/pages/BlogDetailPage.tsx` so the interaction row (Love count, Share, Comment toggle + form submission) works end-to-end without breaking existing blog loading, SEO metadata behavior, or page rendering.",
+      "reqIds": [
+        "REQ-111"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-the-admin-blog-editor-experience-without-changing-existing-routes-or-overall-admin-layout-to-surface-blog-interaction-data-and-allow-comment-moderation-within-the-admin-blog-management-area-at-minimum-show-read-only-interaction-counts-for-the-selected-blog-post-and-provide-an-admin-only-view-to-list-comments-for-that-post-and-delete-them-all-admin-user-facing-text-introduced-must-be-in-english",
+      "title": "Extend the /admin Blog editor experience (without changing existing routes or overall admin layout) to surface blog interaction data and allow comment moderation within the admin blog management area. At minimum: show read-only interaction counts for the selected blog post and provide an admin-only view to list comments for that post and delete them. All admin user-facing text introduced must be in English.",
+      "reqIds": [
+        "REQ-112"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -1006,6 +1094,52 @@
       "id": "AR-99",
       "summary": "Bottom CTA Bar dropdown: position the dropdown directly above the blue 'Main Menu' box; refine dropdown menu styling to look more aesthetic across all dropdown menus on public site (no admin panel changes)",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-100",
+      "summary": "Update Home page CTA banner: replace CTA banner image with the user-uploaded image; remove top/bottom margins so it touches adjacent sections; make it full-bleed edge-to-edge on mobile (no left/right outer margins) while keeping the existing background color unchanged",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-101",
+      "summary": "Replace Mitsubishi logo image and website icon (favicon/app icon) with the user-uploaded images",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-102",
+      "summary": "Update the public-site Footer styling to match the user-uploaded reference exactly (colors, text, icons, positioning), including the visitor statistics section",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-103",
+      "summary": "Center-align the title/header text for each public page section (section headings set to centered/align-middle)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-104",
+      "summary": "Add minimal blog post interaction UI below each blog article (left-aligned row): Love (with count like ❤️ (7)), Share, and Comment. Clicking Comment reveals a comment form (Name, Email, Comment) below the icons. Persist likes/shares/comments in stable storage and wire them into the Blog editor in /admin, without breaking existing page structure, stable DB schema, or the current admin panel.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-107",
+      "summary": "Add canister-backed, upgrade-safe stable persistence for blog post interactions: article likes, article shares, and article comments. This must be implemented as additive collections (do not remove or repurpose existing collections) and must not break or change existing method signatures that the current frontend/admin already uses (e.g., existing blog CRUD).",
+      "reqIds": [
+        "REQ-109"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-108",
+      "summary": "Expose new backend methods required for the public blog interactions flow: (1) fetch interaction summary for a given blogPostId (at minimum: likesCount, sharesCount, commentsCount), (2) increment like for a given blogPostId, (3) increment share for a given blogPostId (accept a platform string), (4) add a comment for a given blogPostId with Name/Email/Comment, and (5) fetch comments for a given blogPostId for public display if needed by the UI. These methods must be safe to call from the public site and must not require admin session tokens.",
+      "reqIds": [
+        "REQ-110"
+      ],
       "status": "pending"
     }
   ],

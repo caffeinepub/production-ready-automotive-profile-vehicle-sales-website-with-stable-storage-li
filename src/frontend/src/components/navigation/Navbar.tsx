@@ -26,7 +26,7 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 bg-[#262729] text-white h-16 md:h-20">
       <div className="container mx-auto px-4 h-full flex items-center justify-between">
         <Link to="/" className="flex items-center">
-          <img src="/assets/generated/dealer-logo.dim_512x512.png" alt="Logo" className="h-10 md:h-12" />
+          <img src="/assets/logomitsubishi.png" alt="Mitsubishi Logo" className="h-10 md:h-12" />
         </Link>
 
         <div className="hidden lg:flex items-center gap-6">

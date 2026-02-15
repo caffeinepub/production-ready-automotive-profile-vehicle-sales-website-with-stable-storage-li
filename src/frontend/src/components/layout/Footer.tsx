@@ -1,63 +1,128 @@
 import { SiFacebook, SiInstagram, SiX, SiTiktok, SiYoutube } from 'react-icons/si';
-import { Heart, Phone, Mail } from 'lucide-react';
+import { Heart, Phone, Mail, MapPin, Users, Eye, TrendingUp, Activity } from 'lucide-react';
+import { useGetPublicVisitorStats } from '../../hooks/useQueries';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const appIdentifier = encodeURIComponent(window.location.hostname || 'automotive-dealer');
+  const { data: stats } = useGetPublicVisitorStats();
 
   return (
     <footer className="bg-[#262729] text-white py-12">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           <div>
-            <img src="/assets/generated/dealer-logo.dim_512x512.png" alt="Logo" className="h-12 mb-4" />
+            <img src="/assets/logomitsubishi.png" alt="Mitsubishi Logo" className="h-12 mb-4" />
             <p className="text-sm text-gray-300">
-              Dealer otomotif terpercaya di Subang, menyediakan kendaraan berkualitas dan layanan terbaik.
+              Dealer resmi Mitsubishi di Subang, Jawa Barat. Melayani penjualan mobil keluarga dan niaga dengan layanan terbaik.
             </p>
           </div>
 
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Phone className="h-5 w-5 text-[#C90010]" />
-              <h3 className="font-bold text-lg">Hubungi Kami</h3>
-            </div>
-            <div className="space-y-2 text-sm text-gray-300">
-              <p>Jl. Raya Subang No. 123</p>
-              <p>Subang, Jawa Barat 41211</p>
-              <p>WhatsApp: 0852-1234-0778</p>
-              <p>Email: fuadmitsubishi2025@gmail.com</p>
-              <p>Jam Operasional: Senin-Sabtu 09.00-18.00</p>
+            <h3 className="font-bold text-lg mb-4">Hubungi Kami</h3>
+            <div className="space-y-3 text-sm text-gray-300">
+              <div className="flex items-start gap-3">
+                <Phone className="h-5 w-5 text-[#C90010] flex-shrink-0 mt-0.5" />
+                <span>0852-1234-0778</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <Mail className="h-5 w-5 text-[#C90010] flex-shrink-0 mt-0.5" />
+                <span>fuadmitsubishi2025@gmail.com</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-[#C90010] flex-shrink-0 mt-0.5" />
+                <span>Jl. Otto Iskandardinata No.314, Subang, Jawa Barat 41211</span>
+              </div>
             </div>
           </div>
 
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Mail className="h-5 w-5 text-[#C90010]" />
-              <h3 className="font-bold text-lg">Ikuti Kami</h3>
+            <h3 className="font-bold text-lg mb-4">Ikuti Kami</h3>
+            <div className="flex gap-3">
+              <a 
+                href="https://facebook.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="w-10 h-10 rounded-full bg-[#C90010] flex items-center justify-center hover:bg-[#a00010] transition-colors"
+              >
+                <SiFacebook size={20} className="text-white" />
+              </a>
+              <a 
+                href="https://instagram.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="w-10 h-10 rounded-full bg-[#C90010] flex items-center justify-center hover:bg-[#a00010] transition-colors"
+              >
+                <SiInstagram size={20} className="text-white" />
+              </a>
+              <a 
+                href="https://twitter.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="w-10 h-10 rounded-full bg-[#C90010] flex items-center justify-center hover:bg-[#a00010] transition-colors"
+              >
+                <SiX size={20} className="text-white" />
+              </a>
+              <a 
+                href="https://tiktok.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="w-10 h-10 rounded-full bg-[#C90010] flex items-center justify-center hover:bg-[#a00010] transition-colors"
+              >
+                <SiTiktok size={20} className="text-white" />
+              </a>
+              <a 
+                href="https://youtube.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="w-10 h-10 rounded-full bg-[#C90010] flex items-center justify-center hover:bg-[#a00010] transition-colors"
+              >
+                <SiYoutube size={20} className="text-white" />
+              </a>
             </div>
-            <div className="flex gap-4">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">
-                <SiFacebook size={24} />
-              </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-pink-400 transition-colors">
-                <SiInstagram size={24} />
-              </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-300 transition-colors">
-                <SiX size={24} />
-              </a>
-              <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300 transition-colors">
-                <SiTiktok size={24} />
-              </a>
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="hover:text-red-400 transition-colors">
-                <SiYoutube size={24} />
-              </a>
+            <p className="text-xs text-gray-400 mt-4">
+              Jam Operasional: Senin - Sabtu: 08:30 - 16:00
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-lg mb-4">Statistik Pengunjung</h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-[#C90010]" />
+                  <span className="text-gray-300">Total Pengunjung</span>
+                </div>
+                <span className="font-bold text-white">{stats ? Number(stats.totalVisitors) : 0}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-[#C90010]" />
+                  <span className="text-gray-300">Pengguna Aktif</span>
+                </div>
+                <span className="font-bold text-white">{stats ? Number(stats.activeUsers) : 0}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-5 w-5 text-[#C90010]" />
+                  <span className="text-gray-300">Tampilan Halaman</span>
+                </div>
+                <span className="font-bold text-white">{stats ? Number(stats.pageViews) : 0}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-[#C90010]" />
+                  <span className="text-gray-300">Trafik Hari Ini</span>
+                </div>
+                <span className="font-bold text-white">{stats ? Number(stats.todayTraffic) : 0}</span>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="border-t border-gray-700 pt-6 text-center text-sm text-gray-400">
           <p>
-            © {currentYear} Automotive Dealer. Hak cipta dilindungi. | Dibuat dengan{' '}
+            © {currentYear} Mitsubishi Motors. Hak cipta dilindungi. | Dibuat dengan{' '}
             <Heart className="inline h-4 w-4 text-red-500" /> menggunakan{' '}
             <a
               href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${appIdentifier}`}

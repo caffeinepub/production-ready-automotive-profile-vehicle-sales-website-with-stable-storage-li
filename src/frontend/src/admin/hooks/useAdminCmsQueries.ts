@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from '../../hooks/useActor';
 import { getAdminToken } from '../auth/adminSession';
-import type { Vehicle, Promotion, Testimonial, BlogPost, Contact, CreditSimulation, MediaAsset, VisitorStats } from '../../backend';
+import type { Vehicle, Promotion, Testimonial, BlogPost, Contact, CreditSimulation, MediaAsset, VisitorStats, BlogComment } from '../../backend';
 
 export function useGetMediaAssets() {
   const { actor, isFetching } = useActor();
@@ -390,6 +390,59 @@ export function useDeleteBlogPost() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
+    }
+  });
+}
+
+// Blog comment admin hooks
+
+export function useGetBlogCommentsAdmin(blogPostId: bigint | undefined) {
+  const { actor, isFetching } = useActor();
+  const token = getAdminToken();
+
+  return useQuery<BlogComment[]>({
+    queryKey: ['adminBlogComments', blogPostId?.toString(), token],
+    queryFn: async () => {
+      if (!actor || !blogPostId) return [];
+      if (!token) throw new Error('Admin session required');
+      return actor.getBlogComments(blogPostId);
+    },
+    enabled: !!actor && !isFetching && !!token && !!blogPostId
+  });
+}
+
+export function useDeleteBlogComment() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (commentId: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      const token = getAdminToken();
+      if (!token) throw new Error('Admin session required');
+      await actor.deleteBlogComment(token, commentId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminBlogComments'] });
+      queryClient.invalidateQueries({ queryKey: ['blogInteractionSummary'] });
+    }
+  });
+}
+
+export function useApproveBlogComment() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (commentId: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      const token = getAdminToken();
+      if (!token) throw new Error('Admin session required');
+      await actor.approveBlogComment(token, commentId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminBlogComments'] });
+      queryClient.invalidateQueries({ queryKey: ['blogComments'] });
     }
   });
 }

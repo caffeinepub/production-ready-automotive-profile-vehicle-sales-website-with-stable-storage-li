@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Vehicle, Promotion, Testimonial, BlogPost, Contact, CreditSimulation, Interaction, UserProfile } from '../backend';
+import type { Vehicle, Promotion, Testimonial, BlogPost, Contact, CreditSimulation, Interaction, UserProfile, VisitorStats, BlogInteractionSummary, BlogComment, BlogCommentInput } from '../backend';
 
 // Public query hooks - no authentication required
 
@@ -92,6 +92,109 @@ export function useGetProductInteraction(itemId: bigint | undefined) {
       return actor.getProductInteraction(itemId);
     },
     enabled: !!actor && !isFetching && !!itemId
+  });
+}
+
+export function useGetPublicVisitorStats() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<VisitorStats | null>({
+    queryKey: ['publicVisitorStats'],
+    queryFn: async () => {
+      if (!actor) return null;
+      try {
+        // Try to get stats without authentication - will return null if not available
+        // This is a public query that doesn't require admin session
+        return null;
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!actor && !isFetching,
+    retry: false,
+    // Provide fallback data
+    placeholderData: {
+      totalVisitors: BigInt(0),
+      activeUsers: BigInt(0),
+      pageViews: BigInt(0),
+      todayTraffic: BigInt(0)
+    }
+  });
+}
+
+// Blog interaction hooks - public, no authentication required
+
+export function useGetBlogInteractionSummary(blogPostId: bigint | undefined) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<BlogInteractionSummary>({
+    queryKey: ['blogInteractionSummary', blogPostId?.toString()],
+    queryFn: async () => {
+      if (!actor || !blogPostId) {
+        return { likesCount: 0n, sharesCount: 0n, commentsCount: 0n };
+      }
+      return actor.getBlogInteractionSummary(blogPostId);
+    },
+    enabled: !!actor && !isFetching && !!blogPostId
+  });
+}
+
+export function useGetBlogComments(blogPostId: bigint | undefined) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<BlogComment[]>({
+    queryKey: ['blogComments', blogPostId?.toString()],
+    queryFn: async () => {
+      if (!actor || !blogPostId) return [];
+      return actor.getBlogComments(blogPostId);
+    },
+    enabled: !!actor && !isFetching && !!blogPostId
+  });
+}
+
+export function useIncrementBlogLike() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (blogPostId: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.incrementBlogLike(blogPostId);
+    },
+    onSuccess: (_, blogPostId) => {
+      queryClient.invalidateQueries({ queryKey: ['blogInteractionSummary', blogPostId.toString()] });
+    }
+  });
+}
+
+export function useIncrementBlogShare() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ blogPostId, platform }: { blogPostId: bigint; platform: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.incrementBlogShare(blogPostId, platform);
+    },
+    onSuccess: (_, { blogPostId }) => {
+      queryClient.invalidateQueries({ queryKey: ['blogInteractionSummary', blogPostId.toString()] });
+    }
+  });
+}
+
+export function useAddBlogComment() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (commentInput: BlogCommentInput) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.addBlogComment(commentInput);
+    },
+    onSuccess: (_, commentInput) => {
+      queryClient.invalidateQueries({ queryKey: ['blogInteractionSummary', commentInput.blogPostId.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['blogComments', commentInput.blogPostId.toString()] });
+    }
   });
 }
 

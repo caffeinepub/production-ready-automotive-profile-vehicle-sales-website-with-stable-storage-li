@@ -10,6 +10,26 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface BlogComment {
+  'id' : bigint,
+  'content' : string,
+  'name' : string,
+  'createdAt' : Time,
+  'blogPostId' : bigint,
+  'email' : string,
+  'approved' : boolean,
+}
+export interface BlogCommentInput {
+  'content' : string,
+  'name' : string,
+  'blogPostId' : bigint,
+  'email' : string,
+}
+export interface BlogInteractionSummary {
+  'sharesCount' : bigint,
+  'commentsCount' : bigint,
+  'likesCount' : bigint,
+}
 export interface BlogPost {
   'id' : bigint,
   'title' : string,
@@ -99,6 +119,7 @@ export interface Testimonial {
   'imageUrl' : string,
   'rating' : number,
 }
+export type Time = bigint;
 export interface UserProfile {
   'name' : string,
   'email' : string,
@@ -161,6 +182,7 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'addBlogComment' : ActorMethod<[BlogCommentInput], BlogComment>,
   'addContact' : ActorMethod<[Contact], boolean>,
   'addCreditSimulation' : ActorMethod<[CreditSimulation], boolean>,
   'adminLogin' : ActorMethod<
@@ -168,6 +190,7 @@ export interface _SERVICE {
     [] | [{ 'token' : string, 'role' : string }]
   >,
   'adminLogout' : ActorMethod<[string], undefined>,
+  'approveBlogComment' : ActorMethod<[string, bigint], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'createAdminUser' : ActorMethod<
     [string, string, string, string],
@@ -178,6 +201,7 @@ export interface _SERVICE {
   'createPromotion' : ActorMethod<[string, Promotion], boolean>,
   'createTestimonial' : ActorMethod<[string, Testimonial], boolean>,
   'createVehicle' : ActorMethod<[string, Vehicle], boolean>,
+  'deleteBlogComment' : ActorMethod<[string, bigint], undefined>,
   'deleteBlogPost' : ActorMethod<[string, bigint], boolean>,
   'deleteContact' : ActorMethod<[string, bigint], boolean>,
   'deleteCreditSimulation' : ActorMethod<[string, bigint], boolean>,
@@ -185,6 +209,8 @@ export interface _SERVICE {
   'deletePromotion' : ActorMethod<[string, bigint], boolean>,
   'deleteTestimonial' : ActorMethod<[string, bigint], boolean>,
   'deleteVehicle' : ActorMethod<[string, bigint], boolean>,
+  'getBlogComments' : ActorMethod<[bigint], Array<BlogComment>>,
+  'getBlogInteractionSummary' : ActorMethod<[bigint], BlogInteractionSummary>,
   'getBlogPost' : ActorMethod<[bigint], [] | [BlogPost]>,
   'getBlogPosts' : ActorMethod<[], Array<BlogPost>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
@@ -203,6 +229,8 @@ export interface _SERVICE {
   'getVehicle' : ActorMethod<[bigint], [] | [Vehicle]>,
   'getVehicles' : ActorMethod<[], Array<Vehicle>>,
   'getVisitorStats' : ActorMethod<[string], [] | [VisitorStats]>,
+  'incrementBlogLike' : ActorMethod<[bigint], bigint>,
+  'incrementBlogShare' : ActorMethod<[bigint, string], bigint>,
   'incrementPageView' : ActorMethod<[], undefined>,
   'incrementVisitor' : ActorMethod<[], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,

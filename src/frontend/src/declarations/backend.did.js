@@ -19,6 +19,22 @@ export const _CaffeineStorageRefillResult = IDL.Record({
   'success' : IDL.Opt(IDL.Bool),
   'topped_up_amount' : IDL.Opt(IDL.Nat),
 });
+export const BlogCommentInput = IDL.Record({
+  'content' : IDL.Text,
+  'name' : IDL.Text,
+  'blogPostId' : IDL.Nat,
+  'email' : IDL.Text,
+});
+export const Time = IDL.Int;
+export const BlogComment = IDL.Record({
+  'id' : IDL.Nat,
+  'content' : IDL.Text,
+  'name' : IDL.Text,
+  'createdAt' : Time,
+  'blogPostId' : IDL.Nat,
+  'email' : IDL.Text,
+  'approved' : IDL.Bool,
+});
 export const Contact = IDL.Record({
   'tenor' : IDL.Opt(IDL.Nat),
   'downPayment' : IDL.Opt(IDL.Float64),
@@ -125,6 +141,11 @@ export const Vehicle = IDL.Record({
   'videoUrl' : IDL.Opt(IDL.Text),
   'isCommercial' : IDL.Bool,
 });
+export const BlogInteractionSummary = IDL.Record({
+  'sharesCount' : IDL.Nat,
+  'commentsCount' : IDL.Nat,
+  'likesCount' : IDL.Nat,
+});
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'email' : IDL.Text,
@@ -173,6 +194,7 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'addBlogComment' : IDL.Func([BlogCommentInput], [BlogComment], []),
   'addContact' : IDL.Func([Contact], [IDL.Bool], []),
   'addCreditSimulation' : IDL.Func([CreditSimulation], [IDL.Bool], []),
   'adminLogin' : IDL.Func(
@@ -181,6 +203,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'adminLogout' : IDL.Func([IDL.Text], [], []),
+  'approveBlogComment' : IDL.Func([IDL.Text, IDL.Nat], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'createAdminUser' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
@@ -192,6 +215,7 @@ export const idlService = IDL.Service({
   'createPromotion' : IDL.Func([IDL.Text, Promotion], [IDL.Bool], []),
   'createTestimonial' : IDL.Func([IDL.Text, Testimonial], [IDL.Bool], []),
   'createVehicle' : IDL.Func([IDL.Text, Vehicle], [IDL.Bool], []),
+  'deleteBlogComment' : IDL.Func([IDL.Text, IDL.Nat], [], []),
   'deleteBlogPost' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
   'deleteContact' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
   'deleteCreditSimulation' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
@@ -199,6 +223,12 @@ export const idlService = IDL.Service({
   'deletePromotion' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
   'deleteTestimonial' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
   'deleteVehicle' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
+  'getBlogComments' : IDL.Func([IDL.Nat], [IDL.Vec(BlogComment)], ['query']),
+  'getBlogInteractionSummary' : IDL.Func(
+      [IDL.Nat],
+      [BlogInteractionSummary],
+      ['query'],
+    ),
   'getBlogPost' : IDL.Func([IDL.Nat], [IDL.Opt(BlogPost)], ['query']),
   'getBlogPosts' : IDL.Func([], [IDL.Vec(BlogPost)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
@@ -226,6 +256,8 @@ export const idlService = IDL.Service({
   'getVehicle' : IDL.Func([IDL.Nat], [IDL.Opt(Vehicle)], ['query']),
   'getVehicles' : IDL.Func([], [IDL.Vec(Vehicle)], ['query']),
   'getVisitorStats' : IDL.Func([IDL.Text], [IDL.Opt(VisitorStats)], []),
+  'incrementBlogLike' : IDL.Func([IDL.Nat], [IDL.Nat], []),
+  'incrementBlogShare' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Nat], []),
   'incrementPageView' : IDL.Func([], [], []),
   'incrementVisitor' : IDL.Func([], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
@@ -252,6 +284,22 @@ export const idlFactory = ({ IDL }) => {
   const _CaffeineStorageRefillResult = IDL.Record({
     'success' : IDL.Opt(IDL.Bool),
     'topped_up_amount' : IDL.Opt(IDL.Nat),
+  });
+  const BlogCommentInput = IDL.Record({
+    'content' : IDL.Text,
+    'name' : IDL.Text,
+    'blogPostId' : IDL.Nat,
+    'email' : IDL.Text,
+  });
+  const Time = IDL.Int;
+  const BlogComment = IDL.Record({
+    'id' : IDL.Nat,
+    'content' : IDL.Text,
+    'name' : IDL.Text,
+    'createdAt' : Time,
+    'blogPostId' : IDL.Nat,
+    'email' : IDL.Text,
+    'approved' : IDL.Bool,
   });
   const Contact = IDL.Record({
     'tenor' : IDL.Opt(IDL.Nat),
@@ -359,6 +407,11 @@ export const idlFactory = ({ IDL }) => {
     'videoUrl' : IDL.Opt(IDL.Text),
     'isCommercial' : IDL.Bool,
   });
+  const BlogInteractionSummary = IDL.Record({
+    'sharesCount' : IDL.Nat,
+    'commentsCount' : IDL.Nat,
+    'likesCount' : IDL.Nat,
+  });
   const UserProfile = IDL.Record({
     'name' : IDL.Text,
     'email' : IDL.Text,
@@ -407,6 +460,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'addBlogComment' : IDL.Func([BlogCommentInput], [BlogComment], []),
     'addContact' : IDL.Func([Contact], [IDL.Bool], []),
     'addCreditSimulation' : IDL.Func([CreditSimulation], [IDL.Bool], []),
     'adminLogin' : IDL.Func(
@@ -415,6 +469,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'adminLogout' : IDL.Func([IDL.Text], [], []),
+    'approveBlogComment' : IDL.Func([IDL.Text, IDL.Nat], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'createAdminUser' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
@@ -426,6 +481,7 @@ export const idlFactory = ({ IDL }) => {
     'createPromotion' : IDL.Func([IDL.Text, Promotion], [IDL.Bool], []),
     'createTestimonial' : IDL.Func([IDL.Text, Testimonial], [IDL.Bool], []),
     'createVehicle' : IDL.Func([IDL.Text, Vehicle], [IDL.Bool], []),
+    'deleteBlogComment' : IDL.Func([IDL.Text, IDL.Nat], [], []),
     'deleteBlogPost' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
     'deleteContact' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
     'deleteCreditSimulation' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
@@ -433,6 +489,12 @@ export const idlFactory = ({ IDL }) => {
     'deletePromotion' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
     'deleteTestimonial' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
     'deleteVehicle' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
+    'getBlogComments' : IDL.Func([IDL.Nat], [IDL.Vec(BlogComment)], ['query']),
+    'getBlogInteractionSummary' : IDL.Func(
+        [IDL.Nat],
+        [BlogInteractionSummary],
+        ['query'],
+      ),
     'getBlogPost' : IDL.Func([IDL.Nat], [IDL.Opt(BlogPost)], ['query']),
     'getBlogPosts' : IDL.Func([], [IDL.Vec(BlogPost)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
@@ -460,6 +522,8 @@ export const idlFactory = ({ IDL }) => {
     'getVehicle' : IDL.Func([IDL.Nat], [IDL.Opt(Vehicle)], ['query']),
     'getVehicles' : IDL.Func([], [IDL.Vec(Vehicle)], ['query']),
     'getVisitorStats' : IDL.Func([IDL.Text], [IDL.Opt(VisitorStats)], []),
+    'incrementBlogLike' : IDL.Func([IDL.Nat], [IDL.Nat], []),
+    'incrementBlogShare' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Nat], []),
     'incrementPageView' : IDL.Func([], [], []),
     'incrementVisitor' : IDL.Func([], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),

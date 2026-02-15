@@ -2,22 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-replace-all-public-facing-icons-currently-implemented-with-lucide-react-and-react-icons-with-heroicons-from-heroicons-react-across-the-public-site-without-modifying-any-admin-ui-or-behavior",
-      "featureTitle": "Replace all PUBLIC-facing icons currently implemented with `lucide-react` and `react-icons` with Heroicons (from `@heroicons/react`) across the public site, without modifying any /admin UI or behavior.",
+      "featureId": "feature-add-a-minimal-blog-post-interactions-ui-to-the-public-blog-detail-page-that-renders-a-left-aligned-horizontal-row-of-3-small-aesthetic-minimalist-icons-directly-below-the-article-content-area-1-love-with-a-visible-count-formatted-like-7-use-the-current-blog-post-s-persisted-like-count-2-share-click-triggers-share-action-tracking-and-3-comment-toggles-the-comment-form-visibility-this-must-be-an-additive-change-that-does-not-alter-the-existing-blog-article-layout-structure-beyond-inserting-this-interaction-block",
+      "featureTitle": "Add a minimal blog post interactions UI to the public Blog Detail page that renders a left-aligned horizontal row of 3 small, aesthetic, minimalist icons directly below the article content area: (1) Love with a visible count formatted like \"❤️ (7)\" (use the current blog post’s persisted like count), (2) Share (click triggers share action tracking), and (3) Comment (toggles the comment form visibility). This must be an additive change that does not alter the existing blog article layout structure beyond inserting this interaction block.",
       "files": [
-        "frontend/src/components/navigation/BottomCtaBar.tsx",
-        "frontend/src/components/navigation/MainMenuSheet.tsx",
-        "frontend/src/components/navigation/Navbar.tsx",
-        "frontend/src/components/public/SectionTitle.tsx",
-        "frontend/src/components/sections/BottomCTASection.tsx",
-        "frontend/src/components/sections/HeroSection.tsx",
-        "frontend/src/pages/CommercialVehicleDetailPage.tsx",
-        "frontend/src/pages/CommercialVehiclesPage.tsx",
-        "frontend/src/pages/ContactPage.tsx",
-        "frontend/src/pages/HomePage.tsx",
-        "frontend/src/pages/PassengerVehicleDetailPage.tsx",
-        "frontend/src/pages/PassengerVehiclesPage.tsx",
-        "frontend/src/pages/PromoPage.tsx"
+        "frontend/src/components/blog/BlogInteractionsBar.tsx",
+        "frontend/src/pages/BlogDetailPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -29,16 +18,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-95"
+        "REQ-107"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-reduce-oversized-title-text-on-mobile-for-public-pages-by-adjusting-mobile-typography-in-shared-public-title-components-and-hero-titles-while-preserving-the-existing-desktop-tablet-styling-and-not-changing-any-admin-ui",
-      "featureTitle": "Reduce oversized title text on mobile for PUBLIC pages by adjusting mobile typography in shared public title components and hero titles, while preserving the existing desktop/tablet styling and not changing any admin UI.",
+      "featureId": "feature-implement-the-public-comment-form-ui-that-appears-under-the-blog-interaction-icons-when-comment-is-clicked-with-exactly-these-fields-name-email-comment-submitting-the-form-must-persist-the-comment-to-the-canister-and-then-clear-the-form-and-update-the-displayed-comment-count-state-for-that-post-use-english-for-any-new-user-facing-text-introduced-by-this-feature-placeholders-buttons-validation-errors-empty-states",
+      "featureTitle": "Implement the public comment form UI that appears under the blog interaction icons when Comment is clicked, with exactly these fields: Name, Email, Comment. Submitting the form must persist the comment to the canister and then clear the form and update the displayed comment count/state for that post. Use English for any new user-facing text introduced by this feature (placeholders, buttons, validation errors, empty states).",
       "files": [
-        "frontend/src/components/public/SectionTitle.tsx",
-        "frontend/src/components/sections/HeroSection.tsx"
+        "frontend/src/components/blog/BlogCommentForm.tsx",
+        "frontend/src/pages/BlogDetailPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -50,15 +39,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-96"
+        "REQ-108"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-remove-the-main-banner-slide-homepage-banner-carousel-slider-from-the-public-home-page-without-affecting-the-remaining-home-page-sections-or-cms-driven-data-wiring",
-      "featureTitle": "Remove the Main Banner Slide (homepage banner carousel/slider) from the public Home page without affecting the remaining Home page sections or CMS-driven data wiring.",
+      "featureId": "feature-wire-the-new-blog-interaction-backend-methods-into-the-react-query-public-hooks-layer-frontend-src-hooks-usequeries-ts-and-integrate-them-into-frontend-src-pages-blogdetailpage-tsx-so-the-interaction-row-love-count-share-comment-toggle-form-submission-works-end-to-end-without-breaking-existing-blog-loading-seo-metadata-behavior-or-page-rendering",
+      "featureTitle": "Wire the new blog-interaction backend methods into the React Query public hooks layer (`frontend/src/hooks/useQueries.ts`) and integrate them into `frontend/src/pages/BlogDetailPage.tsx` so the interaction row (Love count, Share, Comment toggle + form submission) works end-to-end without breaking existing blog loading, SEO metadata behavior, or page rendering.",
       "files": [
-        "frontend/src/pages/HomePage.tsx"
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/BlogDetailPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -70,15 +60,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-97"
+        "REQ-111"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-mobile-bottom-cta-bar-to-be-50px-tall-with-sharp-square-corners-no-rounded-top-corners-keeping-the-same-four-actions-and-color-blocks-and-without-impacting-any-admin-ui",
-      "featureTitle": "Update the mobile Bottom CTA Bar to be 50px tall with sharp/square corners (no rounded top corners), keeping the same four actions and color blocks, and without impacting any admin UI.",
+      "featureId": "feature-extend-the-admin-blog-editor-experience-without-changing-existing-routes-or-overall-admin-layout-to-surface-blog-interaction-data-and-allow-comment-moderation-within-the-admin-blog-management-area-at-minimum-show-read-only-interaction-counts-for-the-selected-blog-post-and-provide-an-admin-only-view-to-list-comments-for-that-post-and-delete-them-all-admin-user-facing-text-introduced-must-be-in-english",
+      "featureTitle": "Extend the /admin Blog editor experience (without changing existing routes or overall admin layout) to surface blog interaction data and allow comment moderation within the admin blog management area. At minimum: show read-only interaction counts for the selected blog post and provide an admin-only view to list comments for that post and delete them. All admin user-facing text introduced must be in English.",
       "files": [
-        "frontend/src/components/navigation/BottomCtaBar.tsx"
+        "frontend/src/admin/components/BlogFormDialog.tsx",
+        "frontend/src/admin/hooks/useAdminCmsQueries.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -90,29 +81,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-98"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-reposition-and-restyle-the-bottom-cta-bar-main-menu-dropdown-so-it-appears-directly-above-the-blue-main-menu-box-and-polish-the-visual-styling-of-all-public-dropdown-sheet-menus-to-look-cleaner-and-more-minimal-without-changing-any-admin-panel-ui",
-      "featureTitle": "Reposition and restyle the Bottom CTA Bar 'Main Menu' dropdown so it appears directly above the blue 'Main Menu' box, and polish the visual styling of all PUBLIC dropdown/sheet menus to look cleaner and more minimal—without changing any admin panel UI.",
-      "files": [
-        "frontend/src/components/navigation/BottomCtaBar.tsx",
-        "frontend/src/components/navigation/MainMenuSheet.tsx",
-        "frontend/src/components/navigation/Navbar.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-99"
+        "REQ-112"
       ],
       "confidence": "high"
     }

@@ -8,6 +8,7 @@ import Time "mo:core/Time";
 import Blob "mo:core/Blob";
 import Array "mo:core/Array";
 import Debug "mo:core/Debug";
+import List "mo:core/List";
 
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
@@ -164,6 +165,36 @@ actor {
     todayTraffic : Nat;
   };
 
+  public type BlogInteraction = {
+    blogPostId : Nat;
+    likesCount : Nat;
+    sharesCount : Nat;
+    commentsCount : Nat;
+  };
+
+  public type BlogComment = {
+    id : Nat;
+    blogPostId : Nat;
+    name : Text;
+    email : Text;
+    content : Text;
+    createdAt : Time.Time;
+    approved : Bool;
+  };
+
+  public type BlogInteractionSummary = {
+    likesCount : Nat;
+    sharesCount : Nat;
+    commentsCount : Nat;
+  };
+
+  public type BlogCommentInput = {
+    blogPostId : Nat;
+    name : Text;
+    email : Text;
+    content : Text;
+  };
+
   let userProfiles = Map.empty<Principal, UserProfile>();
   let vehicles = Map.empty<Nat, Vehicle>();
   let promotions = Map.empty<Nat, Promotion>();
@@ -173,6 +204,9 @@ actor {
   let creditSimulations = Map.empty<Nat, CreditSimulation>();
   let mediaAssets = Map.empty<Nat, MediaAsset>();
   let productInteractions = Map.empty<Nat, Interaction>();
+  let blogInteractions = Map.empty<Nat, BlogInteraction>();
+  let blogComments = Map.empty<Nat, BlogComment>();
+  var nextBlogCommentId : Nat = 1;
 
   var visitorStats : VisitorStats = {
     totalVisitors = 0;
@@ -451,9 +485,7 @@ actor {
   };
 
   public shared ({ caller }) func addContact(contact : Contact) : async Bool {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can submit contacts");
-    };
+    // Public endpoint - no authorization required (guests can submit)
     let uniqueId = contacts.size() + 1;
     contacts.add(uniqueId, contact);
     true;
@@ -476,9 +508,7 @@ actor {
   };
 
   public shared ({ caller }) func addCreditSimulation(simulation : CreditSimulation) : async Bool {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can submit credit simulations");
-    };
+    // Public endpoint - no authorization required (guests can submit)
     let uniqueId = creditSimulations.size() + 1;
     creditSimulations.add(uniqueId, simulation);
     true;
@@ -525,9 +555,7 @@ actor {
   };
 
   public shared ({ caller }) func likeProduct(itemId : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can like products");
-    };
+    // Public endpoint - no authorization required (guests can like)
     let interaction = productInteractions.get(itemId);
     switch (interaction) {
       case (?existing) {
@@ -556,9 +584,7 @@ actor {
   };
 
   public shared ({ caller }) func shareProduct(itemId : Nat, platform : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can share products");
-    };
+    // Public endpoint - no authorization required (guests can share)
     let interaction = productInteractions.get(itemId);
     switch (interaction) {
       case (?existing) {
@@ -566,9 +592,15 @@ actor {
           itemId = existing.itemId;
           likes = existing.likes;
           shares = existing.shares + 1;
-          sharesWhatsApp = if (platform == "whatsapp") { existing.sharesWhatsApp + 1 } else { existing.sharesWhatsApp };
-          sharesFacebook = if (platform == "facebook") { existing.sharesFacebook + 1 } else { existing.sharesFacebook };
-          sharesTwitter = if (platform == "twitter") { existing.sharesTwitter + 1 } else { existing.sharesTwitter };
+          sharesWhatsApp = if (platform == "whatsapp") {
+            existing.sharesWhatsApp + 1;
+          } else { existing.sharesWhatsApp };
+          sharesFacebook = if (platform == "facebook") {
+            existing.sharesFacebook + 1;
+          } else { existing.sharesFacebook };
+          sharesTwitter = if (platform == "twitter") {
+            existing.sharesTwitter + 1;
+          } else { existing.sharesTwitter };
         };
         productInteractions.add(itemId, updated);
       };
@@ -591,6 +623,7 @@ actor {
   };
 
   public shared ({ caller }) func incrementPageView() : async () {
+    // Public endpoint - no authorization required
     visitorStats := {
       totalVisitors = visitorStats.totalVisitors;
       activeUsers = visitorStats.activeUsers;
@@ -600,6 +633,7 @@ actor {
   };
 
   public shared ({ caller }) func incrementVisitor() : async () {
+    // Public endpoint - no authorization required
     visitorStats := {
       totalVisitors = visitorStats.totalVisitors + 1;
       activeUsers = visitorStats.activeUsers;
@@ -622,6 +656,8 @@ actor {
     visitorStats := stats;
     true;
   };
+
+  // PUBLIC QUERIES
 
   public query ({ caller }) func getVehicles() : async [Vehicle] {
     vehicles.values().toArray();
@@ -666,5 +702,142 @@ actor {
       case (null) { false };
     };
   };
-};
 
+  // Blog Interaction Functionality
+
+  public query ({ caller }) func getBlogInteractionSummary(blogPostId : Nat) : async BlogInteractionSummary {
+    // Public endpoint - no authorization required
+    switch (blogInteractions.get(blogPostId)) {
+      case (?interaction) {
+        {
+          likesCount = interaction.likesCount;
+          sharesCount = interaction.sharesCount;
+          commentsCount = interaction.commentsCount;
+        };
+      };
+      case (null) { { likesCount = 0; sharesCount = 0; commentsCount = 0 } };
+    };
+  };
+
+  public shared ({ caller }) func incrementBlogLike(blogPostId : Nat) : async Nat {
+    // Public endpoint - no authorization required (guests can like)
+    updateBlogInteractionCounts(blogPostId, true, false);
+    switch (blogInteractions.get(blogPostId)) {
+      case (?interaction) { interaction.likesCount };
+      case (null) { 0 };
+    };
+  };
+
+  public shared ({ caller }) func incrementBlogShare(blogPostId : Nat, _platform : Text) : async Nat {
+    // Public endpoint - no authorization required (guests can share)
+    updateBlogInteractionCounts(blogPostId, false, true);
+    switch (blogInteractions.get(blogPostId)) {
+      case (?interaction) { interaction.sharesCount };
+      case (null) { 0 };
+    };
+  };
+
+  public shared ({ caller }) func addBlogComment(blogCommentInput : BlogCommentInput) : async BlogComment {
+    // Public endpoint - no authorization required (guests can comment)
+    let comment : BlogComment = {
+      id = nextBlogCommentId;
+      blogPostId = blogCommentInput.blogPostId;
+      name = blogCommentInput.name;
+      email = blogCommentInput.email;
+      content = blogCommentInput.content;
+      createdAt = Time.now();
+      approved = false;
+    };
+
+    blogComments.add(nextBlogCommentId, comment);
+    nextBlogCommentId += 1;
+
+    updateBlogInteractionCounts(blogCommentInput.blogPostId, false, false);
+
+    comment;
+  };
+
+  public query ({ caller }) func getBlogComments(blogPostId : Nat) : async [BlogComment] {
+    // Public endpoint - returns only approved comments for non-admins
+    let allComments = blogComments.values().toArray();
+
+    // Check if caller is admin
+    let isCallerAdmin = AccessControl.isAdmin(accessControlState, caller);
+
+    if (isCallerAdmin) {
+      // Admins see all comments for the blog post
+      allComments.filter<BlogComment>(func(comment) { comment.blogPostId == blogPostId });
+    } else {
+      // Public users see only approved comments for the blog post
+      allComments.filter<BlogComment>(
+        func(comment) {
+          comment.blogPostId == blogPostId and comment.approved;
+        },
+      );
+    };
+  };
+
+  public shared ({ caller }) func approveBlogComment(sessionToken : Text, commentId : Nat) : async () {
+    // Admin-only endpoint
+    if (not isAdminAuthorized(sessionToken, "Failed approveBlogComment")) {
+      Runtime.trap("Unauthorized: Only admins can approve blog comments");
+    };
+
+    switch (blogComments.get(commentId)) {
+      case (?comment) {
+        let approvedComment = {
+          id = comment.id;
+          blogPostId = comment.blogPostId;
+          name = comment.name;
+          email = comment.email;
+          content = comment.content;
+          createdAt = comment.createdAt;
+          approved = true;
+        };
+        blogComments.add(commentId, approvedComment);
+      };
+      case (null) {};
+    };
+  };
+
+  public shared ({ caller }) func deleteBlogComment(sessionToken : Text, commentId : Nat) : async () {
+    // Admin-only endpoint
+    if (not isAdminAuthorized(sessionToken, "Failed deleteBlogComment")) {
+      Runtime.trap("Unauthorized: Only admins can delete blog comments");
+    };
+
+    blogComments.remove(commentId);
+  };
+
+  func updateBlogInteractionCounts(blogPostId : Nat, incrementLikes : Bool, incrementShares : Bool) {
+    let currentInteraction = blogInteractions.get(blogPostId);
+
+    let likesCount = switch (currentInteraction) {
+      case (?interaction) {
+        if (incrementLikes) { interaction.likesCount + 1 } else { interaction.likesCount };
+      };
+      case (null) { if (incrementLikes) { 1 } else { 0 } };
+    };
+
+    let sharesCount = switch (currentInteraction) {
+      case (?interaction) {
+        if (incrementShares) { interaction.sharesCount + 1 } else { interaction.sharesCount };
+      };
+      case (null) { if (incrementShares) { 1 } else { 0 } };
+    };
+
+    let commentsCount = switch (currentInteraction) {
+      case (?interaction) { interaction.commentsCount };
+      case (null) { 0 };
+    };
+
+    let updatedInteraction = {
+      blogPostId;
+      likesCount;
+      sharesCount;
+      commentsCount;
+    };
+
+    blogInteractions.add(blogPostId, updatedInteraction);
+  };
+};

@@ -1,188 +1,99 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Public UI refresh: Heroicons swap, mobile typography tuning, remove Home banner slider, and polish Bottom CTA bar/menu",
+  "title": "Blog interactions UI + comment flow wired to canister interactions with admin comment moderation (frontend-only)",
   "requirements": [
     {
-      "id": "REQ-95",
-      "summary": "Swap all public-facing `lucide-react` and `react-icons` icons to Heroicons without changing any admin UI or public behavior.",
+      "id": "REQ-107",
+      "summary": "Add an additive 3-icon interaction row (Love count, Share, Comment toggle) directly under the blog article content on Blog Detail without changing existing layout structure.",
       "acceptanceCriteria": [
-        "All public pages and shared public components use Heroicons instead of `lucide-react` and `react-icons` (e.g., Navbar, Footer, SectionTitle, Bottom CTA Bar, Home sections, and other public pages listed in feature_evidence.json).",
-        "No files under `frontend/src/admin/**` are changed.",
-        "No public routing, data wiring, or functionality changes occur; only icon components are swapped.",
-        "Build succeeds with Heroicons installed and no remaining imports from `lucide-react`/`react-icons` in public components."
+        "On `/blog/$id`, a 3-icon interaction row appears directly under the article (left-aligned): Love (with count), Share, Comment.",
+        "The Love count is rendered in the format \"❤️ (N)\" where N matches persisted data for that blog post.",
+        "Clicking the Comment icon toggles a comment form area directly below the icons; clicking again hides it.",
+        "No other public page structure or routing changes occur as part of this requirement."
       ],
       "file_operations": [
         {
-          "path": "frontend/package.json",
+          "path": "frontend/src/pages/BlogDetailPage.tsx",
           "operation": "modify",
-          "description": "Add `@heroicons/react` dependency and remove/stop relying on `lucide-react` and `react-icons` for public UI to ensure the build succeeds after icon migration."
+          "description": "Insert a new left-aligned, horizontal interaction block directly below the existing article content area (additive only): Love (render as \"❤️ (N)\" from canister-backed summary), Share (triggers share tracking), Comment (toggles the comment form visibility). Use minimalist icon buttons (e.g., lucide-react icons consistent with other pages) and shadcn-ui Button styling where appropriate; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/navigation/Navbar.tsx",
-          "operation": "modify",
-          "description": "Replace `lucide-react` icons (Menu/X/Phone) with `@heroicons/react` equivalents for the public navbar, preserving all existing navigation items and behaviors. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/navigation/BottomCtaBar.tsx",
-          "operation": "modify",
-          "description": "Replace `lucide-react` icons (Phone/MessageCircle/Calculator/Menu) with Heroicons equivalents for the public Bottom CTA Bar, preserving actions and wiring. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/navigation/MainMenuSheet.tsx",
-          "operation": "modify",
-          "description": "Replace the `lucide-react` Menu icon with a Heroicons equivalent for the public main menu panel while preserving menu items and close-on-click behavior. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/layout/Footer.tsx",
-          "operation": "modify",
-          "description": "Replace `react-icons/si` social icons and `lucide-react` icons in the public footer with Heroicons equivalents (using appropriate generic Heroicons where brand icons are not available), keeping links and layout behavior the same. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/public/SectionTitle.tsx",
-          "operation": "modify",
-          "description": "Remove the `LucideIcon` type dependency and update the public `SectionTitle` icon prop typing/rendering to accept Heroicons components (React component with `className` support), without changing usage semantics. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/sections/HeroSection.tsx",
-          "operation": "modify",
-          "description": "Replace the `lucide-react` Sparkles icon with a Heroicons equivalent in the public hero section while preserving structure and content. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/sections/BottomCTASection.tsx",
-          "operation": "modify",
-          "description": "Replace `lucide-react` icons (Phone/MessageCircle) with Heroicons equivalents in the public Bottom CTA section while preserving actions and styling intent. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/vehicles/VehicleCard.tsx",
-          "operation": "modify",
-          "description": "Replace the `lucide-react` Car icon with a Heroicons equivalent in the public vehicle card while preserving navigation and CTA behavior. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/HomePage.tsx",
-          "operation": "modify",
-          "description": "Replace `lucide-react` icons used by public Home page sections (e.g., Star/Info/Search/BookOpen) with Heroicons equivalents, without changing page behavior beyond icon rendering. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/PassengerVehiclesPage.tsx",
-          "operation": "modify",
-          "description": "Replace `lucide-react` icons used on the public passenger vehicles list page with Heroicons equivalents while preserving layout and filtering behavior. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/CommercialVehiclesPage.tsx",
-          "operation": "modify",
-          "description": "Replace `lucide-react` icons used on the public commercial vehicles list page with Heroicons equivalents while preserving layout and filtering behavior. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/PassengerVehicleDetailPage.tsx",
-          "operation": "modify",
-          "description": "Replace `lucide-react` icons (Heart/Share2/Download/Phone/Settings/Sparkles) with Heroicons equivalents on the public passenger vehicle detail page, preserving all actions and data wiring. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/CommercialVehicleDetailPage.tsx",
-          "operation": "modify",
-          "description": "Replace `lucide-react` icons (Heart/Share2/Download/Phone/Settings/Sparkles) with Heroicons equivalents on the public commercial vehicle detail page, preserving all actions and data wiring. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/BlogListPage.tsx",
-          "operation": "modify",
-          "description": "Replace `lucide-react` icons used on the public blog list page with Heroicons equivalents while preserving routing and rendering behavior. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/ContactPage.tsx",
-          "operation": "modify",
-          "description": "Replace `lucide-react` icons (Mail/MapPin/User/Clock if present) with Heroicons equivalents on the public contact page; remove any unused icon imports without changing the page’s structure/behavior. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/PromoPage.tsx",
-          "operation": "modify",
-          "description": "Replace `lucide-react` icons (Tag/FileText) with Heroicons equivalents on the public promo page while preserving promo rendering behavior. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/TestimonialsPage.tsx",
-          "operation": "modify",
-          "description": "Replace `lucide-react` icons (MessageSquare/Star) with Heroicons equivalents on the public testimonials page while preserving rating display behavior. Verify the component's usage instructions before implementing."
+          "path": "frontend/src/components/blog/BlogInteractionsBar.tsx",
+          "operation": "create",
+          "description": "Create a reusable public blog interactions bar component rendering the three minimalist actions (Love with \"❤️ (N)\", Share, Comment toggle) in a left-aligned horizontal row, designed to be embedded under the blog article content without re-structuring the page. Use shadcn-ui Button (and optionally Tooltip/Separator if available) and lucide-react icons for a clean aesthetic; verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-96",
-      "summary": "Reduce oversized public-page title typography on mobile in shared title components and hero titles while keeping md+ styling intact.",
+      "id": "REQ-108",
+      "summary": "Implement the public Name/Email/Comment form UI under the interaction icons and persist comments via canister, clearing and refreshing interaction state after submit.",
       "acceptanceCriteria": [
-        "`frontend/src/components/public/SectionTitle.tsx` uses smaller heading sizing on mobile (e.g., mobile < current `text-3xl`) while keeping equal or near-current sizing on md+ breakpoints.",
-        "`frontend/src/components/sections/HeroSection.tsx` mobile title sizing is reduced to be visually balanced (current `text-3xl`), while md+ remains strong/heroic.",
-        "No layout structure changes are introduced beyond typography scaling (no reflow-heavy redesign)."
+        "The comment form includes inputs for Name, Email, and Comment, and a submit button.",
+        "Submitting creates a persisted comment for the current blog post and resets the form on success.",
+        "After successful submit, the UI refreshes interaction data (at least comment count) without a full page reload.",
+        "All newly introduced user-facing strings for this feature are in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/public/SectionTitle.tsx",
-          "operation": "modify",
-          "description": "Adjust Tailwind heading classes so the public section title renders smaller on mobile (below current `text-3xl`) while keeping md+ sizing near-current; keep layout structure unchanged."
+          "path": "frontend/src/components/blog/BlogCommentForm.tsx",
+          "operation": "create",
+          "description": "Create a public comment form component with exactly these fields: Name, Email, Comment, plus a submit button. Provide English-only placeholders/labels, client-side validation messages, and a submitting state. Use shadcn-ui Input/Textarea/Button for consistent styling; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/sections/HeroSection.tsx",
+          "path": "frontend/src/pages/BlogDetailPage.tsx",
           "operation": "modify",
-          "description": "Reduce the public hero title font size on mobile (below current `text-3xl`) while preserving md+ hero styling; avoid any structural/layout redesign."
+          "description": "Render the new comment form component directly below the interaction bar when the Comment icon is toggled open. Wire submit to the comment mutation, clear the form on success, and refresh interaction summary state via React Query invalidation (no full page reload). Ensure any new public strings introduced here are in English."
         }
       ]
     },
     {
-      "id": "REQ-97",
-      "summary": "Remove the Home page main banner carousel/slider rendering while keeping all other Home sections and data wiring intact.",
+      "id": "REQ-111",
+      "summary": "Add React Query public hooks for blog interactions in useQueries.ts and integrate them into BlogDetailPage end-to-end while preserving existing blog loading and SEO behavior.",
       "acceptanceCriteria": [
-        "The carousel/banner slider section is no longer rendered on `frontend/src/pages/HomePage.tsx`.",
-        "Featured vehicles, CTA banner image section, About section, Search section, and Latest blog section remain present and functional.",
-        "No backend changes are required; no CMS data model changes are introduced."
+        "`useQueries.ts` includes new hooks for article interactions and these hooks call the new backend methods.",
+        "`BlogDetailPage.tsx` continues to load and render the blog content exactly as before, plus the new interaction UI.",
+        "Like/share/comment actions update counts via React Query invalidation/refetch (no hard refresh required).",
+        "No changes are introduced to immutable frontend paths listed in SYSTEM_CONTEXT."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/HomePage.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Remove the main banner carousel/slider section and its related imports/constants from the public Home page while leaving other sections, hooks, and CMS-driven data usage unchanged."
+          "description": "Extend the public React Query hook layer with blog interaction hooks that call existing backend capabilities from the actor: getBlogInteractionSummary, incrementBlogLike, incrementBlogShare (platform string), addBlogComment, and (if needed by UI) getBlogComments. Ensure mutations invalidate/refetch the correct interaction queries (and comments query where applicable) to update counts without a hard refresh."
+        },
+        {
+          "path": "frontend/src/pages/BlogDetailPage.tsx",
+          "operation": "modify",
+          "description": "Integrate the new interaction hooks into BlogDetailPage while keeping existing blog rendering and metadata updates intact (document title + meta description behavior unchanged). Ensure the interaction bar uses the summary query and mutations, and that share/like/comment update counts via React Query refetch/invalidation."
         }
       ]
     },
     {
-      "id": "REQ-98",
-      "summary": "Update the mobile Bottom CTA Bar to 50px height with square corners while keeping the same four actions and colors.",
+      "id": "REQ-112",
+      "summary": "Extend the existing /admin blog management UI to show read-only interaction counts for a selected blog post and provide an admin-only comment list with delete moderation.",
       "acceptanceCriteria": [
-        "`frontend/src/components/navigation/BottomCtaBar.tsx` renders at exactly 50px height on mobile (replacing current `h-16`).",
-        "Bottom bar container and button corners are square (remove rounded top corners currently applied).",
-        "All four actions remain: Call, WhatsApp, Credit Simulation, Main Menu; existing colors remain (#C90010, #398E3D, #FEA500, #0166C0).",
-        "Tap targets remain usable at 50px height (icons/text scaled appropriately without truncation)."
+        "In the /admin blog management flow, an admin can view interaction counts for a blog post (likes/shares/comments).",
+        "Admins can view a list of comments for a blog post and delete individual comments.",
+        "Comment deletion persists (deleted comments no longer appear after refresh).",
+        "No existing admin blog CRUD (create/edit/publish/delete posts) is broken by these additions.",
+        "All newly introduced admin UI text is in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/navigation/BottomCtaBar.tsx",
+          "path": "frontend/src/admin/hooks/useAdminCmsQueries.ts",
           "operation": "modify",
-          "description": "Change the public Bottom CTA Bar mobile height from `h-16` to a 50px height, remove rounded top corners from the bar/buttons for square edges, and tune icon/text sizing to avoid truncation while keeping the four actions and existing color blocks."
-        }
-      ]
-    },
-    {
-      "id": "REQ-99",
-      "summary": "Align the Bottom CTA 'Main Menu' dropdown directly above the blue button and polish public dropdown/sheet styling without changing behaviors or admin UI.",
-      "acceptanceCriteria": [
-        "When the user taps the blue 'Main Menu' action in the Bottom CTA Bar, the menu panel opens positioned directly above the blue box (aligned horizontally with that button), not as a generic full-width bottom sheet.",
-        "The menu dropdown closes on outside tap and on navigation item click, and animations/transitions remain smooth.",
-        "Public dropdown/sheet menus (e.g., Bottom CTA menu and Navbar mobile sheet) receive visual polish (spacing, typography, dividers, hover/active states) while keeping existing navigation items and behaviors unchanged.",
-        "No `/admin` components, routes, or styles are modified."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/navigation/BottomCtaBar.tsx",
-          "operation": "modify",
-          "description": "Replace the public Bottom CTA Bar 'Main Menu' bottom sheet behavior with a minimal dropdown/popover-style menu that anchors to the blue Main Menu button and opens directly above it; ensure close-on-outside-tap and close-on-item-click remain. Verify the component's usage instructions before implementing."
+          "description": "Add admin-only React Query hooks for blog interaction moderation within the existing admin hooks module: fetch blog interaction summary for a blog post, fetch comments for a blog post, and delete a comment (requires existing admin session token). Ensure query keys include the blogPostId and that delete invalidates the related comments/summary queries."
         },
         {
-          "path": "frontend/src/components/navigation/MainMenuSheet.tsx",
+          "path": "frontend/src/admin/components/BlogFormDialog.tsx",
           "operation": "modify",
-          "description": "Refactor the public menu panel component to support the new anchored dropdown positioning/styling (or replace it with a menu component used by BottomCtaBar) while keeping the same navigation items and close-on-navigation behavior. Verify the component's usage instructions before implementing."
+          "description": "Augment the existing blog editor dialog (without changing routes/layout) to show a read-only 'Interaction' section for existing posts (likes/shares/comments counts) and an admin-only 'Comments' section listing comments for the current post with a per-comment delete action. Use existing shadcn-ui components (buttons, dialogs) to keep admin styling consistent; verify the component's usage instructions before implementing. Ensure all new admin text is in English."
         },
         {
-          "path": "frontend/src/components/navigation/Navbar.tsx",
+          "path": "frontend/src/admin/pages/BlogAdminPage.tsx",
           "operation": "modify",
-          "description": "Polish the public Navbar mobile sheet menu styling for a cleaner/minimal look (spacing, dividers, typography, hover/active states) while preserving all navigation items, routing, and behaviors. Verify the component's usage instructions before implementing."
+          "description": "Wire the enhanced BlogFormDialog moderation UI into the admin blog management flow by ensuring the selected post context is passed as-is and that the dialog can be used for viewing interaction counts and moderating comments without impacting existing CRUD actions or the overall admin layout. Ensure any new admin-facing strings introduced here are in English."
         }
       ]
     }
