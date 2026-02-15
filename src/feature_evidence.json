@@ -2,119 +2,9 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-implement-a-2-image-home-page-main-banner-that-alternates-automatically-using-a-vertical-slide-up-transition-while-keeping-the-current-banner-position-and-overall-size-unchanged",
-      "featureTitle": "Implement a 2-image Home page Main Banner that alternates automatically using a vertical (slide-up) transition, while keeping the current banner position and overall size unchanged.",
+      "featureId": "feature-keep-the-existing-admin-media-manager-ui-behavior-unchanged-while-adapting-the-data-fetching-layer-to-use-the-new-paginated-chunked-backend-listing-so-the-ui-still-receives-a-single-combined-mediaasset-result",
+      "featureTitle": "Keep the existing admin Media Manager UI behavior unchanged while adapting the data-fetching layer to use the new paginated/chunked backend listing so the UI still receives a single combined MediaAsset[] result.",
       "files": [
-        "frontend/src/components/home/HomeMainBannerSlider.tsx",
-        "frontend/src/index.css",
-        "frontend/src/pages/HomePage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-141"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-extend-the-admin-media-area-admin-media-to-support-uploading-and-managing-the-home-page-main-banner-images-minimum-2-in-addition-to-the-existing-cta-banner-selection",
-      "featureTitle": "Extend the Admin Media area (/admin/media) to support uploading and managing the Home page Main Banner images (minimum 2), in addition to the existing CTA banner selection.",
-      "files": [
-        "frontend/src/admin/components/media/HomeMainBannerManager.tsx",
-        "frontend/src/admin/components/media/MediaUploadButton.tsx",
-        "frontend/src/admin/pages/MediaManagerPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-142"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-the-public-react-query-hook-used-by-the-home-page-to-fetch-real-banner-configuration-from-the-backend-instead-of-returning-only-defaults-and-wire-it-into-the-home-page-banner-rendering",
-      "featureTitle": "Update the public React Query hook used by the Home page to fetch real banner configuration from the backend (instead of returning only defaults), and wire it into the Home page banner rendering.",
-      "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/HomePage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-144"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-adjust-the-home-page-cta-banner-section-layout-so-it-touches-the-adjacent-sections-vertically-no-top-bottom-margin-is-flush-to-the-outer-left-right-edges-on-mobile-full-bleed-does-not-become-tall-like-the-main-banner-and-uses-a-dark-gray-black-background-behind-it",
-      "featureTitle": "Adjust the Home page CTA banner section layout so it touches the adjacent sections vertically (no top/bottom margin), is flush to the outer left/right edges on mobile (full-bleed), does not become tall like the main banner, and uses a dark gray/black background behind it.",
-      "files": [
-        "frontend/src/index.css",
-        "frontend/src/pages/HomePage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-145"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-restore-the-home-page-about-us-tentang-kami-section-design-and-colors-to-the-previous-styling-used-before-the-recent-changes-including-restoring-the-intended-background-color-treatment",
-      "featureTitle": "Restore the Home page 'About Us / Tentang Kami' section design and colors to the previous styling used before the recent changes (including restoring the intended background color treatment).",
-      "files": [
-        "frontend/src/index.css",
-        "frontend/src/pages/HomePage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-146"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-fix-the-admin-media-library-so-uploaded-images-reliably-appear-in-the-list-grid-after-upload-and-on-refresh-no-error-state-including-ensuring-the-backing-get-list-media-api-returns-the-stored-assets-and-the-ui-renders-them-correctly",
-      "featureTitle": "Fix the Admin Media Library so uploaded images reliably appear in the list/grid after upload and on refresh (no error state), including ensuring the backing get/list media API returns the stored assets and the UI renders them correctly.",
-      "files": [
-        "frontend/src/admin/components/media/MediaManagerPanel.tsx",
-        "frontend/src/admin/components/media/MediaPickerDialog.tsx",
-        "frontend/src/admin/components/media/MediaUploadButton.tsx",
         "frontend/src/admin/hooks/useAdminCmsQueries.ts"
       ],
       "components": [
@@ -127,7 +17,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-147"
+        "REQ-149"
       ],
       "confidence": "high"
     }

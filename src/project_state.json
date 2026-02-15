@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 63,
+  "projectStateVersion": 65,
   "summary": "Automotive company profile + vehicle sales website with production-ready backend/frontend separation, stable persistence (upgrade/redeploy safe), live CMS admin panel, media manager, SEO/performance, product & article interactions, and seeded content.",
   "architectural_notes": [
     "Use stable persistence only (no in-memory) and ensure upgrade/redeploy-safe data migrations with auto-restore after redeploy.",
@@ -835,6 +835,14 @@
         "REQ-147"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-keep-the-existing-admin-media-manager-ui-behavior-unchanged-while-adapting-the-data-fetching-layer-to-use-the-new-paginated-chunked-backend-listing-so-the-ui-still-receives-a-single-combined-mediaasset-result",
+      "title": "Keep the existing admin Media Manager UI behavior unchanged while adapting the data-fetching layer to use the new paginated/chunked backend listing so the UI still receives a single combined MediaAsset[] result.",
+      "reqIds": [
+        "REQ-149"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -1539,6 +1547,20 @@
       "summary": "Add/extend backend APIs and persistence needed to store and serve a list of Home page Main Banner image URLs (ordered), and make them publicly readable by the Home page without requiring an admin session.",
       "reqIds": [
         "REQ-143"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-141",
+      "summary": "Fix Admin Media loading error by updating backend `getMediaAssets()` to use pagination/chunked responses so the IC 2MB per-response payload limit is never exceeded; do not change any admin/public UI unless strictly required for pagination.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-142",
+      "summary": "Update the backend media listing so the admin Media Manager can load large libraries without triggering the Internet Computer 2MB per-response payload limit. Implement pagination/chunking for listing media assets so no single call returns a payload > 2MB.",
+      "reqIds": [
+        "REQ-148"
       ],
       "status": "pending"
     }

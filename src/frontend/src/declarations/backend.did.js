@@ -245,7 +245,6 @@ export const idlService = IDL.Service({
       [IDL.Opt(UserProfile)],
       [],
     ),
-  'getAllMediaAssets' : IDL.Func([], [IDL.Vec(MediaAsset)], ['query']),
   'getAllSiteBanners' : IDL.Func([IDL.Text], [IDL.Vec(SiteBanner)], []),
   'getAndIncrementBlogPostViews' : IDL.Func([IDL.Nat], [IDL.Opt(BlogPost)], []),
   'getBlogComment' : IDL.Func(
@@ -272,7 +271,11 @@ export const idlService = IDL.Service({
   'getExtendedVisitorStats' : IDL.Func([IDL.Text], [ExtendedVisitorStats], []),
   'getFooterVisitorStats' : IDL.Func([], [ExtendedVisitorStats], []),
   'getMainBannerImageUrls' : IDL.Func([], [IDL.Vec(IDL.Text)], []),
-  'getMediaAssets' : IDL.Func([IDL.Text], [IDL.Opt(IDL.Vec(MediaAsset))], []),
+  'getMediaAssets' : IDL.Func(
+      [IDL.Text, IDL.Nat, IDL.Nat],
+      [IDL.Vec(MediaAsset)],
+      [],
+    ),
   'getProductInteraction' : IDL.Func(
       [IDL.Nat],
       [IDL.Opt(Interaction)],
@@ -552,7 +555,6 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(UserProfile)],
         [],
       ),
-    'getAllMediaAssets' : IDL.Func([], [IDL.Vec(MediaAsset)], ['query']),
     'getAllSiteBanners' : IDL.Func([IDL.Text], [IDL.Vec(SiteBanner)], []),
     'getAndIncrementBlogPostViews' : IDL.Func(
         [IDL.Nat],
@@ -591,7 +593,11 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getFooterVisitorStats' : IDL.Func([], [ExtendedVisitorStats], []),
     'getMainBannerImageUrls' : IDL.Func([], [IDL.Vec(IDL.Text)], []),
-    'getMediaAssets' : IDL.Func([IDL.Text], [IDL.Opt(IDL.Vec(MediaAsset))], []),
+    'getMediaAssets' : IDL.Func(
+        [IDL.Text, IDL.Nat, IDL.Nat],
+        [IDL.Vec(MediaAsset)],
+        [],
+      ),
     'getProductInteraction' : IDL.Func(
         [IDL.Nat],
         [IDL.Opt(Interaction)],

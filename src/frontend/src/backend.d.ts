@@ -192,7 +192,6 @@ export interface backendInterface {
     deleteVehicle(sessionToken: string, id: bigint): Promise<boolean>;
     getAdminUserProfile(sessionToken: string, adminUserId: bigint): Promise<UserProfile | null>;
     getAdminUserProfileByIdToken(sessionToken: string, adminUserId: bigint): Promise<UserProfile | null>;
-    getAllMediaAssets(): Promise<Array<MediaAsset>>;
     getAllSiteBanners(sessionToken: string): Promise<Array<SiteBanner>>;
     getAndIncrementBlogPostViews(blogPostId: bigint): Promise<BlogPost | null>;
     getBlogComment(sessionToken: string, blogPostId: bigint, commentId: bigint): Promise<BlogComment | null>;
@@ -207,7 +206,7 @@ export interface backendInterface {
     getExtendedVisitorStats(sessionToken: string): Promise<ExtendedVisitorStats>;
     getFooterVisitorStats(): Promise<ExtendedVisitorStats>;
     getMainBannerImageUrls(): Promise<Array<string>>;
-    getMediaAssets(sessionToken: string): Promise<Array<MediaAsset> | null>;
+    getMediaAssets(sessionToken: string, offset: bigint, limit: bigint): Promise<Array<MediaAsset>>;
     getProductInteraction(itemId: bigint): Promise<Interaction | null>;
     getPromotion(id: bigint): Promise<Promotion | null>;
     getPromotions(): Promise<Array<Promotion>>;

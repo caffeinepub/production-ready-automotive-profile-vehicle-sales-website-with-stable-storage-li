@@ -226,7 +226,6 @@ export interface _SERVICE {
     [string, bigint],
     [] | [UserProfile]
   >,
-  'getAllMediaAssets' : ActorMethod<[], Array<MediaAsset>>,
   'getAllSiteBanners' : ActorMethod<[string], Array<SiteBanner>>,
   'getAndIncrementBlogPostViews' : ActorMethod<[bigint], [] | [BlogPost]>,
   'getBlogComment' : ActorMethod<[string, bigint, bigint], [] | [BlogComment]>,
@@ -244,7 +243,7 @@ export interface _SERVICE {
   'getExtendedVisitorStats' : ActorMethod<[string], ExtendedVisitorStats>,
   'getFooterVisitorStats' : ActorMethod<[], ExtendedVisitorStats>,
   'getMainBannerImageUrls' : ActorMethod<[], Array<string>>,
-  'getMediaAssets' : ActorMethod<[string], [] | [Array<MediaAsset>]>,
+  'getMediaAssets' : ActorMethod<[string, bigint, bigint], Array<MediaAsset>>,
   'getProductInteraction' : ActorMethod<[bigint], [] | [Interaction]>,
   'getPromotion' : ActorMethod<[bigint], [] | [Promotion]>,
   'getPromotions' : ActorMethod<[], Array<Promotion>>,

@@ -292,8 +292,30 @@ export function useGetMediaAssets() {
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       const token = getSessionToken();
-      const result = await actor.getMediaAssets(token);
-      return result || [];
+
+      // Fetch media assets in pages to avoid 2MB IC limit
+      const PAGE_SIZE = 50n; // Conservative page size
+      let allAssets: MediaAsset[] = [];
+      let offset = 0n;
+      let hasMore = true;
+
+      while (hasMore) {
+        const page = await actor.getMediaAssets(token, offset, PAGE_SIZE);
+        
+        if (page.length === 0) {
+          hasMore = false;
+        } else {
+          allAssets = [...allAssets, ...page];
+          offset += BigInt(page.length);
+          
+          // If we got fewer items than requested, we've reached the end
+          if (page.length < Number(PAGE_SIZE)) {
+            hasMore = false;
+          }
+        }
+      }
+
+      return allAssets;
     },
     enabled: !!actor && !isFetching,
     retry: 1,

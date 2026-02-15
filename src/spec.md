@@ -1,15 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Improve the Home page banner experience and admin media management by adding a vertical 2-image main-banner slider, fixing CTA banner layout, restoring the About section styling, and resolving Admin Media Library rendering issues.
+**Goal:** Prevent the admin Media Manager from failing on large media libraries by paginating the backend media-asset listing to stay under the Internet Computer 2MB per-response payload limit, while keeping the existing UI behavior unchanged.
 
 **Planned changes:**
-- Update the Home page main banner to support 2 images that auto-rotate with a vertical slide-up transition, keeping the current banner size/position; render a single static banner if only 1 image is configured.
-- Extend `/admin/media` to include a dedicated “Home Main Banner” management area to upload and order/select at least two main-banner images (English UI text).
-- Add/extend backend persistence and APIs to store and publicly serve an ordered list of Home main-banner image URLs, while preserving existing Home CTA banner configuration behavior.
-- Update the public `useGetPublicSiteBanners` hook to fetch real configured values from the backend (main banner + CTA), falling back to existing static assets when none are configured.
-- Adjust the Home page CTA banner section to remove vertical margins (touch adjacent sections), make it full-bleed on mobile (no side padding), constrain its height to a CTA-strip feel, and apply a dark gray/black background.
-- Restore the Home page “About Us / Tentang Kami” section styling and colors to the previous design used before recent changes.
-- Fix Admin Media Library upload/list rendering so uploaded images reliably appear immediately after upload and after refresh (no persistent error state), ensuring API list/get returns stored assets and UI renders them (English messages).
+- Update the backend `getMediaAssets()`-style listing to support pagination/chunking (e.g., limit + cursor/offset) so each response remains safely below 2MB, with stable/deterministic ordering across pages.
+- Ensure the paginated media listing remains protected by the same admin session token authorization as existing admin CMS methods.
+- Adapt the frontend data-fetching layer (React Query hook) to fetch all pages and merge results so the UI still receives a single combined `MediaAsset[]` (same shape as before), with no visual/layout changes to the Media Manager.
+- Keep existing error handling behavior consistent if any page fetch fails, introducing no new user-facing text unless strictly necessary (and in English).
 
-**User-visible outcome:** The Home page shows a vertically sliding 2-image main banner (or static if only one is set), the CTA banner fits as a full-width strip on mobile with no extra spacing, the About section looks like it did previously, and admins can upload/manage main-banner images in `/admin/media` with the Media Library reliably displaying uploaded assets.
+**User-visible outcome:** The /admin Media Manager loads and displays large media libraries without triggering the IC “application payload size … cannot be larger than 2097152” rejection, and the UI behaves the same as before.

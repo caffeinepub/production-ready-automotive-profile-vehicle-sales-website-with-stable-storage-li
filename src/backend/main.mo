@@ -12,9 +12,7 @@ import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
-import Migration "migration";
 
-(with migration = Migration.run)
 actor {
   type AdminUserId = Nat;
   type BlogPostId = Nat;
@@ -309,7 +307,12 @@ actor {
     adminSessions.remove(token);
   };
 
-  public shared ({ caller }) func createAdminUser(sessionToken : Text, email : Text, password : Text, role : Text) : async ?Nat {
+  public shared ({ caller }) func createAdminUser(
+    sessionToken : Text,
+    email : Text,
+    password : Text,
+    role : Text,
+  ) : async ?Nat {
     let session = requireAdminSession(sessionToken);
 
     if (session.role != "Super Admin") {
@@ -402,12 +405,12 @@ actor {
     profile : UserProfile,
   ) : async () {
     let session = requireAdminSession(sessionToken);
-    
+
     // Only allow admins to edit their own profile or Super Admins to edit any profile
     if (session.userId != adminUserId and session.role != "Super Admin") {
       Runtime.trap("Unauthorized: Can only edit your own profile");
     };
-    
+
     adminUserProfiles.add(adminUserId, profile);
   };
 
@@ -416,23 +419,26 @@ actor {
     adminUserId : Nat,
   ) : async ?UserProfile {
     let session = requireAdminSession(sessionToken);
-    
+
     // Only allow admins to view their own profile or Super Admins to view any profile
     if (session.userId != adminUserId and session.role != "Super Admin") {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
-    
+
     adminUserProfiles.get(adminUserId);
   };
 
-  public shared ({ caller }) func getAdminUserProfileByIdToken(sessionToken : Text, adminUserId : Nat) : async ?UserProfile {
+  public shared ({ caller }) func getAdminUserProfileByIdToken(
+    sessionToken : Text,
+    adminUserId : Nat,
+  ) : async ?UserProfile {
     let session = requireAdminSession(sessionToken);
-    
+
     // Only allow admins to view their own profile or Super Admins to view any profile
     if (session.userId != adminUserId and session.role != "Super Admin") {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
-    
+
     adminUserProfiles.get(adminUserId);
   };
 
@@ -477,7 +483,9 @@ actor {
     };
   };
 
-  public shared ({ caller }) func getExtendedVisitorStats(sessionToken : Text) : async ExtendedVisitorStats {
+  public shared ({ caller }) func getExtendedVisitorStats(
+    sessionToken : Text,
+  ) : async ExtendedVisitorStats {
     let _session = requireAdminSession(sessionToken);
     updateVisitorStats();
 
@@ -568,19 +576,28 @@ actor {
 
   // Vehicles management
 
-  public shared ({ caller }) func createVehicle(sessionToken : Text, vehicle : Vehicle) : async Bool {
+  public shared ({ caller }) func createVehicle(
+    sessionToken : Text,
+    vehicle : Vehicle,
+  ) : async Bool {
     let _session = requireAdminSession(sessionToken);
     vehicles.add(vehicle.id, vehicle);
     true;
   };
 
-  public shared ({ caller }) func updateVehicle(sessionToken : Text, vehicle : Vehicle) : async Bool {
+  public shared ({ caller }) func updateVehicle(
+    sessionToken : Text,
+    vehicle : Vehicle,
+  ) : async Bool {
     let _session = requireAdminSession(sessionToken);
     vehicles.add(vehicle.id, vehicle);
     true;
   };
 
-  public shared ({ caller }) func deleteVehicle(sessionToken : Text, id : Nat) : async Bool {
+  public shared ({ caller }) func deleteVehicle(
+    sessionToken : Text,
+    id : Nat,
+  ) : async Bool {
     let _session = requireAdminSession(sessionToken);
     vehicles.remove(id);
     true;
@@ -588,19 +605,28 @@ actor {
 
   // Promotions management
 
-  public shared ({ caller }) func createPromotion(sessionToken : Text, promotion : Promotion) : async Bool {
+  public shared ({ caller }) func createPromotion(
+    sessionToken : Text,
+    promotion : Promotion,
+  ) : async Bool {
     let _session = requireAdminSession(sessionToken);
     promotions.add(promotion.id, promotion);
     true;
   };
 
-  public shared ({ caller }) func updatePromotion(sessionToken : Text, promotion : Promotion) : async Bool {
+  public shared ({ caller }) func updatePromotion(
+    sessionToken : Text,
+    promotion : Promotion,
+  ) : async Bool {
     let _session = requireAdminSession(sessionToken);
     promotions.add(promotion.id, promotion);
     true;
   };
 
-  public shared ({ caller }) func deletePromotion(sessionToken : Text, id : Nat) : async Bool {
+  public shared ({ caller }) func deletePromotion(
+    sessionToken : Text,
+    id : Nat,
+  ) : async Bool {
     let _session = requireAdminSession(sessionToken);
     promotions.remove(id);
     true;
@@ -608,19 +634,28 @@ actor {
 
   // Testimonial management
 
-  public shared ({ caller }) func createTestimonial(sessionToken : Text, testimonial : Testimonial) : async Bool {
+  public shared ({ caller }) func createTestimonial(
+    sessionToken : Text,
+    testimonial : Testimonial,
+  ) : async Bool {
     let _session = requireAdminSession(sessionToken);
     testimonials.add(testimonial.id, testimonial);
     true;
   };
 
-  public shared ({ caller }) func updateTestimonial(sessionToken : Text, testimonial : Testimonial) : async Bool {
+  public shared ({ caller }) func updateTestimonial(
+    sessionToken : Text,
+    testimonial : Testimonial,
+  ) : async Bool {
     let _session = requireAdminSession(sessionToken);
     testimonials.add(testimonial.id, testimonial);
     true;
   };
 
-  public shared ({ caller }) func deleteTestimonial(sessionToken : Text, id : Nat) : async Bool {
+  public shared ({ caller }) func deleteTestimonial(
+    sessionToken : Text,
+    id : Nat,
+  ) : async Bool {
     let _session = requireAdminSession(sessionToken);
     testimonials.remove(id);
     true;
@@ -628,19 +663,28 @@ actor {
 
   // Blog post management
 
-  public shared ({ caller }) func createBlogPost(sessionToken : Text, post : BlogPost) : async Bool {
+  public shared ({ caller }) func createBlogPost(
+    sessionToken : Text,
+    post : BlogPost,
+  ) : async Bool {
     let _session = requireAdminSession(sessionToken);
     blogPosts.add(post.id, post);
     true;
   };
 
-  public shared ({ caller }) func updateBlogPost(sessionToken : Text, post : BlogPost) : async Bool {
+  public shared ({ caller }) func updateBlogPost(
+    sessionToken : Text,
+    post : BlogPost,
+  ) : async Bool {
     let _session = requireAdminSession(sessionToken);
     blogPosts.add(post.id, post);
     true;
   };
 
-  public shared ({ caller }) func deleteBlogPost(sessionToken : Text, id : Nat) : async Bool {
+  public shared ({ caller }) func deleteBlogPost(
+    sessionToken : Text,
+    id : Nat,
+  ) : async Bool {
     let _session = requireAdminSession(sessionToken);
     blogPosts.remove(id);
     true;
@@ -684,27 +728,46 @@ actor {
 
   // Media assets
 
-  public shared ({ caller }) func createMediaAsset(sessionToken : Text, asset : MediaAsset) : async Bool {
+  public shared ({ caller }) func createMediaAsset(
+    sessionToken : Text,
+    asset : MediaAsset,
+  ) : async Bool {
     let _session = requireAdminSession(sessionToken);
     mediaAssets.add(asset.id, asset);
     true;
   };
 
-  public shared ({ caller }) func deleteMediaAsset(sessionToken : Text, id : Nat) : async Bool {
+  public shared ({ caller }) func deleteMediaAsset(
+    sessionToken : Text,
+    id : Nat,
+  ) : async Bool {
     let _session = requireAdminSession(sessionToken);
     mediaAssets.remove(id);
     true;
   };
 
-  public query ({ caller }) func getAllMediaAssets() : async [MediaAsset] {
-    let mediaAssetsArray = mediaAssets.values().toArray();
-    mediaAssetsArray;
-  };
-
-  public shared ({ caller }) func getMediaAssets(sessionToken : Text) : async ?[MediaAsset] {
+  public shared ({ caller }) func getMediaAssets(
+    sessionToken : Text,
+    offset : Nat,
+    limit : Nat,
+  ) : async [MediaAsset] {
     let _session = requireAdminSession(sessionToken);
-    let mediaAssetsArray = mediaAssets.values().toArray();
-    ?mediaAssetsArray;
+
+    // Convert Map to Array
+    let allAssets = mediaAssets.values().toArray();
+    let totalAssets = allAssets.size();
+
+    // Calculate the upper bound for the slice
+    let safeLimit = if (limit > 1000) { 1000 } else { limit };
+    let end = if (offset + safeLimit > totalAssets) {
+      totalAssets;
+    } else { offset + safeLimit };
+
+    if (offset >= totalAssets) {
+      [];
+    } else if (offset >= totalAssets) {
+      [];
+    } else { allAssets.sliceToArray(offset, end) };
   };
 
   // Product interactions
@@ -914,7 +977,11 @@ actor {
 
   // Admin-only blog comment management (strictly scoped to blog post ID)
 
-  public shared ({ caller }) func getBlogComment(sessionToken : Text, blogPostId : Nat, commentId : Nat) : async ?BlogComment {
+  public shared ({ caller }) func getBlogComment(
+    sessionToken : Text,
+    blogPostId : Nat,
+    commentId : Nat,
+  ) : async ?BlogComment {
     let _session = requireAdminSession(sessionToken);
     switch (blogComments.get(blogPostId)) {
       case (?comments) { comments.get(commentId) };
@@ -922,7 +989,11 @@ actor {
     };
   };
 
-  public shared ({ caller }) func deleteBlogComment(sessionToken : Text, blogPostId : Nat, commentId : Nat) : async () {
+  public shared ({ caller }) func deleteBlogComment(
+    sessionToken : Text,
+    blogPostId : Nat,
+    commentId : Nat,
+  ) : async () {
     let _session = requireAdminSession(sessionToken);
     switch (blogComments.get(blogPostId)) {
       case (?comments) {
@@ -935,7 +1006,12 @@ actor {
     };
   };
 
-  public shared ({ caller }) func updateBlogComment(sessionToken : Text, blogPostId : Nat, commentId : Nat, content : Text) : async () {
+  public shared ({ caller }) func updateBlogComment(
+    sessionToken : Text,
+    blogPostId : Nat,
+    commentId : Nat,
+    content : Text,
+  ) : async () {
     let _session = requireAdminSession(sessionToken);
     switch (blogComments.get(blogPostId)) {
       case (?comments) {
@@ -991,12 +1067,19 @@ actor {
     siteBanners.values().toArray();
   };
 
-  public shared ({ caller }) func getSiteBanner(sessionToken : Text, id : Text) : async ?SiteBanner {
+  public shared ({ caller }) func getSiteBanner(
+    sessionToken : Text,
+    id : Text,
+  ) : async ?SiteBanner {
     let _session = requireAdminSession(sessionToken);
     siteBanners.get(id);
   };
 
-  public shared ({ caller }) func updateSiteBanner(sessionToken : Text, id : Text, imageUrl : Text) : async Bool {
+  public shared ({ caller }) func updateSiteBanner(
+    sessionToken : Text,
+    id : Text,
+    imageUrl : Text,
+  ) : async Bool {
     let session = requireAdminSession(sessionToken);
     switch (adminUsers.get(session.userId)) {
       case (?_adminUser) {

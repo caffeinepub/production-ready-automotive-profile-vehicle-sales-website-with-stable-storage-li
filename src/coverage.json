@@ -1,132 +1,46 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T05:31:17.147Z",
+  "generatedAt": "2026-02-15T08:37:20.778Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 7,
-    "implemented": 6,
+    "total": 2,
+    "implemented": 1,
     "items": [
       {
-        "id": "REQ-141",
-        "summary": "Implement a 2-image Home page Main Banner that alternates automatically using a vertical (slide-up) transition, while keeping the current banner position and overall size unchanged.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/home/HomeMainBannerSlider.tsx",
-          "frontend/src/pages/HomePage.tsx",
-          "frontend/src/index.css"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/home/HomeMainBannerSlider.tsx",
-          "frontend/src/pages/HomePage.tsx",
-          "frontend/src/index.css"
-        ]
-      },
-      {
-        "id": "REQ-142",
-        "summary": "Extend the Admin Media area (/admin/media) to support uploading and managing the Home page Main Banner images (minimum 2), in addition to the existing CTA banner selection.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/admin/pages/MediaManagerPage.tsx",
-          "frontend/src/admin/components/media/HomeMainBannerManager.tsx",
-          "frontend/src/admin/components/media/MediaUploadButton.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/admin/pages/MediaManagerPage.tsx",
-          "frontend/src/admin/components/media/HomeMainBannerManager.tsx",
-          "frontend/src/admin/components/media/MediaUploadButton.tsx"
-        ]
-      },
-      {
-        "id": "REQ-143",
-        "summary": "Add/extend backend APIs and persistence needed to store and serve a list of Home page Main Banner image URLs (ordered), and make them publicly readable by the Home page without requiring an admin session.",
+        "id": "REQ-148",
+        "summary": "Update the backend media listing so the admin Media Manager can load large libraries without triggering the Internet Computer 2MB per-response payload limit. Implement pagination/chunking for listing media assets so no single call returns a payload > 2MB.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-144",
-        "summary": "Update the public React Query hook used by the Home page to fetch real banner configuration from the backend (instead of returning only defaults), and wire it into the Home page banner rendering.",
+        "id": "REQ-149",
+        "summary": "Keep the existing admin Media Manager UI behavior unchanged while adapting the data-fetching layer to use the new paginated/chunked backend listing so the UI still receives a single combined MediaAsset[] result.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/HomePage.tsx"
+          "frontend/src/admin/hooks/useAdminCmsQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/HomePage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-145",
-        "summary": "Adjust the Home page CTA banner section layout so it touches the adjacent sections vertically (no top/bottom margin), is flush to the outer left/right edges on mobile (full-bleed), does not become tall like the main banner, and uses a dark gray/black background behind it.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/HomePage.tsx",
-          "frontend/src/index.css"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/HomePage.tsx",
-          "frontend/src/index.css"
-        ]
-      },
-      {
-        "id": "REQ-146",
-        "summary": "Restore the Home page 'About Us / Tentang Kami' section design and colors to the previous styling used before the recent changes (including restoring the intended background color treatment).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/HomePage.tsx",
-          "frontend/src/index.css"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/HomePage.tsx",
-          "frontend/src/index.css"
-        ]
-      },
-      {
-        "id": "REQ-147",
-        "summary": "Fix the Admin Media Library so uploaded images reliably appear in the list/grid after upload and on refresh (no error state), including ensuring the backing get/list media API returns the stored assets and the UI renders them correctly.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-          "frontend/src/admin/components/media/MediaManagerPanel.tsx",
-          "frontend/src/admin/components/media/MediaUploadButton.tsx",
-          "frontend/src/admin/components/media/MediaPickerDialog.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-          "frontend/src/admin/components/media/MediaManagerPanel.tsx",
-          "frontend/src/admin/components/media/MediaUploadButton.tsx",
-          "frontend/src/admin/components/media/MediaPickerDialog.tsx"
+          "frontend/src/admin/hooks/useAdminCmsQueries.ts"
         ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/admin/components/media/HomeMainBannerManager.tsx",
-    "frontend/src/admin/components/media/MediaManagerPanel.tsx",
-    "frontend/src/admin/components/media/MediaPickerDialog.tsx",
-    "frontend/src/admin/components/media/MediaUploadButton.tsx",
     "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-    "frontend/src/admin/pages/AdminProfilePage.tsx",
-    "frontend/src/admin/pages/MediaManagerPage.tsx",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
-    "frontend/src/components/home/HomeMainBannerSlider.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/index.css",
-    "frontend/src/pages/HomePage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

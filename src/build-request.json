@@ -1,148 +1,59 @@
 {
   "kind": "build_request",
-  "title": "Homepage vertical main-banner slider + CTA banner layout fixes + restore About section + fix Admin Media Library rendering",
-  "priority": "normal",
+  "title": "Paginate media asset listing to avoid IC 2MB response limit",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-141",
-      "text": "Implement a 2-image Home page Main Banner that alternates automatically using a vertical (slide-up) transition, while keeping the current banner position and overall size unchanged.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Gambar Main banner dihalaman utama sudah benar posisi dan ukuran nya, tambahkan 1 gambar lagi agar gambar bisa bergantian tampil dengan cara slide keatas"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The Home page main banner displays 2 images and automatically alternates between them using a vertical slide-up animation.",
-        "The banner remains at the top of the Home page (below the navbar) and keeps the same layout footprint as the current single banner.",
-        "If only 1 image is configured, the banner renders that single image with no sliding animation."
-      ]
-    },
-    {
-      "id": "REQ-142",
-      "text": "Extend the Admin Media area (/admin/media) to support uploading and managing the Home page Main Banner images (minimum 2), in addition to the existing CTA banner selection.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "tambah juga menu upload gambar main banner pada media diadmin panel."
-        ]
-      },
-      "acceptanceCriteria": [
-        "/admin/media provides a clear section to manage 'Home Main Banner' images and allows uploading media directly into that banner set.",
-        "An admin can set at least two images for the Home main banner without leaving /admin/media.",
-        "All newly introduced admin UI text is in English."
-      ]
-    },
-    {
-      "id": "REQ-143",
-      "text": "Add/extend backend APIs and persistence needed to store and serve a list of Home page Main Banner image URLs (ordered), and make them publicly readable by the Home page without requiring an admin session.",
+      "id": "REQ-148",
+      "text": "Update the backend media listing so the admin Media Manager can load large libraries without triggering the Internet Computer 2MB per-response payload limit. Implement pagination/chunking for listing media assets so no single call returns a payload > 2MB.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-user-1",
+          "msg-user-2"
         ],
         "quotes": [
-          "tambahkan 1 gambar lagi agar gambar bisa bergantian tampil dengan cara slide keatas"
+          "Perbaiki backend media agar getMediaAssets() menggunakan pagination/chunk agar tidak melewati limit 2MB IC.",
+          "application payload size (2392377) cannot be larger than 2097152"
         ]
       },
       "acceptanceCriteria": [
-        "The canister stores an ordered list of main-banner image URLs (minimum 2) and returns them via a public (no-session) query for the public website.",
-        "The existing admin banner configuration behavior for the Home CTA banner remains supported.",
-        "Public access returns stable values (does not always return null/defaults) so the Home page can render the configured banner images."
+        "Calling the media-asset listing API with a large number of media assets no longer results in an IC reject with 'application payload size ... cannot be larger than 2097152'.",
+        "Backend provides a paginated/chunked way to fetch media assets (e.g., page size/limit + cursor/offset) such that each response is safely below 2MB even for very large libraries.",
+        "Pagination ordering is stable across pages (deterministic ordering by id or created order) so the frontend can safely merge pages.",
+        "The paginated listing method requires the same admin session token authorization as existing admin CMS methods (no public access)."
       ]
     },
     {
-      "id": "REQ-144",
-      "text": "Update the public React Query hook used by the Home page to fetch real banner configuration from the backend (instead of returning only defaults), and wire it into the Home page banner rendering.",
+      "id": "REQ-149",
+      "text": "Keep the existing admin Media Manager UI behavior unchanged while adapting the data-fetching layer to use the new paginated/chunked backend listing so the UI still receives a single combined MediaAsset[] result.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-user-1"
         ],
         "quotes": [
-          "tambahkan 1 gambar lagi agar gambar bisa bergantian tampil dengan cara slide keatas"
+          "Jangan ubah tampilan atau hal yang tidak diperintahkan."
         ]
       },
       "acceptanceCriteria": [
-        "The public hook currently named useGetPublicSiteBanners returns real backend values for main banner image URLs and CTA banner URL when configured.",
-        "HomePage uses the returned values to render the configured main banner slider and CTA banner.",
-        "If the backend returns no configured URLs, the existing fallback static assets continue to be used."
-      ]
-    },
-    {
-      "id": "REQ-145",
-      "text": "Adjust the Home page CTA banner section layout so it touches the adjacent sections vertically (no top/bottom margin), is flush to the outer left/right edges on mobile (full-bleed), does not become tall like the main banner, and uses a dark gray/black background behind it.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Ubah ukuran gambar cta banner dengan menjadi atas bawah menempel langsung dengan Section lain/tanpa margin, dan kanan kiri menempel langsung kebatas margin luar, sehingga pada mobile view tampil penuh, tidak memanjang seperti main banner, warna background hitam abu."
-        ]
-      },
-      "acceptanceCriteria": [
-        "The CTA banner has no extra vertical spacing above/below it and visually touches the sections before/after it.",
-        "On mobile, the CTA banner is full-bleed (flush to the viewport edges) with no container side padding.",
-        "The CTA banner does not grow excessively tall; it renders with a controlled height appropriate for a CTA strip/banner (distinct from the main hero banner).",
-        "The CTA banner section background is dark gray/black."
-      ]
-    },
-    {
-      "id": "REQ-146",
-      "text": "Restore the Home page 'About Us / Tentang Kami' section design and colors to the previous styling used before the recent changes (including restoring the intended background color treatment).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Kembalikan desain dan warna Section Tentang Kami di halaman utama seperti sebelumnya."
-        ]
-      },
-      "acceptanceCriteria": [
-        "The Home page About section styling (layout + color treatment) matches the earlier design used before the recent changes.",
-        "The section uses the intended brand-consistent About-section color styling (no unintended gray/white card-only presentation if it was previously a colored section)."
-      ]
-    },
-    {
-      "id": "REQ-147",
-      "text": "Fix the Admin Media Library so uploaded images reliably appear in the list/grid after upload and on refresh (no error state), including ensuring the backing get/list media API returns the stored assets and the UI renders them correctly.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Sekalian perbaiki Media library di admin panel karena error tidak bisa menampilkan gambar yang di upload."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Uploading an image in /admin/media succeeds and the image appears in the Media Library grid without requiring a hard reload.",
-        "After a browser refresh, previously uploaded media still loads and displays in the Media Library.",
-        "The Media Library does not show a persistent error state when valid admin session credentials are present.",
-        "All user-facing admin error/empty/loading messages involved in this fix remain in English."
+        "No visual/layout changes are made to the /admin Media Manager pages or components; only data-fetching behavior changes are allowed.",
+        "The React Query hook used by the admin media library continues to resolve to a single array of MediaAsset items (same shape as before) and the existing grid renders as it does today.",
+        "The admin Media page loads successfully with large media libraries and displays media assets without showing the payload-size error.",
+        "If a page fetch fails, the error handling remains consistent with current behavior (e.g., MediaManagerPanel shows an error message); no new user-facing copy is introduced unless strictly required, and any new text is in English."
       ]
     }
   ],
   "constraints": [
-    "Start requirement numbering at REQ-141 and increment sequentially.",
-    "Do not modify any files under frontend/src/components/ui (immutable Shadcn components).",
-    "Do not modify frontend immutable paths listed in SYSTEM_CONTEXT.",
-    "Use English for any new or changed user-facing text.",
-    "Backend must remain a single Motoko actor in backend/main.mo; only add backend/migration.mo changes if required by stable-state upgrades."
+    "Backend must remain a single Motoko actor in `backend/main.mo` (no additional backend services).",
+    "Do not modify any immutable frontend paths listed in SYSTEM_CONTEXT.",
+    "Do not change admin/public UI visuals, layout, routes, or storage keys; only minimal frontend data-fetching changes are allowed to support pagination.",
+    "Use English for any user-facing text introduced by these changes."
   ],
   "nonGoals": [
-    "No changes to public site routing or navigation structure beyond the Home page banner/sections requested.",
-    "No redesign of other Home page sections (Featured Vehicles, Latest Blog Posts) beyond spacing effects needed to make the CTA banner touch adjacent sections.",
-    "No new third-party slider libraries unless already present; keep the implementation within the existing stack.",
-    "No changes to admin authentication/session storage keys or flow unless strictly required to fix Media Library loading."
+    "Redesigning the Media Manager UI (grid layout, search UI, buttons, styling).",
+    "Changing how media upload works or changing media file formats/compression behavior.",
+    "Migrating or altering existing stored media assets beyond what is strictly necessary to support paginated listing."
   ],
   "imageRequirements": {
     "required": [],
