@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 55,
+  "projectStateVersion": 61,
   "summary": "Automotive company profile + vehicle sales website with production-ready backend/frontend separation, stable persistence (upgrade/redeploy safe), live CMS admin panel, media manager, SEO/performance, product & article interactions, and seeded content.",
   "architectural_notes": [
     "Use stable persistence only (no in-memory) and ensure upgrade/redeploy-safe data migrations with auto-restore after redeploy.",
@@ -26,7 +26,7 @@
     "Media library authorization failure: admin login works but media endpoints return \"Unauthorized: Only admins can view media assets\" due to media service using a different auth source (e.g., principal whitelist) than CMS session auth.",
     "Admin CMS: PassengerVehicles and CommercialVehicles editor buttons both appear active (both red) when one is selected; tab/state styling logic likely incorrect."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-build-an-admin-authentication-and-authority-system-for-admin-supporting-email-password-login-multi-admin-accounts-and-role-based-access-control-seed-an-initial-super-admin-bound-to-principal-id-7aizr-qwhrg-kuvhe-yekzz-6nj4a-t6yeb-5gnrb-pjpwy-gp2ut-up3m5-3qe-as-owner-with-the-ability-to-manage-other-admins-and-roles",
@@ -715,6 +715,78 @@
         "REQ-130"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-public-react-query-hook-used-by-the-footer-usegetpublicvisitorstats-to-fetch-and-return-real-values-from-the-new-backend-public-visitor-stats-api-while-preserving-the-current-footer-ui-layout-and-the-existing-30s-polling-behavior",
+      "title": "Update the public React Query hook used by the Footer (useGetPublicVisitorStats) to fetch and return real values from the new backend public visitor stats API, while preserving the current Footer UI layout and the existing 30s polling behavior.",
+      "reqIds": [
+        "REQ-132"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-public-visitor-tracking-footer-stats-flow-works-end-to-end-visiting-any-public-page-increments-visitor-page-views-updates-online-active-users-via-useractivity-and-the-footer-reads-and-displays-the-updated-counters-from-the-new-visitor-stats-system",
+      "title": "Ensure the public visitor tracking + Footer stats flow works end-to-end: visiting any public page increments visitor/page views, updates online/active users via userActivity, and the Footer reads and displays the updated counters from the new visitor stats system.",
+      "reqIds": [
+        "REQ-133"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-visitor-statistics-system-so-all-visitor-stat-counters-update-from-real-frontend-traffic-public-pages-and-remain-non-zero-once-traffic-exists-this-includes-ensuring-the-public-visitor-tracking-calls-unique-visitor-page-view-and-activity-presence-pings-actually-execute-after-the-backend-actor-is-available-no-lost-mutations-due-to-early-actor-not-available-errors-and-ensuring-the-backend-stores-and-returns-updated-visitor-statistics-values-reliably-for-both-the-footer-public-api-and-the-admin-extended-stats-api",
+      "title": "Fix the visitor statistics system so all visitor-stat counters update from real frontend traffic (public pages) and remain non-zero once traffic exists. This includes ensuring the public visitor-tracking calls (unique visitor, page view, and activity/presence pings) actually execute after the backend actor is available (no lost mutations due to early 'actor not available' errors), and ensuring the backend stores and returns updated visitor statistics values reliably for both the Footer public API and the Admin extended stats API.",
+      "reqIds": [
+        "REQ-134"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-the-admin-visitor-statistics-page-mobile-ux-so-the-statistics-cards-are-visible-and-can-be-horizontally-scrolled-swiped-on-small-screens-similar-to-other-admin-menus-components-on-mobile-while-preserving-the-existing-metrics-content-and-desktop-tablet-layout-behavior-any-user-facing-text-introduced-must-be-in-english",
+      "title": "Improve the Admin Visitor Statistics page mobile UX so the statistics cards are visible and can be horizontally scrolled/swiped on small screens (similar to other admin menus/components on mobile), while preserving the existing metrics, content, and desktop/tablet layout behavior. Any user-facing text introduced must be in English.",
+      "reqIds": [
+        "REQ-135"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-blog-comment-listing-so-comments-are-strictly-scoped-per-blogpostid-comments-created-on-article-a-must-never-appear-on-article-b-ensure-both-the-public-blog-detail-comments-thread-and-the-admin-blog-comment-list-use-backend-apis-that-return-only-comments-for-the-requested-blogpostid-and-that-react-query-caching-keys-filters-remain-per-article",
+      "title": "Fix blog comment listing so comments are strictly scoped per blogPostId: comments created on Article A must never appear on Article B. Ensure both the public Blog Detail comments thread and the admin blog comment list use backend APIs that return only comments for the requested blogPostId, and that React Query caching keys/filters remain per-article.",
+      "reqIds": [
+        "REQ-136"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-visitor-statistics-page-so-the-statistic-cards-render-in-a-2-x-5-grid-layout-2-columns-up-to-5-rows-with-no-horizontal-overflow-on-any-screen-size-replacing-the-current-layout-that-scrolls-too-far-to-the-right",
+      "title": "Update the Admin Visitor Statistics page so the statistic cards render in a 2 x 5 grid layout (2 columns, up to 5 rows) with no horizontal overflow on any screen size, replacing the current layout that scrolls too far to the right.",
+      "reqIds": [
+        "REQ-137"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-admin-user-profile-page-so-an-admin-can-reliably-save-update-profile-information-and-the-changes-persist-and-are-reloaded-correctly-on-refresh",
+      "title": "Fix the Admin User Profile page so an admin can reliably save/update profile information and the changes persist and are reloaded correctly on refresh.",
+      "reqIds": [
+        "REQ-138"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-polish-and-normalize-the-admin-panel-ui-styling-for-a-more-aesthetic-and-consistent-look-and-ensure-the-currently-selected-sidebar-menu-item-has-a-clear-red-accent-highlight",
+      "title": "Polish and normalize the Admin panel UI styling for a more aesthetic and consistent look, and ensure the currently selected sidebar/menu item has a clear red accent highlight.",
+      "reqIds": [
+        "REQ-139"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-admin-functionality-inside-the-admin-media-area-to-manage-the-home-page-main-banner-image-rendered-directly-below-the-navbar-and-the-home-page-cta-banner-image-so-admins-can-replace-those-two-homepage-images-from-the-admin-panel-using-existing-media-assets-upload-select",
+      "title": "Add admin functionality inside the /admin Media area to manage the Home page Main Banner image (rendered directly below the Navbar) and the Home page CTA Banner image, so admins can replace those two homepage images from the admin panel using existing Media Assets (upload/select).",
+      "reqIds": [
+        "REQ-140"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -1344,6 +1416,56 @@
       "reqIds": [
         "REQ-127"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-127",
+      "summary": "Sync public Footer visitor statistics values so the existing 4 displayed items (Total Visitors, Active Users, Page Views, Today) read from the newly extended backend visitor statistics system—without changing the Footer UI layout or adding/removing any Footer stat items.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-128",
+      "summary": "Add a public (no admin session required) backend API that returns the Footer visitor statistics from the updated visitorStats system so the Footer can display real values instead of zeros.",
+      "reqIds": [
+        "REQ-131"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-129",
+      "summary": "Fix Admin Visitor Statistics page mobile UX so the stats UI is visible and horizontally scrollable/swipeable like other admin menus/components on mobile (no functional stats changes, UI-only)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-130",
+      "summary": "Fix public blog comments rendering so comments are correctly scoped per blogPostId (comments from Article A must not appear on Article B); ensure fetch/list logic and React Query keys/filters are per-article",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-131",
+      "summary": "Admin Visitor Statistics UI: change statistics cards layout to a 2 x 5 grid (prevent horizontal overflow/too-wide grid)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-132",
+      "summary": "Fix Admin Profile: enable saving/updating admin user profile information so changes persist and work reliably",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-133",
+      "summary": "Admin panel UI polish: make UI more aesthetic and consistent; add a red accent/highlight for the currently selected sidebar/menu item",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-134",
+      "summary": "Admin Media enhancement: add tools/menus to replace the Home page Main Banner image (below navbar) and CTA Banner image via the Media menu, so admins can update these homepage images from the admin panel",
+      "reqIds": [],
       "status": "pending"
     }
   ],

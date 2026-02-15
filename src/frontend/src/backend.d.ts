@@ -54,12 +54,6 @@ export interface ExtendedVisitorStats {
     pageViews: bigint;
     weeklyTraffic: bigint;
 }
-export interface VisitorStats {
-    totalVisitors: bigint;
-    activeUsers: bigint;
-    pageViews: bigint;
-    todayTraffic: bigint;
-}
 export interface Variant {
     features: Array<string>;
     isPremium: boolean;
@@ -90,6 +84,12 @@ export interface Contact {
     notes?: string;
     phoneNumber: string;
 }
+export interface SiteBanner {
+    id: string;
+    updatedAt: Time;
+    updatedBy: bigint;
+    imageUrl: string;
+}
 export interface Vehicle {
     id: bigint;
     commercialFeatures?: CommercialVehicleFeatures;
@@ -114,6 +114,16 @@ export interface CommercialVehicleFeatures {
     power: boolean;
     sixByFour: boolean;
 }
+export interface TechnicalSpecs {
+    weight: string;
+    additionalFeatures: Array<string>;
+    fuelCapacity: string;
+    transmission: string;
+    suspension: string;
+    dimensions: string;
+    engine: string;
+}
+export type BlogPostId = bigint;
 export interface BlogComment {
     id: bigint;
     content: string;
@@ -123,15 +133,6 @@ export interface BlogComment {
     email: string;
     approved: boolean;
     parentId?: bigint;
-}
-export interface TechnicalSpecs {
-    weight: string;
-    additionalFeatures: Array<string>;
-    fuelCapacity: string;
-    transmission: string;
-    suspension: string;
-    dimensions: string;
-    engine: string;
 }
 export interface BlogInteractionSummary {
     sharesCount: bigint;
@@ -167,8 +168,8 @@ export enum UserRole {
 }
 export interface backendInterface {
     addBlogComment(blogCommentInput: BlogCommentInput): Promise<BlogComment>;
-    addContact(contact: Contact): Promise<boolean>;
-    addCreditSimulation(simulation: CreditSimulation): Promise<boolean>;
+    addContact(contact: Contact): Promise<void>;
+    addCreditSimulation(simulation: CreditSimulation): Promise<void>;
     adminLogin(email: string, password: string): Promise<{
         token: string;
         role: string;
@@ -183,15 +184,18 @@ export interface backendInterface {
     createVehicle(sessionToken: string, vehicle: Vehicle): Promise<boolean>;
     deleteBlogComment(sessionToken: string, blogPostId: bigint, commentId: bigint): Promise<void>;
     deleteBlogPost(sessionToken: string, id: bigint): Promise<boolean>;
-    deleteContact(sessionToken: string, id: bigint): Promise<boolean>;
-    deleteCreditSimulation(sessionToken: string, id: bigint): Promise<boolean>;
+    deleteContact(sessionToken: string, id: bigint): Promise<void>;
+    deleteCreditSimulation(sessionToken: string, id: bigint): Promise<void>;
     deleteMediaAsset(sessionToken: string, id: bigint): Promise<boolean>;
     deletePromotion(sessionToken: string, id: bigint): Promise<boolean>;
     deleteTestimonial(sessionToken: string, id: bigint): Promise<boolean>;
     deleteVehicle(sessionToken: string, id: bigint): Promise<boolean>;
+    getAdminUserProfile(sessionToken: string, adminUserId: bigint): Promise<UserProfile | null>;
+    getAdminUserProfileByIdToken(sessionToken: string, adminUserId: bigint): Promise<UserProfile | null>;
+    getAllSiteBanners(sessionToken: string): Promise<Array<SiteBanner>>;
     getAndIncrementBlogPostViews(blogPostId: bigint): Promise<BlogPost | null>;
     getBlogComment(sessionToken: string, blogPostId: bigint, commentId: bigint): Promise<BlogComment | null>;
-    getBlogComments(blogPostId: bigint): Promise<Array<BlogComment>>;
+    getBlogComments(blogPostId: BlogPostId): Promise<Array<BlogComment>>;
     getBlogInteractionSummary(blogPostId: bigint): Promise<BlogInteractionSummary>;
     getBlogPost(id: bigint): Promise<BlogPost | null>;
     getBlogPosts(): Promise<Array<BlogPost>>;
@@ -200,10 +204,12 @@ export interface backendInterface {
     getContacts(sessionToken: string): Promise<Array<Contact> | null>;
     getCreditSimulations(sessionToken: string): Promise<Array<CreditSimulation> | null>;
     getExtendedVisitorStats(sessionToken: string): Promise<ExtendedVisitorStats>;
+    getFooterVisitorStats(): Promise<ExtendedVisitorStats>;
     getMediaAssets(sessionToken: string): Promise<Array<MediaAsset> | null>;
     getProductInteraction(itemId: bigint): Promise<Interaction | null>;
     getPromotion(id: bigint): Promise<Promotion | null>;
     getPromotions(): Promise<Array<Promotion>>;
+    getSiteBanner(sessionToken: string, id: string): Promise<SiteBanner | null>;
     getTestimonials(): Promise<Array<Testimonial>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     getVehicle(id: bigint): Promise<Vehicle | null>;
@@ -214,11 +220,13 @@ export interface backendInterface {
     incrementVisitor(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     likeProduct(itemId: bigint): Promise<void>;
+    saveAdminUserProfile(sessionToken: string, adminUserId: bigint, profile: UserProfile): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     shareProduct(itemId: bigint, platform: string): Promise<void>;
     updateBlogComment(sessionToken: string, blogPostId: bigint, commentId: bigint, content: string): Promise<void>;
     updateBlogPost(sessionToken: string, post: BlogPost): Promise<boolean>;
     updatePromotion(sessionToken: string, promotion: Promotion): Promise<boolean>;
+    updateSiteBanner(sessionToken: string, id: string, imageUrl: string): Promise<boolean>;
     updateTestimonial(sessionToken: string, testimonial: Testimonial): Promise<boolean>;
     updateVehicle(sessionToken: string, vehicle: Vehicle): Promise<boolean>;
     userActivity(sessionId: string): Promise<void>;

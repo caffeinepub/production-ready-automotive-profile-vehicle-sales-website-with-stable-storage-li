@@ -1,74 +1,55 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T03:05:52.357Z",
-  "summary": "Diff adds new visitor-stat fields/types and a migration to extend persisted actor state, plus expands the Admin Visitor Statistics page UI and adds client auto-refresh for extended stats. However, key backend behaviors (WIB rollovers, online presence expiry logic, authenticated admin API behavior) are not evidenced in the provided diff summary. Unrequested changes include an emergency admin-login bypass and modifications to public contact/credit simulation forms.",
+  "generatedAt": "2026-02-15T04:43:30.800Z",
+  "summary": "Most requested admin UI/layout changes and new homepage banner management appear implemented (new admin theme + active nav styling, visitor stats 2-column grid, media banner configuration UI, public Home page renders configurable banners with fallbacks, backend migration wiring). The main risk is REQ-138: the Admin Profile page uses a hardcoded adminUserId=1, which may prevent reliable per-session profile persistence for the logged-in admin.",
   "missing_requirements": [
     {
-      "id": "REQ-124",
-      "requirement": "Compute and persist all requested visitor metrics in stable, upgrade-safe storage and make them efficiently queryable (no full scans).",
-      "reason": "While new fields are added to the VisitorStats type and migration initializes them, the diff summary does not show the backend logic that actually computes/updates these counters (e.g., incrementing totals/page views, maintaining weekly/monthly/yearly) or any evidence about avoiding full scans on queries.",
+      "id": "REQ-138",
+      "requirement": "Admin User Profile save/load must be reliably tied to the logged-in admin via session-based authorization (not Principal-based), persist correctly, and reload correctly on refresh.",
+      "reason": "The profile page uses a hardcoded `adminUserId = 1` (and notes it as a temporary workaround). This likely breaks “reliably save/update profile information” for the actual logged-in admin and may not reload the correct profile after refresh for other accounts.",
       "evidence": [
-        "backend/main.mo",
-        "backend/migration.mo"
-      ]
-    },
-    {
-      "id": "REQ-125",
-      "requirement": "Implement WIB timezone rollup/reset logic (daily at 00:00 WIB and week/month/year boundaries) with idempotent rollover happening on the next relevant call.",
-      "reason": "Constants for WIB offset exist, but the diff summary does not show any rollover/reset implementation or idempotency safeguards.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-126",
-      "requirement": "Track real-time Online Visitors via last-seen timestamps with expiry and expose an admin-readable online count that decreases automatically as visitors go inactive.",
-      "reason": "State and constants for an online window and an onlineSessions map are introduced, but the diff summary does not show logic for updating last-seen, expiring inactive sessions, or computing the online count.",
-      "evidence": [
-        "backend/main.mo",
-        "backend/migration.mo"
-      ]
-    },
-    {
-      "id": "REQ-127",
-      "requirement": "Expose authenticated (session-token protected) admin APIs to fetch extended visitor stats while keeping the public Footer stats shape unchanged and returning safe unauthorized responses (no traps).",
-      "reason": "Frontend calls an admin method (getExtendedVisitorStats) and imports an ExtendedVisitorStats type, but the diff summary does not show the backend method implementation, token validation behavior, or how unauthorized/expired sessions are handled without trapping.",
-      "evidence": [
-        "frontend/src/admin/hooks/useAdminSession.ts",
-        "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-        "backend/main.mo"
+        "frontend/src/admin/pages/AdminProfilePage.tsx"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Emergency admin-session bypass / auto-login logic in the admin session hook (debug-only bypass behavior).",
-      "reason": "Not requested by any requirement; introduces new auth behavior unrelated to expanding visitor statistics.",
+      "description": "Added an \"Auth Debug Test\" admin navigation item/page.",
+      "reason": "Not requested in the BuildRequest requirements (REQ-137..REQ-140).",
       "evidence": [
-        "frontend/src/admin/hooks/useAdminSession.ts"
+        "frontend/src/admin/AdminLayout.tsx",
+        "frontend/src/App.tsx"
       ]
     },
     {
-      "description": "Changes to public Contact and Credit Simulation forms (toast messages and validation text in Indonesian).",
-      "reason": "Not requested by the visitor statistics/admin changes and potentially violates the constraint that changes should be limited in scope (and introduces new user-facing text outside the admin panel).",
+      "description": "Admin blog comment moderation/edit/delete features inside the blog form dialog.",
+      "reason": "Not requested as part of the stated requirements; the request focuses on stats layout, profile saving, admin UI consistency, and homepage banners.",
       "evidence": [
-        "frontend/src/components/forms/ContactForm.tsx",
-        "frontend/src/components/forms/CreditSimulationForm.tsx"
+        "frontend/src/admin/components/BlogFormDialog.tsx"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.74,
   "changed_files": [
     "backend/main.mo",
     "backend/migration.mo",
     "frontend-file-summaries.txt",
+    "frontend/src/App.tsx",
+    "frontend/src/admin/AdminLayout.tsx",
+    "frontend/src/admin/components/BlogFormDialog.tsx",
     "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-    "frontend/src/admin/hooks/useAdminSession.ts",
+    "frontend/src/admin/pages/AdminProfilePage.tsx",
+    "frontend/src/admin/pages/MediaManagerPage.tsx",
     "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
-    "frontend/src/components/forms/ContactForm.tsx",
-    "frontend/src/components/forms/CreditSimulationForm.tsx",
+    "frontend/src/admin/styles/adminTheme.css",
+    "frontend/src/components/layout/Footer.tsx",
+    "frontend/src/components/public/SectionTitle.tsx",
     "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/BlogDetailPage.tsx",
+    "frontend/src/pages/CommercialVehicleDetailPage.tsx",
+    "frontend/src/pages/HomePage.tsx",
+    "frontend/src/pages/PassengerVehicleDetailPage.tsx",
     "project_state.json"
   ]
 }

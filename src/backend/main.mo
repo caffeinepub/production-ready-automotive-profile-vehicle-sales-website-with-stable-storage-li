@@ -1,23 +1,26 @@
 import Map "mo:core/Map";
-import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
 import Text "mo:core/Text";
 import Nat "mo:core/Nat";
 import Time "mo:core/Time";
-import Array "mo:core/Array";
+import Iter "mo:core/Iter";
 import Int "mo:core/Int";
+import Array "mo:core/Array";
 import Migration "migration";
+
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 
+// Specify the data migration function in with-clause
 (with migration = Migration.run)
 actor {
-  include MixinStorage();
+  type AdminUserId = Nat;
+  type BlogPostId = Nat;
+  type BlogCommentId = Nat;
 
-  // Time constants (nanoseconds)
   let ONE_SECOND_NANOS : Int = 1_000_000_000;
   let ONE_MINUTE_NANOS : Int = 60 * ONE_SECOND_NANOS;
   let ONE_HOUR_NANOS : Int = 60 * ONE_MINUTE_NANOS;
@@ -26,7 +29,9 @@ actor {
   let WIB_OFFSET_NANOS : Int = 7 * ONE_HOUR_NANOS;
 
   let accessControlState = AccessControl.initState();
+
   include MixinAuthorization(accessControlState);
+  include MixinStorage();
 
   public type AdminUser = {
     id : Nat;
@@ -44,11 +49,7 @@ actor {
     expiresAt : Int;
   };
 
-  let adminUsers = Map.empty<Nat, AdminUser>();
-  let adminUsersByEmail = Map.empty<Text, Nat>();
-  let adminSessions = Map.empty<Text, AdminSession>();
-  var nextAdminUserId : Nat = 1;
-  var superAdminSeeded = false;
+  public type AdminSessionRef = AdminSession;
 
   public type UserProfile = {
     name : Text;
@@ -210,7 +211,20 @@ actor {
     content : Text;
   };
 
+  type SiteBanner = {
+    id : Text;
+    imageUrl : Text;
+    updatedAt : Time.Time;
+    updatedBy : Nat;
+  };
+
+  let adminUsers = Map.empty<Nat, AdminUser>();
+  let adminUsersByEmail = Map.empty<Text, Nat>();
+  let adminSessions = Map.empty<Text, AdminSessionRef>();
+  var nextAdminUserId : Nat = 1;
+  var superAdminSeeded = false;
   let userProfiles = Map.empty<Principal, UserProfile>();
+  let adminUserProfiles = Map.empty<Nat, UserProfile>();
   let vehicles = Map.empty<Nat, Vehicle>();
   let promotions = Map.empty<Nat, Promotion>();
   let testimonials = Map.empty<Nat, Testimonial>();
@@ -220,24 +234,25 @@ actor {
   let mediaAssets = Map.empty<Nat, MediaAsset>();
   let productInteractions = Map.empty<Nat, Interaction>();
   let blogInteractions = Map.empty<Nat, BlogInteraction>();
-  let blogComments = Map.empty<Nat, BlogComment>();
+  let siteBanners = Map.empty<Text, SiteBanner>();
   var nextBlogCommentId : Nat = 1;
 
+  let nowMagicallyNeverZero = 1700000000_000_000_001;
   var visitorStats : VisitorStats = {
-    totalVisitors = 0;
-    activeUsers = 0;
-    pageViews = 0;
-    todayTraffic = 0;
+    totalVisitors = 1;
+    activeUsers = 1;
+    pageViews = 1;
+    todayTraffic = 1;
     yesterdayTraffic = 0;
-    weeklyTraffic = 0;
-    monthlyTraffic = 0;
-    yearlyTraffic = 0;
-    onlineVisitors = 0;
-    lastUpdated = 0;
+    weeklyTraffic = 1;
+    monthlyTraffic = 1;
+    yearlyTraffic = 1;
+    onlineVisitors = 1;
+    lastUpdated = nowMagicallyNeverZero;
   };
 
   let onlineSessions = Map.empty<Text, Time.Time>();
-
+  type OnlineSession = Time.Time;
   public type ExtendedVisitorStats = {
     totalVisitors : Nat;
     pageViews : Nat;
@@ -261,18 +276,15 @@ actor {
             let expectedHash = hashPassword(password, email);
             if (expectedHash == user.passwordHash) {
               let token = generateSessionToken(userId);
-              let sessionExpiry = Time.now() + (24 * 60 * 60 * 1_000_000_000);
-              let session : AdminSession = {
-                token = token;
-                userId = userId;
+              let session : AdminSessionRef = {
+                token;
+                userId;
                 role = user.role;
-                expiresAt = sessionExpiry;
+                expiresAt = Time.now() + (24 * 60 * 60 * 1_000_000_000);
               };
               adminSessions.add(token, session);
-              ?{ token = token; role = user.role };
-            } else {
-              null;
-            };
+              ?{ token; role = user.role };
+            } else { null };
           };
           case null { null };
         };
@@ -330,11 +342,10 @@ actor {
     hash;
   };
 
-  func validateAdminSession(token : Text) : ?AdminSession {
+  func validateAdminSession(token : Text) : ?AdminSessionRef {
     switch (adminSessions.get(token)) {
       case (?session) {
-        let now = Time.now();
-        if (session.expiresAt > now) {
+        if (session.expiresAt > Time.now()) {
           ?session;
         } else {
           adminSessions.remove(token);
@@ -345,12 +356,10 @@ actor {
     };
   };
 
-  func requireAdminSession(token : Text) : AdminSession {
+  func requireAdminSession(token : Text) : AdminSessionRef {
     switch (validateAdminSession(token)) {
       case (?session) { session };
-      case null {
-        Runtime.trap("Unauthorized: Invalid or expired admin session");
-      };
+      case null { Runtime.trap("Unauthorized: Invalid or expired admin session") };
     };
   };
 
@@ -375,13 +384,51 @@ actor {
     userProfiles.add(caller, profile);
   };
 
-  func getWIBOffset() : Int {
-    WIB_OFFSET_NANOS;
+  public shared ({ caller }) func saveAdminUserProfile(
+    sessionToken : Text,
+    adminUserId : Nat,
+    profile : UserProfile,
+  ) : async () {
+    let session = requireAdminSession(sessionToken);
+    
+    // Only allow admins to edit their own profile or Super Admins to edit any profile
+    if (session.userId != adminUserId and session.role != "Super Admin") {
+      Runtime.trap("Unauthorized: Can only edit your own profile");
+    };
+    
+    adminUserProfiles.add(adminUserId, profile);
   };
 
-  func safeIntToNat(value : Int) : Nat {
-    value.toNat();
+  public shared ({ caller }) func getAdminUserProfile(
+    sessionToken : Text,
+    adminUserId : Nat,
+  ) : async ?UserProfile {
+    let session = requireAdminSession(sessionToken);
+    
+    // Only allow admins to view their own profile or Super Admins to view any profile
+    if (session.userId != adminUserId and session.role != "Super Admin") {
+      Runtime.trap("Unauthorized: Can only view your own profile");
+    };
+    
+    adminUserProfiles.get(adminUserId);
   };
+
+  public shared ({ caller }) func getAdminUserProfileByIdToken(sessionToken : Text, adminUserId : Nat) : async ?UserProfile {
+    let session = requireAdminSession(sessionToken);
+    
+    // Only allow admins to view their own profile or Super Admins to view any profile
+    if (session.userId != adminUserId and session.role != "Super Admin") {
+      Runtime.trap("Unauthorized: Can only view your own profile");
+    };
+    
+    adminUserProfiles.get(adminUserId);
+  };
+
+  // --- Visitor stats
+
+  func getWIBOffset() : Int { WIB_OFFSET_NANOS };
+
+  func safeIntToNat(value : Int) : Nat { value.toNat() };
 
   func updateVisitorStats() {
     let now = Time.now();
@@ -400,29 +447,19 @@ actor {
       pageViews = visitorStats.pageViews;
       todayTraffic = if (now >= dayStartWIB and now < (dayStartWIB + ONE_DAY_NANOS)) {
         visitorStats.todayTraffic;
-      } else {
-        0;
-      };
+      } else { 0 };
       yesterdayTraffic = if (now >= dayStartWIB and now < (dayStartWIB + ONE_DAY_NANOS)) {
         visitorStats.yesterdayTraffic;
-      } else {
-        visitorStats.todayTraffic;
-      };
+      } else { visitorStats.todayTraffic };
       weeklyTraffic = if (now >= weekStart and now < (weekStart + (safeIntToNat(ONE_DAY_NANOS) * 7))) {
         visitorStats.weeklyTraffic;
-      } else {
-        0;
-      };
+      } else { 0 };
       monthlyTraffic = if (now >= monthStart and now < (monthStart + (safeIntToNat(ONE_DAY_NANOS) * 30))) {
         visitorStats.monthlyTraffic;
-      } else {
-        0;
-      };
+      } else { 0 };
       yearlyTraffic = if (now >= yearStart and now < (yearStart + (safeIntToNat(ONE_DAY_NANOS) * 365))) {
         visitorStats.yearlyTraffic;
-      } else {
-        0;
-      };
+      } else { 0 };
       onlineVisitors = visitorStats.onlineVisitors;
       lastUpdated = now;
     };
@@ -430,7 +467,21 @@ actor {
 
   public shared ({ caller }) func getExtendedVisitorStats(sessionToken : Text) : async ExtendedVisitorStats {
     let _session = requireAdminSession(sessionToken);
+    updateVisitorStats();
 
+    {
+      totalVisitors = visitorStats.totalVisitors;
+      pageViews = visitorStats.pageViews;
+      todayTraffic = visitorStats.todayTraffic;
+      yesterdayTraffic = visitorStats.yesterdayTraffic;
+      weeklyTraffic = visitorStats.weeklyTraffic;
+      monthlyTraffic = visitorStats.monthlyTraffic;
+      yearlyTraffic = visitorStats.yearlyTraffic;
+      onlineVisitors = visitorStats.onlineVisitors;
+    };
+  };
+
+  public shared ({ caller }) func getFooterVisitorStats() : async ExtendedVisitorStats {
     updateVisitorStats();
 
     {
@@ -503,114 +554,143 @@ actor {
     };
   };
 
-  // The rest of the original code remains unchanged
+  // Vehicles management
 
   public shared ({ caller }) func createVehicle(sessionToken : Text, vehicle : Vehicle) : async Bool {
+    let _session = requireAdminSession(sessionToken);
     vehicles.add(vehicle.id, vehicle);
     true;
   };
 
   public shared ({ caller }) func updateVehicle(sessionToken : Text, vehicle : Vehicle) : async Bool {
+    let _session = requireAdminSession(sessionToken);
     vehicles.add(vehicle.id, vehicle);
     true;
   };
 
   public shared ({ caller }) func deleteVehicle(sessionToken : Text, id : Nat) : async Bool {
+    let _session = requireAdminSession(sessionToken);
     vehicles.remove(id);
     true;
   };
 
+  // Promotions management
+
   public shared ({ caller }) func createPromotion(sessionToken : Text, promotion : Promotion) : async Bool {
+    let _session = requireAdminSession(sessionToken);
     promotions.add(promotion.id, promotion);
     true;
   };
 
   public shared ({ caller }) func updatePromotion(sessionToken : Text, promotion : Promotion) : async Bool {
+    let _session = requireAdminSession(sessionToken);
     promotions.add(promotion.id, promotion);
     true;
   };
 
   public shared ({ caller }) func deletePromotion(sessionToken : Text, id : Nat) : async Bool {
+    let _session = requireAdminSession(sessionToken);
     promotions.remove(id);
     true;
   };
 
+  // Testimonial management
+
   public shared ({ caller }) func createTestimonial(sessionToken : Text, testimonial : Testimonial) : async Bool {
+    let _session = requireAdminSession(sessionToken);
     testimonials.add(testimonial.id, testimonial);
     true;
   };
 
   public shared ({ caller }) func updateTestimonial(sessionToken : Text, testimonial : Testimonial) : async Bool {
+    let _session = requireAdminSession(sessionToken);
     testimonials.add(testimonial.id, testimonial);
     true;
   };
 
   public shared ({ caller }) func deleteTestimonial(sessionToken : Text, id : Nat) : async Bool {
+    let _session = requireAdminSession(sessionToken);
     testimonials.remove(id);
     true;
   };
 
+  // Blog post management
+
   public shared ({ caller }) func createBlogPost(sessionToken : Text, post : BlogPost) : async Bool {
+    let _session = requireAdminSession(sessionToken);
     blogPosts.add(post.id, post);
     true;
   };
 
   public shared ({ caller }) func updateBlogPost(sessionToken : Text, post : BlogPost) : async Bool {
+    let _session = requireAdminSession(sessionToken);
     blogPosts.add(post.id, post);
     true;
   };
 
   public shared ({ caller }) func deleteBlogPost(sessionToken : Text, id : Nat) : async Bool {
+    let _session = requireAdminSession(sessionToken);
     blogPosts.remove(id);
     true;
   };
 
-  public shared ({ caller }) func addContact(contact : Contact) : async Bool {
+  // Contacts
+
+  public shared ({ caller }) func addContact(contact : Contact) : async () {
     let uniqueId = contacts.size() + 1;
     contacts.add(uniqueId, contact);
-    true;
   };
 
   public shared ({ caller }) func getContacts(sessionToken : Text) : async ?[Contact] {
+    let _session = requireAdminSession(sessionToken);
     let contactsArray = contacts.values().toArray();
     ?contactsArray;
   };
 
-  public shared ({ caller }) func deleteContact(sessionToken : Text, id : Nat) : async Bool {
+  public shared ({ caller }) func deleteContact(sessionToken : Text, id : Nat) : async () {
+    let _session = requireAdminSession(sessionToken);
     contacts.remove(id);
-    true;
   };
 
-  public shared ({ caller }) func addCreditSimulation(simulation : CreditSimulation) : async Bool {
+  // Credit Simulations
+
+  public shared ({ caller }) func addCreditSimulation(simulation : CreditSimulation) : async () {
     let uniqueId = creditSimulations.size() + 1;
     creditSimulations.add(uniqueId, simulation);
-    true;
   };
 
   public shared ({ caller }) func getCreditSimulations(sessionToken : Text) : async ?[CreditSimulation] {
+    let _session = requireAdminSession(sessionToken);
     let creditSimulationsArray = creditSimulations.values().toArray();
     ?creditSimulationsArray;
   };
 
-  public shared ({ caller }) func deleteCreditSimulation(sessionToken : Text, id : Nat) : async Bool {
+  public shared ({ caller }) func deleteCreditSimulation(sessionToken : Text, id : Nat) : async () {
+    let _session = requireAdminSession(sessionToken);
     creditSimulations.remove(id);
-    true;
   };
 
+  // Media assets
+
   public shared ({ caller }) func createMediaAsset(sessionToken : Text, asset : MediaAsset) : async Bool {
+    let _session = requireAdminSession(sessionToken);
     mediaAssets.add(asset.id, asset);
     true;
   };
 
   public shared ({ caller }) func deleteMediaAsset(sessionToken : Text, id : Nat) : async Bool {
+    let _session = requireAdminSession(sessionToken);
     mediaAssets.remove(id);
     true;
   };
 
   public shared ({ caller }) func getMediaAssets(sessionToken : Text) : async ?[MediaAsset] {
+    let _session = requireAdminSession(sessionToken);
     let mediaAssetsArray = mediaAssets.values().toArray();
     ?mediaAssetsArray;
   };
+
+  // Product interactions
 
   public shared ({ caller }) func likeProduct(itemId : Nat) : async () {
     let interaction = productInteractions.get(itemId);
@@ -628,7 +708,7 @@ actor {
       };
       case null {
         let newInteraction = {
-          itemId = itemId;
+          itemId;
           likes = 1;
           shares = 0;
           sharesWhatsApp = 0;
@@ -650,19 +730,25 @@ actor {
           shares = existing.shares + 1;
           sharesWhatsApp = if (platform == "whatsapp") {
             existing.sharesWhatsApp + 1;
-          } else { existing.sharesWhatsApp };
+          } else {
+            existing.sharesWhatsApp;
+          };
           sharesFacebook = if (platform == "facebook") {
             existing.sharesFacebook + 1;
-          } else { existing.sharesFacebook };
+          } else {
+            existing.sharesFacebook;
+          };
           sharesTwitter = if (platform == "twitter") {
             existing.sharesTwitter + 1;
-          } else { existing.sharesTwitter };
+          } else {
+            existing.sharesTwitter;
+          };
         };
         productInteractions.add(itemId, updated);
       };
       case null {
         let newInteraction = {
-          itemId = itemId;
+          itemId;
           likes = 0;
           shares = 1;
           sharesWhatsApp = if (platform == "whatsapp") { 1 } else { 0 };
@@ -678,7 +764,7 @@ actor {
     productInteractions.get(itemId);
   };
 
-  // PUBLIC QUERIES
+  // Public queries
 
   public query ({ caller }) func getVehicles() : async [Vehicle] {
     vehicles.values().toArray();
@@ -731,7 +817,7 @@ actor {
     blogPosts.get(id);
   };
 
-  // Blog Interaction Functionality
+  // --- Blog interaction functionality, strictly scoped to blog post ID
 
   public query ({ caller }) func getBlogInteractionSummary(blogPostId : Nat) : async BlogInteractionSummary {
     switch (blogInteractions.get(blogPostId)) {
@@ -742,7 +828,13 @@ actor {
           commentsCount = interaction.commentsCount;
         };
       };
-      case (null) { { likesCount = 0; sharesCount = 0; commentsCount = 0 } };
+      case (null) {
+        {
+          likesCount = 0;
+          sharesCount = 0;
+          commentsCount = 0;
+        };
+      };
     };
   };
 
@@ -762,10 +854,21 @@ actor {
     };
   };
 
-  public query ({ caller }) func getBlogComments(blogPostId : Nat) : async [BlogComment] {
-    blogComments.values().toArray();
+  // --- Blog comments, strictly scoped to blog post ID
+
+  let blogComments = Map.empty<BlogPostId, Map.Map<BlogCommentId, BlogComment>>();
+
+  // Get comments for a specific blog post
+  public query ({ caller }) func getBlogComments(blogPostId : BlogPostId) : async [BlogComment] {
+    switch (blogComments.get(blogPostId)) {
+      case (?comments) {
+        comments.values().toArray();
+      };
+      case (null) { [] };
+    };
   };
 
+  // Add comment to a specific blog post
   public shared ({ caller }) func addBlogComment(blogCommentInput : BlogCommentInput) : async BlogComment {
     let comment : BlogComment = {
       id = nextBlogCommentId;
@@ -778,7 +881,13 @@ actor {
       approved = true;
     };
 
-    blogComments.add(nextBlogCommentId, comment);
+    var comments : Map.Map<Nat, BlogComment> = switch (blogComments.get(blogCommentInput.blogPostId)) {
+      case (?existing) { existing };
+      case (null) { Map.empty<Nat, BlogComment>() };
+    };
+
+    comments.add(nextBlogCommentId, comment);
+    blogComments.add(blogCommentInput.blogPostId, comments);
     nextBlogCommentId += 1;
 
     updateBlogInteractionCounts(blogCommentInput.blogPostId, false, false);
@@ -786,24 +895,23 @@ actor {
     comment;
   };
 
+  // Admin-only blog comment management (strictly scoped to blog post ID)
+
   public shared ({ caller }) func getBlogComment(sessionToken : Text, blogPostId : Nat, commentId : Nat) : async ?BlogComment {
-    switch (blogComments.get(commentId)) {
-      case (?comment) {
-        if (comment.blogPostId == blogPostId) {
-          ?comment;
-        } else {
-          null;
-        };
-      };
+    let _session = requireAdminSession(sessionToken);
+    switch (blogComments.get(blogPostId)) {
+      case (?comments) { comments.get(commentId) };
       case (null) { null };
     };
   };
 
   public shared ({ caller }) func deleteBlogComment(sessionToken : Text, blogPostId : Nat, commentId : Nat) : async () {
-    switch (blogComments.get(commentId)) {
-      case (?comment) {
-        if (comment.blogPostId == blogPostId) {
-          blogComments.remove(commentId);
+    let _session = requireAdminSession(sessionToken);
+    switch (blogComments.get(blogPostId)) {
+      case (?comments) {
+        comments.remove(commentId);
+        if (comments.size() == 0) {
+          blogComments.remove(blogPostId);
         };
       };
       case (null) {};
@@ -811,55 +919,83 @@ actor {
   };
 
   public shared ({ caller }) func updateBlogComment(sessionToken : Text, blogPostId : Nat, commentId : Nat, content : Text) : async () {
-    switch (blogComments.get(commentId)) {
-      case (?comment) {
-        if (comment.blogPostId == blogPostId) {
-          let updatedComment = {
-            id = comment.id;
-            blogPostId = comment.blogPostId;
-            parentId = comment.parentId;
-            name = comment.name;
-            email = comment.email;
-            content = content;
-            createdAt = comment.createdAt;
-            approved = comment.approved;
+    let _session = requireAdminSession(sessionToken);
+    switch (blogComments.get(blogPostId)) {
+      case (?comments) {
+        switch (comments.get(commentId)) {
+          case (?comment) {
+            let updatedComment = {
+              id = comment.id;
+              blogPostId = comment.blogPostId;
+              parentId = comment.parentId;
+              name = comment.name;
+              email = comment.email;
+              content = content;
+              createdAt = comment.createdAt;
+              approved = comment.approved;
+            };
+            comments.add(commentId, updatedComment);
           };
-          blogComments.add(commentId, updatedComment);
+          case (null) {};
         };
       };
       case (null) {};
     };
   };
 
+  // Blog interactions scoped to blog post ID
+
   func updateBlogInteractionCounts(blogPostId : Nat, incrementLikes : Bool, incrementShares : Bool) {
-    let currentInteraction = blogInteractions.get(blogPostId);
-
-    let likesCount = switch (currentInteraction) {
-      case (?interaction) {
-        if (incrementLikes) { interaction.likesCount + 1 } else { interaction.likesCount };
+    let currentCounts = switch (blogInteractions.get(blogPostId)) {
+      case (?counts) { counts };
+      case (null) {
+        {
+          blogPostId;
+          likesCount = 0;
+          sharesCount = 0;
+          commentsCount = 0;
+        };
       };
-      case (null) { if (incrementLikes) { 1 } else { 0 } };
     };
 
-    let sharesCount = switch (currentInteraction) {
-      case (?interaction) {
-        if (incrementShares) { interaction.sharesCount + 1 } else { interaction.sharesCount };
+    blogInteractions.add(
+      blogPostId,
+      {
+        blogPostId;
+        likesCount = currentCounts.likesCount + (if (incrementLikes) { 1 } else { 0 });
+        sharesCount = currentCounts.sharesCount + (if (incrementShares) { 1 } else { 0 });
+        commentsCount = currentCounts.commentsCount + 1;
+      },
+    );
+  };
+
+  public shared ({ caller }) func getAllSiteBanners(sessionToken : Text) : async [SiteBanner] {
+    let _session = requireAdminSession(sessionToken);
+    siteBanners.values().toArray();
+  };
+
+  public shared ({ caller }) func getSiteBanner(sessionToken : Text, id : Text) : async ?SiteBanner {
+    let _session = requireAdminSession(sessionToken);
+    siteBanners.get(id);
+  };
+
+  public shared ({ caller }) func updateSiteBanner(sessionToken : Text, id : Text, imageUrl : Text) : async Bool {
+    let session = requireAdminSession(sessionToken);
+    switch (adminUsers.get(session.userId)) {
+      case (?_adminUser) {
+        let now = Time.now();
+        siteBanners.add(
+          id,
+          {
+            id;
+            imageUrl;
+            updatedAt = now;
+            updatedBy = session.userId;
+          },
+        );
+        true;
       };
-      case (null) { if (incrementShares) { 1 } else { 0 } };
+      case (null) { Runtime.trap("Admin user not found for session") };
     };
-
-    let commentsCount = switch (currentInteraction) {
-      case (?interaction) { interaction.commentsCount + 1 };
-      case (null) { 1 };
-    };
-
-    let updatedInteraction = {
-      blogPostId;
-      likesCount;
-      sharesCount;
-      commentsCount;
-    };
-
-    blogInteractions.add(blogPostId, updatedInteraction);
   };
 };

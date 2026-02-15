@@ -1,15 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Expand and activate visitor statistics for the Admin panel with additional metrics and near-real-time updates, while keeping the public-site Footer UI and its displayed visitor-stat items unchanged.
+**Goal:** Improve admin usability by fixing the Visitor Stats layout, making Admin Profile updates persist correctly, normalizing Admin UI styling, and enabling admins to control the Home page Main Banner and CTA Banner images from the existing Media area.
 
 **Planned changes:**
-- Extend backend visitor statistics to compute and persist (upgrade-safe) counters for: Total, Today, Yesterday, Weekly, Monthly, Yearly, Online (real-time), and total Page Views.
-- Add WIB timezone rollover/reset logic (daily reset at 00:00 WIB; correct weekly/monthly/yearly rollovers on the next relevant call, idempotently).
-- Implement backend tracking for Online Visitors using last-seen/presence expiry and expose an admin-readable online count.
-- Expose authenticated (session-token protected) admin APIs to fetch the extended statistics dataset, while keeping the existing public Footer stats API shape unchanged.
-- Update the Admin Visitor Statistics page to display all requested metrics using existing admin styling; ensure any new labels/text are in English.
-- Add automatic refresh/polling on the Admin Visitor Statistics page so Online Visitors updates near-real-time and other counters refresh periodically without manual reload.
-- Ensure the public Footer remains visually unchanged and continues to display only the existing four items.
+- Update `/admin/stats` statistics cards to render in a responsive 2-column grid (wrapping into rows up to 5) with no horizontal overflow at common breakpoints, keeping all existing metrics unchanged.
+- Fix `/admin/profile` so Name/Email/Phone edits can be saved reliably, persist using the existing admin session-based authorization, and reload correctly after refresh (English success/error messaging preserved).
+- Polish and normalize admin panel visual styling for consistency, including a clear red accent highlight for the active sidebar/menu item across all admin routes (including query-string variations), with visual-only changes.
+- Add an admin-only section within `/admin/media` to select (and/or upload then select) Media Assets for “Home Main Banner” and “Home CTA Banner”, persist these settings in stable storage, and use them on the public Home page:
+  - Render the configured Main Banner image directly below the Navbar on `/`, replacing the current red Home-only hero section.
+  - Use the configured CTA Banner image on `/`, with fallback to current CTA banner behavior when not configured.
 
-**User-visible outcome:** Admin users can view a richer Visitor Statistics dashboard (including yesterday/weekly/monthly/yearly and real-time online visitors) that updates automatically, while site visitors see the Footer statistics unchanged with the same four items as before.
+**User-visible outcome:** Admins see a properly wrapped stats grid, can save their profile changes reliably, get a more consistent admin UI with a clear red active-menu highlight, and can update the Home page’s Main Banner and CTA Banner images from the existing Media page without changing routes or breaking existing media management.

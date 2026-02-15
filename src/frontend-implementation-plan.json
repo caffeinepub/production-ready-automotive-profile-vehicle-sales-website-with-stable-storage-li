@@ -1,78 +1,117 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin Visitor Statistics: show extended metrics + auto-refresh (Footer unchanged)",
+  "title": "Admin layout fixes, admin profile persistence, UI consistency, and homepage banner controls",
   "requirements": [
     {
-      "id": "REQ-128",
-      "summary": "Expand the Admin Visitor Statistics page to display all requested extended metrics with consistent admin styling and English-only new text.",
+      "id": "REQ-137",
+      "summary": "Render Admin Visitor Statistics cards in a fixed 2-column grid with wrapping and no horizontal overflow at any breakpoint.",
       "acceptanceCriteria": [
-        "Admin Visitor Statistics page shows cards/fields for all requested metrics (including Yesterday/Weekly/Monthly/Yearly/Online).",
-        "Any newly added labels/help text/toasts introduced by this change are in English.",
-        "Existing admin layout/routes remain unchanged (only the Visitor Stats content is expanded)."
+        "On /admin/stats, the statistics cards are laid out as 2 columns and wrap into rows (up to 5 rows) without requiring horizontal scrolling.",
+        "No stat cards are cut off or overflow the page horizontally at common breakpoints (mobile/tablet/desktop).",
+        "The existing metrics shown (and their values) remain unchanged; only the layout/overflow behavior is fixed."
       ],
       "file_operations": [
         {
           "path": "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
           "operation": "modify",
-          "description": "Replace the current 4-metric/admin-edit UI with a read-only extended metrics dashboard that renders: Total Visitors, Today Visitors, Yesterday Visitors, Weekly Visitors, Monthly Visitors, Yearly Visitors, Online Visitors, and Page Views, using existing admin card classes (e.g., admin-stat-card/title/value) and English labels."
+          "description": "Replace the current mobile horizontal-scroll container with a responsive CSS grid that is always 2 columns (and wraps into additional rows), ensuring no overflow-x on any screen size while keeping the existing statCards data and values unchanged."
         },
         {
-          "path": "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+          "path": "frontend/src/admin/styles/adminTheme.css",
           "operation": "modify",
-          "description": "Add/adjust an admin query hook that fetches ExtendedVisitorStats via the existing authenticated backend capability (getExtendedVisitorStats(sessionToken)), and update Visitor Stats-related imports/types used by the admin page."
-        },
-        {
-          "path": "frontend/src/backend.d.ts",
-          "operation": "modify",
-          "description": "Update frontend backend typings to include the VisitorStats type (Footer/public shape) and ensure admin typing for ExtendedVisitorStats aligns with the fields required by the admin page (todayTraffic, yesterdayTraffic, weeklyTraffic, monthlyTraffic, yearlyTraffic, onlineVisitors, totalVisitors, pageViews)."
+          "description": "Remove/avoid reliance on the mobile-only horizontal stat scroll styling for the stats page, and (if needed) add scoped utility classes to guarantee cards have min-width: 0 and the container prevents horizontal overflow. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-129",
-      "summary": "Add automatic refresh on the Admin Visitor Statistics page with near-real-time polling for Online Visitors and periodic refresh for other metrics.",
+      "id": "REQ-138",
+      "summary": "Fix Admin Profile save/load to use admin session token-based backend capabilities so updates persist and reload correctly.",
       "acceptanceCriteria": [
-        "Online Visitors value updates automatically via client polling (e.g., React Query refetchInterval) without a full page reload.",
-        "Non-real-time counters also refresh automatically on an interval appropriate for admin monitoring.",
-        "No changes are made to public (non-/admin) pages as part of implementing admin refresh behavior."
+        "On /admin/profile, editing Name/Email/Phone and clicking “Save Changes” successfully persists the updated profile without errors.",
+        "After saving, reloading the page shows the newly saved profile values.",
+        "Profile save/load uses admin session-based authorization (the same session token used by other /admin CMS calls) and does not depend on caller Principal-based “user” permissions.",
+        "Any success/error messages shown to the admin remain in English (e.g., existing toasts)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/admin/hooks/useAdminCmsQueries.ts",
           "operation": "modify",
-          "description": "Configure the Extended Visitor Stats admin query hook with React Query polling (refetchInterval) and sensible caching (e.g., small staleTime) so Online Visitors updates near-real-time while other counters refresh automatically."
+          "description": "Add React Query hooks for admin-profile load/save using the existing admin session token from adminSession (similar to other CMS hooks) and the backend functions intended for admin session-based profile management. Ensure queries invalidate and refetch after save for refresh persistence."
         },
         {
-          "path": "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
+          "path": "frontend/src/admin/pages/AdminProfilePage.tsx",
           "operation": "modify",
-          "description": "Wire the page to the polling hook and ensure loading/error states remain consistent with admin styling; keep all new user-facing text in English."
-        }
-      ]
-    },
-    {
-      "id": "REQ-130",
-      "summary": "Ensure the public Footer continues to show only the existing four visitor-stat rows with no markup/layout changes, while keeping values sourced from backend-tracked data.",
-      "acceptanceCriteria": [
-        "No markup/layout changes are made to frontend/src/components/layout/Footer.tsx that would alter what is displayed (still 4 rows: Total Visitors, Active Users, Page Views, Today Traffic).",
-        "Footer does not display any of the new admin-only metrics (Yesterday/Weekly/Monthly/Yearly/Online).",
-        "Footer values are sourced from backend-tracked values (not hardcoded), with behavior consistent with existing site expectations."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/layout/Footer.tsx",
-          "operation": "modify",
-          "description": "Do not change the Footer’s visitor-stats markup/rows; only verify that it still renders exactly the same four items and does not introduce any admin-only metrics."
+          "description": "Switch the page to use the new admin session-based profile hooks (instead of principal-based useGetCallerUserProfile/useSaveCallerUserProfile), keep the existing form fields (Name/Email/Phone) and English toasts, and ensure the form state is populated from the loaded admin profile and persists on refresh."
         },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Implement useGetPublicVisitorStats to actually fetch the existing public visitor stats shape from the backend (totalVisitors, activeUsers, pageViews, todayTraffic) and optionally poll at a reasonable interval so Footer values reflect backend-tracked real-time behavior (without changing the Footer UI)."
+          "description": "Stop using the public/principal-based user-profile hooks from the admin profile page (keep the hooks available for non-admin usage if needed elsewhere). Ensure no admin flows depend on Principal-based “user” permissions. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-139",
+      "summary": "Normalize Admin panel styling for consistency and ensure active sidebar item has a clear red accent highlight across all admin routes (including query-string routes).",
+      "acceptanceCriteria": [
+        "The active sidebar item in /admin clearly displays a red accent highlight state that is visually distinct from hover and inactive states.",
+        "The active-state styling works correctly across all admin routes, including query-string routes like /admin/vehicles?category=passenger vs /admin/vehicles?category=commercial.",
+        "Admin UI changes are visual-only (no route changes, no data wiring changes)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/admin/styles/adminTheme.css",
+          "operation": "modify",
+          "description": "Introduce/adjust consistent styling rules for the sidebar nav items used by AdminLayout (e.g., .admin-nav-item and its .active state) so the active item has a clear red accent (background and/or left border) distinct from hover/inactive states, and normalize spacing/typography for a more consistent admin look. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/backend.d.ts",
+          "path": "frontend/src/admin/AdminLayout.tsx",
           "operation": "modify",
-          "description": "Ensure the backend interface typing includes the public visitor stats read capability used by useGetPublicVisitorStats and includes a VisitorStats type matching the Footer’s four displayed fields."
+          "description": "Align class names and active-state class application with the admin theme so the computed active item (including query-string-aware vehicle categories) reliably receives the red-accent active styling across all admin routes, without changing routes or navigation structure."
+        }
+      ]
+    },
+    {
+      "id": "REQ-140",
+      "summary": "Add banner controls in existing Admin Media page to configure Home Main Banner and Home CTA Banner from Media Assets, and render those banners on the public Home page with required fallbacks.",
+      "acceptanceCriteria": [
+        "In /admin/media, there is a clearly labeled admin-only section (English text) that allows selecting (and/or uploading then selecting) a Media Asset for (1) “Home Main Banner” and (2) “Home CTA Banner”, and saving those selections.",
+        "The selected banner settings persist in canister stable storage and survive refresh/redeploy/upgrade according to the project’s persistence approach.",
+        "On the public Home page (/), the “Main Banner” image renders directly below the Navbar and replaces the current red HeroSection on the Home page only (other public pages keep the existing red hero section behavior).",
+        "On the public Home page (/), the CTA banner image uses the admin-configured CTA Banner asset; if not configured, the page falls back to the current existing CTA banner behavior (e.g., the current static CTA Banner image).",
+        "No admin panel routes are changed; this is added within the existing /admin/media page and the existing public Home page route."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+          "operation": "modify",
+          "description": "Add admin-session React Query hooks to load and update the two banner settings (Home Main Banner and Home CTA Banner) via the existing backend capabilities for site banners, invalidating relevant queries on save so admin UI reflects persisted settings."
+        },
+        {
+          "path": "frontend/src/admin/pages/MediaManagerPage.tsx",
+          "operation": "modify",
+          "description": "Add an additive, clearly labeled English section within the existing Media Manager page for configuring “Home Main Banner” and “Home CTA Banner”. Use the existing MediaPickerDialog for selecting assets and keep the existing Media Manager listing/upload/delete behavior unchanged. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/components/media/MediaPickerDialog.tsx",
+          "operation": "modify",
+          "description": "If necessary, extend the dialog’s exposed API (props/callbacks) to support the banner-selection workflow (select asset + confirm) without breaking existing usages. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add public Home page query hooks to read the configured banner image URLs and provide safe fallbacks when not configured or not accessible (e.g., fall back for CTA to the existing static CTA banner). Ensure these hooks do not require admin-only UI state. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Update only the Home route’s PublicLayout usage so the Home page can replace the hero section (e.g., pass hideHero for / only), while leaving all other public routes’ hero behavior unchanged. Keep the existing TanStack Router structure intact."
+        },
+        {
+          "path": "frontend/src/pages/HomePage.tsx",
+          "operation": "modify",
+          "description": "Render the configured “Home Main Banner” image directly below the Navbar (as the first content on the page) and remove reliance on the default red HeroSection for the Home route. Update the CTA banner section to use the configured “Home CTA Banner” image when set; otherwise fall back to the current existing CTA banner behavior. If a default main banner image is needed when not configured, use an existing generated asset at frontend/public/assets/generated/home-banner-1.dim_1920x720.png. Verify the component's usage instructions before implementing."
         }
       ]
     }

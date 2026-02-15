@@ -76,11 +76,15 @@ export default function VisitorStatsAdminPage() {
         subtitle="Real-time monitoring of website visitor statistics (auto-refreshes every 10 seconds)"
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Fixed 2-column grid layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.title} className="admin-stat-card">
+            <Card 
+              key={stat.title} 
+              className="admin-stat-card"
+            >
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="admin-stat-title">
                   {stat.title}

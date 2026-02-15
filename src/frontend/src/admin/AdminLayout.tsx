@@ -73,8 +73,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`admin-nav-item flex items-center gap-3 px-4 py-3 text-sm ${
-                    isActive ? 'active text-white' : 'text-white/80 hover:text-white'
+                  className={`admin-nav-item flex items-center gap-3 px-4 py-3 text-sm rounded-lg transition-all ${
+                    isActive ? 'active' : ''
                   }`}
                 >
                   <Icon className="admin-nav-icon h-5 w-5" />

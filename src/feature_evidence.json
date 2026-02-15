@@ -2,11 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-admin-visitor-statistics-page-frontend-src-admin-pages-visitorstatsadminpage-tsx-to-display-the-requested-additional-metrics-total-visitors-today-yesterday-weekly-monthly-yearly-online-real-time-and-total-page-views-using-a-visual-format-consistent-with-the-current-admin-panel-styling-any-new-user-facing-text-introduced-on-the-admin-page-must-be-in-english",
-      "featureTitle": "Update the Admin Visitor Statistics page (frontend/src/admin/pages/VisitorStatsAdminPage.tsx) to display the requested additional metrics: Total Visitors, Today, Yesterday, Weekly, Monthly, Yearly, Online (real-time), and total Page Views, using a visual format consistent with the current admin panel styling. Any new user-facing text introduced on the admin page must be in English.",
+      "featureId": "feature-update-the-admin-visitor-statistics-page-so-the-statistic-cards-render-in-a-2-x-5-grid-layout-2-columns-up-to-5-rows-with-no-horizontal-overflow-on-any-screen-size-replacing-the-current-layout-that-scrolls-too-far-to-the-right",
+      "featureTitle": "Update the Admin Visitor Statistics page so the statistic cards render in a 2 x 5 grid layout (2 columns, up to 5 rows) with no horizontal overflow on any screen size, replacing the current layout that scrolls too far to the right.",
       "files": [
-        "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-        "frontend/src/admin/pages/VisitorStatsAdminPage.tsx"
+        "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
+        "frontend/src/admin/styles/adminTheme.css"
       ],
       "components": [
         "authorization@4.0.0",
@@ -18,35 +18,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-128"
+        "REQ-137"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-automatic-refresh-behavior-on-the-admin-visitor-statistics-page-so-that-online-visitors-updates-near-real-time-via-polling-and-other-counters-refresh-on-a-reasonable-interval-without-requiring-manual-page-reload",
-      "featureTitle": "Implement automatic refresh behavior on the Admin Visitor Statistics page so that Online Visitors updates near-real-time via polling, and other counters refresh on a reasonable interval without requiring manual page reload.",
+      "featureId": "feature-fix-the-admin-user-profile-page-so-an-admin-can-reliably-save-update-profile-information-and-the-changes-persist-and-are-reloaded-correctly-on-refresh",
+      "featureTitle": "Fix the Admin User Profile page so an admin can reliably save/update profile information and the changes persist and are reloaded correctly on refresh.",
       "files": [
         "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-        "frontend/src/admin/pages/VisitorStatsAdminPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-129"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-keep-the-public-site-footer-ui-and-the-set-of-visitor-stat-items-displayed-in-the-footer-unchanged-ensure-the-footer-continues-to-show-only-the-existing-four-items-and-that-their-values-can-still-reflect-real-time-backend-tracked-values-no-new-rows-labels-sections-added-to-the-footer",
-      "featureTitle": "Keep the public-site Footer UI and the set of visitor-stat items displayed in the Footer unchanged. Ensure the Footer continues to show only the existing four items and that their values can still reflect real-time backend-tracked values (no new rows/labels/sections added to the Footer).",
-      "files": [
+        "frontend/src/admin/pages/AdminProfilePage.tsx",
         "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
@@ -59,7 +40,52 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-130"
+        "REQ-138"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-polish-and-normalize-the-admin-panel-ui-styling-for-a-more-aesthetic-and-consistent-look-and-ensure-the-currently-selected-sidebar-menu-item-has-a-clear-red-accent-highlight",
+      "featureTitle": "Polish and normalize the Admin panel UI styling for a more aesthetic and consistent look, and ensure the currently selected sidebar/menu item has a clear red accent highlight.",
+      "files": [
+        "frontend/src/admin/AdminLayout.tsx",
+        "frontend/src/admin/styles/adminTheme.css"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-139"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-admin-functionality-inside-the-admin-media-area-to-manage-the-home-page-main-banner-image-rendered-directly-below-the-navbar-and-the-home-page-cta-banner-image-so-admins-can-replace-those-two-homepage-images-from-the-admin-panel-using-existing-media-assets-upload-select",
+      "featureTitle": "Add admin functionality inside the /admin Media area to manage the Home page Main Banner image (rendered directly below the Navbar) and the Home page CTA Banner image, so admins can replace those two homepage images from the admin panel using existing Media Assets (upload/select).",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+        "frontend/src/admin/pages/MediaManagerPage.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/HomePage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-140"
       ],
       "confidence": "high"
     }

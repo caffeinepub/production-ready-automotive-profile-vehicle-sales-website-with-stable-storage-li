@@ -1,11 +1,11 @@
 import { SiFacebook, SiInstagram, SiX, SiTiktok, SiYoutube } from 'react-icons/si';
 import { Heart, Phone, Mail, MapPin, Users, Eye, TrendingUp, Activity } from 'lucide-react';
-import { useGetPublicVisitorStats } from '../../hooks/useQueries';
+import { useGetFooterVisitorStats } from '../../hooks/useQueries';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const appIdentifier = encodeURIComponent(window.location.hostname || 'automotive-dealer');
-  const { data: stats } = useGetPublicVisitorStats();
+  const { data: stats } = useGetFooterVisitorStats();
 
   return (
     <footer className="bg-[#262729] text-white py-12">
@@ -87,34 +87,22 @@ export default function Footer() {
 
           <div>
             <h3 className="font-bold text-lg mb-4">Statistik Pengunjung</h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-[#C90010]" />
-                  <span className="text-gray-300">Total Pengunjung</span>
-                </div>
-                <span className="font-bold text-white">{stats ? Number(stats.totalVisitors) : 0}</span>
+            <div className="space-y-2 text-sm text-gray-300">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-[#C90010]" />
+                <span>Total: {stats ? Number(stats.totalVisitors).toLocaleString() : '...'}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-[#C90010]" />
-                  <span className="text-gray-300">Pengguna Aktif</span>
-                </div>
-                <span className="font-bold text-white">{stats ? Number(stats.activeUsers) : 0}</span>
+              <div className="flex items-center gap-2">
+                <Eye className="h-4 w-4 text-[#C90010]" />
+                <span>Views: {stats ? Number(stats.pageViews).toLocaleString() : '...'}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Eye className="h-5 w-5 text-[#C90010]" />
-                  <span className="text-gray-300">Tampilan Halaman</span>
-                </div>
-                <span className="font-bold text-white">{stats ? Number(stats.pageViews) : 0}</span>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-[#C90010]" />
+                <span>Hari Ini: {stats ? Number(stats.todayTraffic).toLocaleString() : '...'}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-[#C90010]" />
-                  <span className="text-gray-300">Trafik Hari Ini</span>
-                </div>
-                <span className="font-bold text-white">{stats ? Number(stats.todayTraffic) : 0}</span>
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-[#C90010]" />
+                <span>Online: {stats ? Number(stats.onlineVisitors).toLocaleString() : '...'}</span>
               </div>
             </div>
           </div>
@@ -122,13 +110,15 @@ export default function Footer() {
 
         <div className="border-t border-gray-700 pt-6 text-center text-sm text-gray-400">
           <p>
-            © {currentYear} Mitsubishi Motors. Hak cipta dilindungi. | Dibuat dengan{' '}
-            <Heart className="inline h-4 w-4 text-red-500" /> menggunakan{' '}
+            © {currentYear} Mitsubishi Motors Subang. All rights reserved.
+          </p>
+          <p className="mt-2">
+            Built with <Heart className="inline h-4 w-4 text-[#C90010]" /> using{' '}
             <a
               href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${appIdentifier}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-white transition-colors"
+              className="text-[#C90010] hover:underline"
             >
               caffeine.ai
             </a>

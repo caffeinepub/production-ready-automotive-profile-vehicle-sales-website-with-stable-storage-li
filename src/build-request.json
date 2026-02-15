@@ -1,146 +1,96 @@
 {
   "kind": "build_request",
-  "title": "Expand and activate Visitor Statistics in Admin panel (keep Footer UI unchanged)",
+  "title": "Fix Admin Visitor Stats layout, Admin Profile saving, Admin UI consistency, and add homepage banner controls in Media",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-124",
-      "text": "Extend the backend visitor statistics system to compute and persist the following metrics in stable, upgrade-safe storage: Total Visitors, Today Visitors, Yesterday Visitors, Weekly Visitors, Monthly Visitors, Yearly Visitors, Online Visitors (real-time), and total Page Views. Ensure these metrics are queryable efficiently for the admin panel.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Perbarui dan mengaktifkan data Statistik Pengunjung pada admin panel tanpa mengubah tampilan di Footer.\n...\n- Total Pengunjung\n- Pengunjung Hari Ini\n- Pengunjung Kemarin\n- Pengunjung Mingguan\n- Pengunjung Bulanan\n- Pengunjung Tahunan\n- Pengunjung Online (Real-time)\n- Page View (total halaman yang dibuka)"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Visitor statistics data survives canister redeploy/upgrade (stable persistence) and restores correctly.",
-        "Backend provides an internal representation of all requested metrics (total, today, yesterday, weekly, monthly, yearly, online, page views).",
-        "Metrics can be retrieved via backend APIs without requiring full scans of raw events on every query (i.e., counters/rollups are persisted)."
-      ]
-    },
-    {
-      "id": "REQ-125",
-      "text": "Implement backend rollup/reset logic for time-based visitor counters using the WIB timezone, including a daily reset at 00:00 WIB (midnight). Ensure the system updates Today/Yesterday/Weekly/Monthly/Yearly counters correctly when day/week/month/year boundaries are crossed, even if no traffic occurs exactly at the boundary (i.e., rollovers happen on the next relevant call).",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Pastikan refresh data berjalan otomatis, Statistik harian reset setiap pukul 00.00 WIB (jam 12 malam)."
-        ]
-      },
-      "acceptanceCriteria": [
-        "When the WIB day changes, the system rolls Today -> Yesterday and resets Today to 0 on the next visitor/pageview/stat-query call.",
-        "Weekly, monthly, and yearly counters roll over at WIB boundaries consistent with their period, without requiring an external cron service.",
-        "Rollover logic is idempotent (multiple calls after rollover do not double-shift counters)."
-      ]
-    },
-    {
-      "id": "REQ-126",
-      "text": "Add backend support for Online Visitors (real-time) suitable for admin display by tracking active visitor presence with an expiry window (based on last-seen timestamps) and exposing the current online count via an admin-readable API. This should not require any changes to the public Footer UI.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Perbarui API atau fungsi pengambil data agar admin panel menampilkan data terbaru secara real-time (untuk Pengunjung Online)"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend exposes an admin-readable online visitor count that reflects recent activity within a defined presence window (e.g., lastSeen-based).",
-        "Online visitor count updates as new page views/heartbeats occur and decreases automatically as visitors go inactive (without manual intervention).",
-        "No changes are required to any public Footer component layout/markup to support this."
-      ]
-    },
-    {
-      "id": "REQ-127",
-      "text": "Expose backend admin APIs (session-token protected, consistent with existing admin auth patterns) to fetch the extended visitor statistics dataset required by the admin panel, while keeping the existing public visitor stats shape used by the Footer unchanged (no new Footer fields, no UI changes).",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Perbarui API atau fungsi pengambil data agar admin panel menampilkan data terbaru ...\nFooter Website\nTidak melakukan perubahan apapun pada Statistik Pengunjung yang tampil di footer.\nFooter tetap menampilkan statistik yang sudah ada tanpa menambahkan poin baru"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Admin can fetch all extended metrics via an authenticated admin method (token required).",
-        "Existing Footer-displayed fields remain exactly: totalVisitors, activeUsers, pageViews, todayTraffic (no additional fields required by the Footer UI).",
-        "Unauthorized/expired admin sessions do not trap; they return a safe unauthorized response consistent with current admin CMS expectations."
-      ]
-    },
-    {
-      "id": "REQ-128",
-      "text": "Update the Admin Visitor Statistics page (frontend/src/admin/pages/VisitorStatsAdminPage.tsx) to display the requested additional metrics: Total Visitors, Today, Yesterday, Weekly, Monthly, Yearly, Online (real-time), and total Page Views, using a visual format consistent with the current admin panel styling. Any new user-facing text introduced on the admin page must be in English.",
+      "id": "REQ-137",
+      "text": "Update the Admin Visitor Statistics page so the statistic cards render in a 2 x 5 grid layout (2 columns, up to 5 rows) with no horizontal overflow on any screen size, replacing the current layout that scrolls too far to the right.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-6"
         ],
         "quotes": [
-          "Frontend Admin Panel\nTambahkan atau aktifkan tampilan statistik sesuai daftar poin di atas.\nGunakan format yang konsisten dengan tampilan admin panel saat ini."
+          "- Grid kartu statistik pada admin panel terlalu panjang ke kanan, tolong rubah agar grid dibuat 2 x 5."
         ]
       },
       "acceptanceCriteria": [
-        "Admin Visitor Statistics page shows cards/fields for all requested metrics (including Yesterday/Weekly/Monthly/Yearly/Online).",
-        "Any newly added labels/help text/toasts introduced by this change are in English.",
-        "Existing admin layout/routes remain unchanged (only the Visitor Stats content is expanded)."
+        "On /admin/stats, the statistics cards are laid out as 2 columns and wrap into rows (up to 5 rows) without requiring horizontal scrolling.",
+        "No stat cards are cut off or overflow the page horizontally at common breakpoints (mobile/tablet/desktop).",
+        "The existing metrics shown (and their values) remain unchanged; only the layout/overflow behavior is fixed."
       ]
     },
     {
-      "id": "REQ-129",
-      "text": "Implement automatic refresh behavior on the Admin Visitor Statistics page so that Online Visitors updates near-real-time via polling, and other counters refresh on a reasonable interval without requiring manual page reload.",
+      "id": "REQ-138",
+      "text": "Fix the Admin User Profile page so an admin can reliably save/update profile information and the changes persist and are reloaded correctly on refresh.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "- Saya tidak bisa menyimpan profil information pada user admin profil, tolong perbaiki agar bisa menyimpan data profil dan berfungsi dengan baik."
+        ]
+      },
+      "acceptanceCriteria": [
+        "On /admin/profile, editing Name/Email/Phone and clicking “Save Changes” successfully persists the updated profile without errors.",
+        "After saving, reloading the page shows the newly saved profile values.",
+        "Profile save/load uses admin session-based authorization (the same session token used by other /admin CMS calls) and does not depend on caller Principal-based “user” permissions.",
+        "Any success/error messages shown to the admin remain in English (e.g., existing toasts)."
+      ]
+    },
+    {
+      "id": "REQ-139",
+      "text": "Polish and normalize the Admin panel UI styling for a more aesthetic and consistent look, and ensure the currently selected sidebar/menu item has a clear red accent highlight.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-6"
         ],
         "quotes": [
-          "Pastikan refresh data berjalan otomatis ... (untuk Pengunjung Online)"
+          "- Rapihkan tampilan UI admin panel agar lebih estetik dan seragam, beri aksen warna merah pada menu yang dipilih."
         ]
       },
       "acceptanceCriteria": [
-        "Online Visitors value updates automatically via client polling (e.g., React Query refetchInterval) without a full page reload.",
-        "Non-real-time counters also refresh automatically on an interval appropriate for admin monitoring.",
-        "No changes are made to public (non-/admin) pages as part of implementing admin refresh behavior."
+        "The active sidebar item in /admin clearly displays a red accent highlight state that is visually distinct from hover and inactive states.",
+        "The active-state styling works correctly across all admin routes, including query-string routes like /admin/vehicles?category=passenger vs /admin/vehicles?category=commercial.",
+        "Admin UI changes are visual-only (no route changes, no data wiring changes)."
       ]
     },
     {
-      "id": "REQ-130",
-      "text": "Keep the public-site Footer UI and the set of visitor-stat items displayed in the Footer unchanged. Ensure the Footer continues to show only the existing four items and that their values can still reflect real-time backend-tracked values (no new rows/labels/sections added to the Footer).",
-      "target": "frontend",
+      "id": "REQ-140",
+      "text": "Add admin functionality inside the /admin Media area to manage the Home page Main Banner image (rendered directly below the Navbar) and the Home page CTA Banner image, so admins can replace those two homepage images from the admin panel using existing Media Assets (upload/select).",
+      "target": "both",
       "source": {
         "messageIds": [
           "msg-6"
         ],
         "quotes": [
-          "Footer Website\nTidak melakukan perubahan apapun pada Statistik Pengunjung yang tampil di footer.\nFooter tetap menampilkan statistik yang sudah ada tanpa menambahkan poin baru, dan sama-sama menampilkan data real time."
+          "- Tambahkan fungsi didalam menu Media pada admin panel agar membuat menu untuk mengganti gambar Main Banner dan gambar CTA Banner dihalaman utama, gambar Main Banner terletak tepat dibawah navbar yang saat ini berupa hero section berwarna merah dihalaman utama."
         ]
       },
       "acceptanceCriteria": [
-        "No markup/layout changes are made to frontend/src/components/layout/Footer.tsx that would alter what is displayed (still 4 rows: Total Visitors, Active Users, Page Views, Today Traffic).",
-        "Footer does not display any of the new admin-only metrics (Yesterday/Weekly/Monthly/Yearly/Online).",
-        "Footer values are sourced from backend-tracked values (not hardcoded), with behavior consistent with existing site expectations."
+        "In /admin/media, there is a clearly labeled admin-only section (English text) that allows selecting (and/or uploading then selecting) a Media Asset for (1) “Home Main Banner” and (2) “Home CTA Banner”, and saving those selections.",
+        "The selected banner settings persist in canister stable storage and survive refresh/redeploy/upgrade according to the project’s persistence approach.",
+        "On the public Home page (/), the “Main Banner” image renders directly below the Navbar and replaces the current red HeroSection on the Home page only (other public pages keep the existing red hero section behavior).",
+        "On the public Home page (/), the CTA banner image uses the admin-configured CTA Banner asset; if not configured, the page falls back to the current existing CTA banner behavior (e.g., the current static CTA Banner image).",
+        "No admin panel routes are changed; this is added within the existing /admin/media page and the existing public Home page route."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister (all logic in backend/main.mo).",
-    "Use stable, upgrade-safe persistence for visitor statistics so counters survive redeploy/upgrade.",
-    "Do not change the public Footer UI appearance or add new visitor-stat rows/labels/sections in the Footer.",
-    "Any new user-facing text introduced by these changes in the admin panel must be in English.",
-    "Do not modify any files under frontend/src/components/ui (immutable Shadcn components)."
+    "Do not modify any files under frontend/src/components/ui (immutable shadcn components).",
+    "Keep the existing TanStack Router route structure intact; add functionality within existing pages/routes.",
+    "Use English for any new user-facing text added in the admin UI.",
+    "Backend must remain a single Motoko actor (backend/main.mo). Add backend state migration (backend/migration.mo) only if required for upgrade-safe state changes.",
+    "Do not remove or break existing Media Manager listing/upload/delete behavior; banner controls must be additive."
   ],
   "nonGoals": [
-    "Do not redesign the public Footer or change its visual layout.",
-    "Do not add new public pages or new public-facing visitor-stat metrics beyond what the Footer already shows.",
-    "Do not introduce external databases, cron services, or third-party analytics integrations."
+    "Adding a new public page or changing public navigation structure.",
+    "Introducing third-party storage/CDNs for banner images (must use the existing canister-backed Media Manager assets).",
+    "Changing the set of visitor-stat metrics displayed on the admin stats page beyond fixing the layout.",
+    "Implementing a multi-image homepage slider/carousel (only a single Main Banner image and a single CTA Banner image are required)."
   ],
   "imageRequirements": {
     "required": [],

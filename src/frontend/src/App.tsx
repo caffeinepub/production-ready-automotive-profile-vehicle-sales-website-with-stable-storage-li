@@ -34,7 +34,7 @@ const publicRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: () => (
-    <PublicLayout>
+    <PublicLayout hideHero>
       <HomePage />
     </PublicLayout>
   )

@@ -14,7 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Trash2, Edit2, X, Save } from 'lucide-react';
 import MediaPickerDialog from './media/MediaPickerDialog';
-import { useGetBlogComments, useDeleteBlogComment, useUpdateBlogComment } from '../hooks/useAdminCmsQueries';
+import { useGetBlogCommentsAdmin, useDeleteBlogComment, useUpdateBlogComment } from '../hooks/useAdminCmsQueries';
 import { useGetBlogInteractionSummary } from '../../hooks/useQueries';
 import type { BlogPost, BlogComment } from '../../backend';
 import { toast } from 'sonner';
@@ -50,8 +50,8 @@ export default function BlogFormDialog({
   const [editingCommentId, setEditingCommentId] = useState<bigint | null>(null);
   const [editingContent, setEditingContent] = useState('');
 
-  const { data: interactionSummary } = useGetBlogInteractionSummary(blogPost?.id);
-  const { data: comments = [], isLoading: commentsLoading } = useGetBlogComments(blogPost?.id);
+  const { data: interactionSummary } = useGetBlogInteractionSummary(blogPost?.id || 0n);
+  const { data: comments = [], isLoading: commentsLoading } = useGetBlogCommentsAdmin(blogPost?.id || 0n);
   const deleteComment = useDeleteBlogComment();
   const updateComment = useUpdateBlogComment();
 
@@ -137,10 +137,15 @@ export default function BlogFormDialog({
     setEditingContent('');
   };
 
+  // Filter comments to ensure only this blog post's comments are shown
+  const filteredComments = comments.filter(c => 
+    blogPost?.id && c.blogPostId.toString() === blogPost.id.toString()
+  );
+
   // Separate top-level comments and replies
-  const topLevelComments = comments.filter(c => !c.parentId);
+  const topLevelComments = filteredComments.filter(c => !c.parentId);
   const getReplies = (parentId: bigint) => 
-    comments.filter(c => c.parentId?.toString() === parentId.toString());
+    filteredComments.filter(c => c.parentId?.toString() === parentId.toString());
 
   const renderComment = (comment: BlogComment, isReply: boolean = false) => {
     const isEditing = editingCommentId?.toString() === comment.id.toString();
@@ -357,7 +362,7 @@ export default function BlogFormDialog({
                 <h3 className="font-semibold">Comments</h3>
                 {commentsLoading ? (
                   <p className="text-sm text-gray-500">Loading comments...</p>
-                ) : comments.length === 0 ? (
+                ) : filteredComments.length === 0 ? (
                   <p className="text-sm text-gray-500">No comments yet.</p>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">

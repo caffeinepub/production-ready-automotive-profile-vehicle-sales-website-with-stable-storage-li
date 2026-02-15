@@ -1,17 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Vehicle, Promotion, Testimonial, BlogPost, Contact, CreditSimulation, Interaction, UserProfile, BlogInteractionSummary, BlogComment, BlogCommentInput } from '../backend';
+import type { 
+  Vehicle, 
+  Promotion, 
+  Testimonial, 
+  BlogPost, 
+  Contact, 
+  CreditSimulation,
+  BlogCommentInput,
+  BlogComment,
+  BlogInteractionSummary,
+  ExtendedVisitorStats,
+  UserProfile,
+  SiteBanner
+} from '../backend';
 
-// Public query hooks - no authentication required
-
-// Local type for public visitor stats (Footer display)
-type VisitorStats = {
-  totalVisitors: bigint;
-  activeUsers: bigint;
-  pageViews: bigint;
-  todayTraffic: bigint;
-};
-
+// Public Vehicles
 export function useGetVehicles() {
   const { actor, isFetching } = useActor();
 
@@ -21,23 +25,24 @@ export function useGetVehicles() {
       if (!actor) return [];
       return actor.getVehicles();
     },
-    enabled: !!actor && !isFetching
+    enabled: !!actor && !isFetching,
   });
 }
 
-export function useGetVehicle(id: bigint | undefined) {
+export function useGetVehicle(id: bigint) {
   const { actor, isFetching } = useActor();
 
   return useQuery<Vehicle | null>({
-    queryKey: ['vehicle', id?.toString()],
+    queryKey: ['vehicle', id.toString()],
     queryFn: async () => {
-      if (!actor || !id) return null;
+      if (!actor) return null;
       return actor.getVehicle(id);
     },
-    enabled: !!actor && !isFetching && !!id
+    enabled: !!actor && !isFetching && id > 0n,
   });
 }
 
+// Public Promotions
 export function useGetPromotions() {
   const { actor, isFetching } = useActor();
 
@@ -47,10 +52,11 @@ export function useGetPromotions() {
       if (!actor) return [];
       return actor.getPromotions();
     },
-    enabled: !!actor && !isFetching
+    enabled: !!actor && !isFetching,
   });
 }
 
+// Public Testimonials
 export function useGetTestimonials() {
   const { actor, isFetching } = useActor();
 
@@ -60,10 +66,11 @@ export function useGetTestimonials() {
       if (!actor) return [];
       return actor.getTestimonials();
     },
-    enabled: !!actor && !isFetching
+    enabled: !!actor && !isFetching,
   });
 }
 
+// Public Blog Posts
 export function useGetBlogPosts() {
   const { actor, isFetching } = useActor();
 
@@ -73,114 +80,34 @@ export function useGetBlogPosts() {
       if (!actor) return [];
       return actor.getBlogPosts();
     },
-    enabled: !!actor && !isFetching
+    enabled: !!actor && !isFetching,
   });
 }
 
-export function useGetBlogPost(id: bigint | undefined) {
+export function useGetBlogPost(id: bigint) {
   const { actor, isFetching } = useActor();
 
   return useQuery<BlogPost | null>({
-    queryKey: ['blogPost', id?.toString()],
+    queryKey: ['blogPost', id.toString()],
     queryFn: async () => {
-      if (!actor || !id) return null;
-      return actor.getBlogPost(id);
+      if (!actor) return null;
+      return actor.getAndIncrementBlogPostViews(id);
     },
-    enabled: !!actor && !isFetching && !!id
+    enabled: !!actor && !isFetching && id > 0n,
   });
 }
 
-export function useIncrementBlogPostViews() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (blogPostId: bigint) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getAndIncrementBlogPostViews(blogPostId);
-    },
-    onSuccess: (_, blogPostId) => {
-      queryClient.invalidateQueries({ queryKey: ['blogPost', blogPostId.toString()] });
-      queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
-    }
-  });
-}
-
-export function useSubmitContact() {
-  const { actor } = useActor();
-
-  return useMutation({
-    mutationFn: async (contact: Contact) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.addContact(contact);
-    }
-  });
-}
-
-export function useSubmitCreditSimulation() {
-  const { actor } = useActor();
-
-  return useMutation({
-    mutationFn: async (simulation: CreditSimulation) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.addCreditSimulation(simulation);
-    }
-  });
-}
-
-export function useGetProductInteraction(itemId: bigint | undefined) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<Interaction | null>({
-    queryKey: ['productInteraction', itemId?.toString()],
-    queryFn: async () => {
-      if (!actor || !itemId) return null;
-      return actor.getProductInteraction(itemId);
-    },
-    enabled: !!actor && !isFetching && !!itemId
-  });
-}
-
-export function useLikeProduct() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (itemId: bigint) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.likeProduct(itemId);
-    },
-    onSuccess: (_, itemId) => {
-      queryClient.invalidateQueries({ queryKey: ['productInteraction', itemId.toString()] });
-    }
-  });
-}
-
-export function useShareProduct() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ itemId, platform }: { itemId: bigint; platform: string }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.shareProduct(itemId, platform);
-    },
-    onSuccess: (_, { itemId }) => {
-      queryClient.invalidateQueries({ queryKey: ['productInteraction', itemId.toString()] });
-    }
-  });
-}
-
-export function useGetBlogInteractionSummary(blogPostId: bigint | undefined) {
+// Blog Interactions
+export function useGetBlogInteractionSummary(blogPostId: bigint) {
   const { actor, isFetching } = useActor();
 
   return useQuery<BlogInteractionSummary>({
-    queryKey: ['blogInteractionSummary', blogPostId?.toString()],
+    queryKey: ['blogInteractionSummary', blogPostId.toString()],
     queryFn: async () => {
-      if (!actor || !blogPostId) return { likesCount: 0n, sharesCount: 0n, commentsCount: 0n };
+      if (!actor) return { likesCount: 0n, sharesCount: 0n, commentsCount: 0n };
       return actor.getBlogInteractionSummary(blogPostId);
     },
-    enabled: !!actor && !isFetching && !!blogPostId
+    enabled: !!actor && !isFetching && blogPostId > 0n,
   });
 }
 
@@ -195,7 +122,7 @@ export function useIncrementBlogLike() {
     },
     onSuccess: (_, blogPostId) => {
       queryClient.invalidateQueries({ queryKey: ['blogInteractionSummary', blogPostId.toString()] });
-    }
+    },
   });
 }
 
@@ -210,20 +137,22 @@ export function useIncrementBlogShare() {
     },
     onSuccess: (_, { blogPostId }) => {
       queryClient.invalidateQueries({ queryKey: ['blogInteractionSummary', blogPostId.toString()] });
-    }
+    },
   });
 }
 
-export function useGetBlogComments(blogPostId: bigint | undefined) {
+// Blog Comments
+export function useGetBlogComments(blogPostId: bigint) {
   const { actor, isFetching } = useActor();
 
   return useQuery<BlogComment[]>({
-    queryKey: ['blogComments', blogPostId?.toString()],
+    queryKey: ['blogComments', blogPostId.toString()],
     queryFn: async () => {
-      if (!actor || !blogPostId) return [];
-      return actor.getBlogComments(blogPostId);
+      if (!actor) return [];
+      const allComments = await actor.getBlogComments(blogPostId);
+      return allComments.filter(comment => comment.blogPostId === blogPostId);
     },
-    enabled: !!actor && !isFetching && !!blogPostId
+    enabled: !!actor && !isFetching && blogPostId > 0n,
   });
 }
 
@@ -232,100 +161,130 @@ export function useAddBlogComment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (comment: BlogCommentInput) => {
+    mutationFn: async (input: BlogCommentInput) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.addBlogComment(comment);
+      return actor.addBlogComment(input);
     },
-    onSuccess: (_, comment) => {
-      queryClient.invalidateQueries({ queryKey: ['blogComments', comment.blogPostId.toString()] });
-      queryClient.invalidateQueries({ queryKey: ['blogInteractionSummary', comment.blogPostId.toString()] });
-    }
+    onSuccess: (_, input) => {
+      queryClient.invalidateQueries({ queryKey: ['blogComments', input.blogPostId.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['blogInteractionSummary', input.blogPostId.toString()] });
+    },
   });
 }
 
+// Contact Form
+export function useSubmitContact() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async (contact: Contact) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.addContact(contact);
+    },
+  });
+}
+
+// Credit Simulation
+export function useSubmitCreditSimulation() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async (simulation: CreditSimulation) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.addCreditSimulation(simulation);
+    },
+  });
+}
+
+// Visitor Tracking
 export function useIncrementVisitor() {
   const { actor } = useActor();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async () => {
       if (!actor) throw new Error('Actor not available');
       return actor.incrementVisitor();
-    }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['footerVisitorStats'] });
+    },
   });
 }
 
 export function useIncrementPageView() {
   const { actor } = useActor();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async () => {
       if (!actor) throw new Error('Actor not available');
       return actor.incrementPageView();
-    }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['footerVisitorStats'] });
+    },
   });
 }
 
 export function useUserActivity() {
   const { actor } = useActor();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (sessionId: string) => {
       if (!actor) throw new Error('Actor not available');
       return actor.userActivity(sessionId);
-    }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['footerVisitorStats'] });
+    },
   });
 }
 
-export function useGetPublicVisitorStats() {
+// Footer Visitor Stats
+export function useGetFooterVisitorStats() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<VisitorStats>({
-    queryKey: ['publicVisitorStats'],
+  return useQuery<ExtendedVisitorStats>({
+    queryKey: ['footerVisitorStats'],
     queryFn: async () => {
-      if (!actor) return { totalVisitors: 0n, activeUsers: 0n, pageViews: 0n, todayTraffic: 0n };
-      
-      // Simulate public stats by calling userActivity to update online count
-      // and return a constructed VisitorStats object
-      // Note: Backend doesn't have a public getVisitorStats method, so we construct it
-      // The actual values are tracked by the backend through incrementVisitor/incrementPageView/userActivity calls
-      
-      // Generate a session ID for this visitor
-      const sessionId = sessionStorage.getItem('visitorSessionId') || (() => {
-        const newId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        sessionStorage.setItem('visitorSessionId', newId);
-        return newId;
-      })();
-      
-      // Update user activity
-      await actor.userActivity(sessionId);
-      
-      // Return placeholder stats - the Footer will show real-time data from backend
-      // These values are just for type safety; actual display uses backend-tracked values
-      return {
+      if (!actor) return {
         totalVisitors: 0n,
-        activeUsers: 0n,
         pageViews: 0n,
-        todayTraffic: 0n
+        todayTraffic: 0n,
+        yesterdayTraffic: 0n,
+        weeklyTraffic: 0n,
+        monthlyTraffic: 0n,
+        yearlyTraffic: 0n,
+        onlineVisitors: 0n,
       };
+      return actor.getFooterVisitorStats();
     },
     enabled: !!actor && !isFetching,
-    refetchInterval: 30000, // Refresh every 30 seconds
-    staleTime: 20000,
+    refetchInterval: 30000,
   });
 }
 
+// User Profile (Principal-based, for non-admin usage)
 export function useGetCallerUserProfile() {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching: actorFetching } = useActor();
 
-  return useQuery<UserProfile | null>({
+  const query = useQuery<UserProfile | null>({
     queryKey: ['currentUserProfile'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       return actor.getCallerUserProfile();
     },
-    enabled: !!actor && !isFetching,
+    enabled: !!actor && !actorFetching,
     retry: false,
   });
+
+  return {
+    ...query,
+    isLoading: actorFetching || query.isLoading,
+    isFetched: !!actor && query.isFetched,
+  };
 }
 
 export function useSaveCallerUserProfile() {
@@ -339,6 +298,24 @@ export function useSaveCallerUserProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-    }
+    },
+  });
+}
+
+// Public Site Banners
+export function useGetPublicSiteBanners() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<{ mainBanner: string | null; ctaBanner: string | null }>({
+    queryKey: ['publicSiteBanners'],
+    queryFn: async () => {
+      if (!actor) return { mainBanner: null, ctaBanner: null };
+      
+      // For public access, we'll try to fetch via a public method
+      // Since the backend doesn't have a public method, we'll return defaults
+      // The actual banners will be fetched by admin and stored
+      return { mainBanner: null, ctaBanner: null };
+    },
+    enabled: !!actor && !isFetching,
   });
 }

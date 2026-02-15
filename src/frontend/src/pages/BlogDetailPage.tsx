@@ -1,52 +1,37 @@
+import { useState } from 'react';
 import { useParams } from '@tanstack/react-router';
-import { useGetBlogPost, useGetBlogInteractionSummary, useIncrementBlogLike, useIncrementBlogShare, useAddBlogComment, useGetBlogComments, useIncrementBlogPostViews } from '../hooks/useQueries';
-import { useEffect, useState } from 'react';
+import { useGetBlogPost, useGetBlogInteractionSummary, useIncrementBlogLike, useIncrementBlogShare, useAddBlogComment, useGetBlogComments } from '../hooks/useQueries';
 import BlogInteractionsBar from '../components/blog/BlogInteractionsBar';
 import BlogCommentForm from '../components/blog/BlogCommentForm';
 import BlogCommentsThread from '../components/blog/BlogCommentsThread';
+import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 
 export default function BlogDetailPage() {
   const { id } = useParams({ from: '/blog/$id' });
   const blogPostId = BigInt(id);
-  const { data: post, isLoading } = useGetBlogPost(blogPostId);
+  
+  const { data: blogPost, isLoading } = useGetBlogPost(blogPostId);
   const { data: interactionSummary } = useGetBlogInteractionSummary(blogPostId);
   const { data: comments = [] } = useGetBlogComments(blogPostId);
   const incrementLike = useIncrementBlogLike();
   const incrementShare = useIncrementBlogShare();
   const addComment = useAddBlogComment();
-  const incrementViews = useIncrementBlogPostViews();
 
-  const [isCommentFormOpen, setIsCommentFormOpen] = useState(false);
-  const [formResetKey, setFormResetKey] = useState(0);
+  const [isCommentOpen, setIsCommentOpen] = useState(false);
+  const [commentResetKey, setCommentResetKey] = useState(0);
 
-  // Increment views once per session
-  useEffect(() => {
-    if (post) {
-      const viewedKey = `blog_viewed_${blogPostId.toString()}`;
-      const hasViewed = sessionStorage.getItem(viewedKey) === 'true';
-      
-      if (!hasViewed) {
-        incrementViews.mutate(blogPostId);
-        sessionStorage.setItem(viewedKey, 'true');
-      }
-    }
-  }, [post, blogPostId]);
+  if (isLoading) {
+    return <div className="container mx-auto px-4 py-8 text-center">Memuat artikel...</div>;
+  }
 
-  useEffect(() => {
-    if (post) {
-      document.title = post.seoTitle || post.title;
-      const metaDescription = document.querySelector('meta[name="description"]');
-      if (metaDescription) {
-        metaDescription.setAttribute('content', post.seoDescription || post.content.substring(0, 160));
-      }
-    }
-  }, [post]);
+  if (!blogPost) {
+    return <div className="container mx-auto px-4 py-8 text-center">Artikel tidak ditemukan.</div>;
+  }
 
   const handleLike = async () => {
     try {
       await incrementLike.mutateAsync(blogPostId);
-      toast.success('Thank you for liking this article!');
     } catch (error) {
       console.error('Like error:', error);
       toast.error('Failed to like article');
@@ -55,25 +40,25 @@ export default function BlogDetailPage() {
 
   const handleShare = async () => {
     try {
-      // Try native share API first
+      // Default to generic share
+      await incrementShare.mutateAsync({ blogPostId, platform: 'generic' });
+      
+      // Try to use Web Share API if available
       if (navigator.share) {
         await navigator.share({
-          title: post?.title || 'Blog Article',
-          text: post?.seoDescription || post?.content.substring(0, 160) || '',
-          url: window.location.href
+          title: blogPost.title,
+          text: blogPost.seoDescription || blogPost.title,
+          url: window.location.href,
         });
-        await incrementShare.mutateAsync({ blogPostId, platform: 'native' });
-        toast.success('Article shared successfully!');
       } else {
         // Fallback: copy link to clipboard
         await navigator.clipboard.writeText(window.location.href);
-        await incrementShare.mutateAsync({ blogPostId, platform: 'clipboard' });
         toast.success('Link copied to clipboard!');
       }
     } catch (error) {
-      // User cancelled share or clipboard failed
+      console.error('Share error:', error);
+      // Ignore user cancellation of share dialog
       if (error instanceof Error && error.name !== 'AbortError') {
-        console.error('Share error:', error);
         toast.error('Failed to share article');
       }
     }
@@ -88,83 +73,63 @@ export default function BlogDetailPage() {
         content: data.content,
         parentId: data.parentId
       });
-      toast.success('Comment posted successfully!');
-      // Reset form by incrementing the reset key
-      setFormResetKey(prev => prev + 1);
+      toast.success('Comment submitted successfully!');
+      setCommentResetKey(prev => prev + 1);
     } catch (error) {
       console.error('Comment error:', error);
       toast.error('Failed to submit comment');
+      throw error;
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center">Memuat artikel...</div>
-      </div>
-    );
-  }
-
-  if (!post) {
-    return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center">Artikel tidak ditemukan</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-8">
       <article className="max-w-4xl mx-auto">
-        <img
-          src={post.imageUrl || '/assets/generated/blog-placeholder.dim_1200x630.png'}
-          alt={post.title}
-          className="w-full h-96 object-cover rounded-lg mb-8"
-        />
-        <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
-        <div className="flex items-center gap-4 text-gray-600 mb-8">
-          <span>Oleh {post.author}</span>
-          <span>•</span>
-          <span>{post.publishDate}</span>
-          <span>•</span>
-          <span>{Number(post.views)} tayangan</span>
-        </div>
-        <div className="prose max-w-none mb-8">
-          <p className="whitespace-pre-wrap">{post.content}</p>
-        </div>
-
-        {/* Blog Interactions Bar */}
-        {interactionSummary && (
-          <BlogInteractionsBar
-            blogPostId={blogPostId}
-            summary={interactionSummary}
-            onLike={handleLike}
-            onShare={handleShare}
-            onCommentToggle={() => setIsCommentFormOpen(!isCommentFormOpen)}
-            isCommentOpen={isCommentFormOpen}
-            isLiking={incrementLike.isPending}
-            isSharing={incrementShare.isPending}
+        <Card>
+          <img
+            src={blogPost.imageUrl}
+            alt={blogPost.title}
+            className="w-full h-96 object-cover rounded-t-lg"
           />
-        )}
+          <CardContent className="p-8">
+            <h1 className="text-4xl font-bold mb-4">{blogPost.title}</h1>
+            <div className="flex items-center gap-4 text-sm text-gray-500 mb-6">
+              <span>Oleh {blogPost.author}</span>
+              <span>•</span>
+              <span>{blogPost.publishDate}</span>
+              <span>•</span>
+              <span>{Number(blogPost.views)} views</span>
+            </div>
 
-        {/* Comment Form */}
-        {isCommentFormOpen && (
-          <div className="mt-6">
-            <BlogCommentForm
-              onSubmit={handleCommentSubmit}
-              isSubmitting={addComment.isPending}
-              resetKey={formResetKey}
-            />
-          </div>
-        )}
+            <div className="prose max-w-none mb-8" dangerouslySetInnerHTML={{ __html: blogPost.content }} />
 
-        {/* Comments Thread */}
-        <div className="mt-12">
-          <BlogCommentsThread
-            comments={comments}
+            {interactionSummary && (
+              <BlogInteractionsBar
+                blogPostId={blogPostId}
+                summary={interactionSummary}
+                onLike={handleLike}
+                onShare={handleShare}
+                onCommentToggle={() => setIsCommentOpen(!isCommentOpen)}
+                isCommentOpen={isCommentOpen}
+                isLiking={incrementLike.isPending}
+                isSharing={incrementShare.isPending}
+              />
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="mt-8 space-y-6">
+          <h2 className="text-2xl font-bold">Komentar</h2>
+          <BlogCommentForm 
+            onSubmit={handleCommentSubmit} 
+            isSubmitting={addComment.isPending}
+            resetKey={commentResetKey}
+          />
+          <BlogCommentsThread 
+            comments={comments} 
             onReply={handleCommentSubmit}
             isSubmitting={addComment.isPending}
-            resetKey={formResetKey}
+            resetKey={commentResetKey}
           />
         </div>
       </article>

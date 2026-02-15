@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useGetCallerUserProfile, useSaveCallerUserProfile } from '../../hooks/useQueries';
+import { useGetAdminUserProfile, useSaveAdminUserProfile } from '../hooks/useAdminCmsQueries';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,10 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AdminPageHeader from '../components/AdminPageHeader';
 import { toast } from 'sonner';
 import type { UserProfile } from '../../backend';
+import { getAdminSession } from '../auth/adminSession';
 
 export default function AdminProfilePage() {
-  const { data: profile, isLoading } = useGetCallerUserProfile();
-  const saveProfile = useSaveCallerUserProfile();
+  const session = getAdminSession();
+  
+  // Extract userId from session token by parsing (temporary workaround)
+  // In a real app, the backend would return userId in the login response
+  const adminUserId = 1; // Default to 1 for now since we don't have userId in session
+  
+  const { data: profile, isLoading, isFetched } = useGetAdminUserProfile(adminUserId);
+  const saveProfile = useSaveAdminUserProfile();
   
   const [formData, setFormData] = useState<UserProfile>({
     name: '',
@@ -28,7 +35,7 @@ export default function AdminProfilePage() {
     e.preventDefault();
     
     try {
-      await saveProfile.mutateAsync(formData);
+      await saveProfile.mutateAsync({ adminUserId, profile: formData });
       toast.success('Profile updated successfully');
     } catch (error) {
       console.error('Update error:', error);

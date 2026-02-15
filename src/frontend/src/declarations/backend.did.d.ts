@@ -45,6 +45,7 @@ export interface BlogPost {
   'imageUrl' : string,
   'seoDescription' : string,
 }
+export type BlogPostId = bigint;
 export interface CommercialVehicleFeatures {
   'bus' : boolean,
   'sixByTwo' : boolean,
@@ -112,6 +113,12 @@ export interface Promotion {
   'description' : string,
   'imageUrl' : string,
   'validUntil' : string,
+}
+export interface SiteBanner {
+  'id' : string,
+  'updatedAt' : Time,
+  'updatedBy' : bigint,
+  'imageUrl' : string,
 }
 export interface TechnicalSpecs {
   'weight' : string,
@@ -189,8 +196,8 @@ export interface _SERVICE {
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addBlogComment' : ActorMethod<[BlogCommentInput], BlogComment>,
-  'addContact' : ActorMethod<[Contact], boolean>,
-  'addCreditSimulation' : ActorMethod<[CreditSimulation], boolean>,
+  'addContact' : ActorMethod<[Contact], undefined>,
+  'addCreditSimulation' : ActorMethod<[CreditSimulation], undefined>,
   'adminLogin' : ActorMethod<
     [string, string],
     [] | [{ 'token' : string, 'role' : string }]
@@ -208,15 +215,21 @@ export interface _SERVICE {
   'createVehicle' : ActorMethod<[string, Vehicle], boolean>,
   'deleteBlogComment' : ActorMethod<[string, bigint, bigint], undefined>,
   'deleteBlogPost' : ActorMethod<[string, bigint], boolean>,
-  'deleteContact' : ActorMethod<[string, bigint], boolean>,
-  'deleteCreditSimulation' : ActorMethod<[string, bigint], boolean>,
+  'deleteContact' : ActorMethod<[string, bigint], undefined>,
+  'deleteCreditSimulation' : ActorMethod<[string, bigint], undefined>,
   'deleteMediaAsset' : ActorMethod<[string, bigint], boolean>,
   'deletePromotion' : ActorMethod<[string, bigint], boolean>,
   'deleteTestimonial' : ActorMethod<[string, bigint], boolean>,
   'deleteVehicle' : ActorMethod<[string, bigint], boolean>,
+  'getAdminUserProfile' : ActorMethod<[string, bigint], [] | [UserProfile]>,
+  'getAdminUserProfileByIdToken' : ActorMethod<
+    [string, bigint],
+    [] | [UserProfile]
+  >,
+  'getAllSiteBanners' : ActorMethod<[string], Array<SiteBanner>>,
   'getAndIncrementBlogPostViews' : ActorMethod<[bigint], [] | [BlogPost]>,
   'getBlogComment' : ActorMethod<[string, bigint, bigint], [] | [BlogComment]>,
-  'getBlogComments' : ActorMethod<[bigint], Array<BlogComment>>,
+  'getBlogComments' : ActorMethod<[BlogPostId], Array<BlogComment>>,
   'getBlogInteractionSummary' : ActorMethod<[bigint], BlogInteractionSummary>,
   'getBlogPost' : ActorMethod<[bigint], [] | [BlogPost]>,
   'getBlogPosts' : ActorMethod<[], Array<BlogPost>>,
@@ -228,10 +241,12 @@ export interface _SERVICE {
     [] | [Array<CreditSimulation>]
   >,
   'getExtendedVisitorStats' : ActorMethod<[string], ExtendedVisitorStats>,
+  'getFooterVisitorStats' : ActorMethod<[], ExtendedVisitorStats>,
   'getMediaAssets' : ActorMethod<[string], [] | [Array<MediaAsset>]>,
   'getProductInteraction' : ActorMethod<[bigint], [] | [Interaction]>,
   'getPromotion' : ActorMethod<[bigint], [] | [Promotion]>,
   'getPromotions' : ActorMethod<[], Array<Promotion>>,
+  'getSiteBanner' : ActorMethod<[string, string], [] | [SiteBanner]>,
   'getTestimonials' : ActorMethod<[], Array<Testimonial>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'getVehicle' : ActorMethod<[bigint], [] | [Vehicle]>,
@@ -242,6 +257,10 @@ export interface _SERVICE {
   'incrementVisitor' : ActorMethod<[], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'likeProduct' : ActorMethod<[bigint], undefined>,
+  'saveAdminUserProfile' : ActorMethod<
+    [string, bigint, UserProfile],
+    undefined
+  >,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'shareProduct' : ActorMethod<[bigint, string], undefined>,
   'updateBlogComment' : ActorMethod<
@@ -250,6 +269,7 @@ export interface _SERVICE {
   >,
   'updateBlogPost' : ActorMethod<[string, BlogPost], boolean>,
   'updatePromotion' : ActorMethod<[string, Promotion], boolean>,
+  'updateSiteBanner' : ActorMethod<[string, string, string], boolean>,
   'updateTestimonial' : ActorMethod<[string, Testimonial], boolean>,
   'updateVehicle' : ActorMethod<[string, Vehicle], boolean>,
   'userActivity' : ActorMethod<[string], undefined>,
