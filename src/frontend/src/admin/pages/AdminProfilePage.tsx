@@ -14,7 +14,7 @@ export default function AdminProfilePage() {
   
   // Extract userId from session token by parsing (temporary workaround)
   // In a real app, the backend would return userId in the login response
-  const adminUserId = 1; // Default to 1 for now since we don't have userId in session
+  const adminUserId = 1n; // Use bigint literal for type safety
   
   const { data: profile, isLoading, isFetched } = useGetAdminUserProfile(adminUserId);
   const saveProfile = useSaveAdminUserProfile();

@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import { useGetMediaAssets } from '../../hooks/useAdminCmsQueries';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import type { MediaAsset } from '../../../backend';
 
 interface MediaPickerDialogProps {
   open: boolean;
@@ -13,29 +18,60 @@ interface MediaPickerDialogProps {
   currentUrl?: string;
 }
 
-export default function MediaPickerDialog({ open, onOpenChange, onSelect, currentUrl }: MediaPickerDialogProps) {
-  const { data: assets = [], isLoading, error } = useGetMediaAssets();
-  const [search, setSearch] = useState('');
-  const [selectedAsset, setSelectedAsset] = useState<MediaAsset | null>(null);
+export default function MediaPickerDialog({
+  open,
+  onOpenChange,
+  onSelect,
+  currentUrl,
+}: MediaPickerDialogProps) {
+  const { data: mediaAssets = [], isLoading, isError, error, refetch } = useGetMediaAssets();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUrl, setSelectedUrl] = useState<string | null>(currentUrl || null);
 
-  const filteredAssets = assets.filter((asset) =>
-    asset.url.toLowerCase().includes(search.toLowerCase()) ||
-    asset.folder.toLowerCase().includes(search.toLowerCase())
+  const filteredAssets = mediaAssets.filter((asset) =>
+    asset.url.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleSelect = () => {
-    if (selectedAsset) {
-      onSelect(selectedAsset.url);
+    if (selectedUrl) {
+      onSelect(selectedUrl);
       onOpenChange(false);
-      setSelectedAsset(null);
-      setSearch('');
     }
   };
 
-  const isAuthError = error instanceof Error && 
-    (error.message.includes('Session expired') || 
-     error.message.includes('unauthorized') ||
-     error.message.includes('session required'));
+  if (isLoading) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Select Media</DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-8">Loading media library...</div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (isError) {
+    const errorMessage = error?.message || 'Unknown error';
+    const isSessionError = errorMessage.includes('session') || errorMessage.includes('Unauthorized');
+    
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Select Media</DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-8 text-gray-500">
+            {isSessionError ? 'Session expired. Please refresh the page.' : `Error: ${errorMessage}`}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => refetch()}>Retry</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -44,83 +80,81 @@ export default function MediaPickerDialog({ open, onOpenChange, onSelect, curren
           <DialogTitle>Select Media</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto">
-          {isLoading ? (
-            <div className="text-center py-8">Loading media...</div>
-          ) : error ? (
-            <div className="text-center py-8 text-red-600">
-              {isAuthError ? (
-                <>
-                  <p className="font-semibold mb-2">Session Expired</p>
-                  <p className="text-sm">Your admin session has expired. Please log in again to access media.</p>
-                </>
-              ) : (
-                <>Error loading media: {error instanceof Error ? error.message : 'Unknown error'}</>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search media..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+        <div className="flex items-center gap-2 px-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              type="text"
+              placeholder="Search media..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
 
-              {assets.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <p className="text-lg font-medium">No media yet.</p>
-                  <p className="text-sm mt-2">Upload media assets from the Media Manager to use them here.</p>
-                </div>
-              ) : filteredAssets.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  No media found matching your search.
-                </div>
-              ) : (
-                <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-                  {filteredAssets.map((asset) => (
-                    <div
-                      key={asset.id.toString()}
-                      onClick={() => setSelectedAsset(asset)}
-                      className={`cursor-pointer border-2 rounded-lg overflow-hidden transition-all ${
-                        selectedAsset?.id === asset.id
-                          ? 'border-[#C90010] ring-2 ring-[#C90010] ring-opacity-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="aspect-video bg-gray-100 flex items-center justify-center">
-                        {asset.typ.startsWith('image/') ? (
-                          <img 
-                            src={asset.url} 
-                            alt="Media asset" 
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="text-gray-400 text-xs">{asset.typ}</div>
-                        )}
-                      </div>
-                      <div className="p-2 bg-white">
-                        <p className="text-xs text-gray-500 truncate">{asset.folder}</p>
-                      </div>
+        <div className="flex-1 overflow-y-auto px-6">
+          {filteredAssets.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              {searchQuery ? 'No media found matching your search.' : 'No media yet.'}
+            </div>
+          )}
+
+          {filteredAssets.length > 0 && (
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-4 py-4">
+              {filteredAssets.map((asset) => {
+                const isImage = asset.typ.startsWith('image/');
+                const isSelected = selectedUrl === asset.url;
+
+                return (
+                  <div
+                    key={asset.id.toString()}
+                    onClick={() => setSelectedUrl(asset.url)}
+                    className={`relative cursor-pointer border-2 rounded-lg overflow-hidden transition-all ${
+                      isSelected
+                        ? 'border-[#C90010] ring-2 ring-[#C90010] ring-opacity-50'
+                        : 'border-gray-200 hover:border-gray-400'
+                    }`}
+                  >
+                    <div className="aspect-square bg-gray-100 flex items-center justify-center">
+                      {isImage ? (
+                        <img
+                          src={asset.url}
+                          alt="Media asset"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/assets/generated/vehicle-passenger-placeholder.dim_1200x800.png';
+                          }}
+                        />
+                      ) : (
+                        <div className="text-gray-400 text-xs text-center p-2">
+                          {asset.typ || 'File'}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </>
+                    {isSelected && (
+                      <div className="absolute inset-0 bg-[#C90010] bg-opacity-20 flex items-center justify-center">
+                        <div className="bg-[#C90010] text-white rounded-full w-8 h-8 flex items-center justify-center">
+                          ✓
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="px-6 pb-6">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleSelect} 
-            disabled={!selectedAsset}
-            className="bg-[#C90010] hover:bg-[#a00010]"
+          <Button
+            onClick={handleSelect}
+            disabled={!selectedUrl}
+            className="admin-btn-primary"
           >
             Select
           </Button>

@@ -1,109 +1,151 @@
 {
   "kind": "build_request",
-  "title": "Fix Admin Visitor Stats layout, Admin Profile saving, Admin UI consistency, and add homepage banner controls in Media",
+  "title": "Homepage vertical main-banner slider + CTA banner layout fixes + restore About section + fix Admin Media Library rendering",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-137",
-      "text": "Update the Admin Visitor Statistics page so the statistic cards render in a 2 x 5 grid layout (2 columns, up to 5 rows) with no horizontal overflow on any screen size, replacing the current layout that scrolls too far to the right.",
+      "id": "REQ-141",
+      "text": "Implement a 2-image Home page Main Banner that alternates automatically using a vertical (slide-up) transition, while keeping the current banner position and overall size unchanged.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-6"
         ],
         "quotes": [
-          "- Grid kartu statistik pada admin panel terlalu panjang ke kanan, tolong rubah agar grid dibuat 2 x 5."
+          "Gambar Main banner dihalaman utama sudah benar posisi dan ukuran nya, tambahkan 1 gambar lagi agar gambar bisa bergantian tampil dengan cara slide keatas"
         ]
       },
       "acceptanceCriteria": [
-        "On /admin/stats, the statistics cards are laid out as 2 columns and wrap into rows (up to 5 rows) without requiring horizontal scrolling.",
-        "No stat cards are cut off or overflow the page horizontally at common breakpoints (mobile/tablet/desktop).",
-        "The existing metrics shown (and their values) remain unchanged; only the layout/overflow behavior is fixed."
+        "The Home page main banner displays 2 images and automatically alternates between them using a vertical slide-up animation.",
+        "The banner remains at the top of the Home page (below the navbar) and keeps the same layout footprint as the current single banner.",
+        "If only 1 image is configured, the banner renders that single image with no sliding animation."
       ]
     },
     {
-      "id": "REQ-138",
-      "text": "Fix the Admin User Profile page so an admin can reliably save/update profile information and the changes persist and are reloaded correctly on refresh.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "- Saya tidak bisa menyimpan profil information pada user admin profil, tolong perbaiki agar bisa menyimpan data profil dan berfungsi dengan baik."
-        ]
-      },
-      "acceptanceCriteria": [
-        "On /admin/profile, editing Name/Email/Phone and clicking “Save Changes” successfully persists the updated profile without errors.",
-        "After saving, reloading the page shows the newly saved profile values.",
-        "Profile save/load uses admin session-based authorization (the same session token used by other /admin CMS calls) and does not depend on caller Principal-based “user” permissions.",
-        "Any success/error messages shown to the admin remain in English (e.g., existing toasts)."
-      ]
-    },
-    {
-      "id": "REQ-139",
-      "text": "Polish and normalize the Admin panel UI styling for a more aesthetic and consistent look, and ensure the currently selected sidebar/menu item has a clear red accent highlight.",
+      "id": "REQ-142",
+      "text": "Extend the Admin Media area (/admin/media) to support uploading and managing the Home page Main Banner images (minimum 2), in addition to the existing CTA banner selection.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-6"
         ],
         "quotes": [
-          "- Rapihkan tampilan UI admin panel agar lebih estetik dan seragam, beri aksen warna merah pada menu yang dipilih."
+          "tambah juga menu upload gambar main banner pada media diadmin panel."
         ]
       },
       "acceptanceCriteria": [
-        "The active sidebar item in /admin clearly displays a red accent highlight state that is visually distinct from hover and inactive states.",
-        "The active-state styling works correctly across all admin routes, including query-string routes like /admin/vehicles?category=passenger vs /admin/vehicles?category=commercial.",
-        "Admin UI changes are visual-only (no route changes, no data wiring changes)."
+        "/admin/media provides a clear section to manage 'Home Main Banner' images and allows uploading media directly into that banner set.",
+        "An admin can set at least two images for the Home main banner without leaving /admin/media.",
+        "All newly introduced admin UI text is in English."
       ]
     },
     {
-      "id": "REQ-140",
-      "text": "Add admin functionality inside the /admin Media area to manage the Home page Main Banner image (rendered directly below the Navbar) and the Home page CTA Banner image, so admins can replace those two homepage images from the admin panel using existing Media Assets (upload/select).",
+      "id": "REQ-143",
+      "text": "Add/extend backend APIs and persistence needed to store and serve a list of Home page Main Banner image URLs (ordered), and make them publicly readable by the Home page without requiring an admin session.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "tambahkan 1 gambar lagi agar gambar bisa bergantian tampil dengan cara slide keatas"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The canister stores an ordered list of main-banner image URLs (minimum 2) and returns them via a public (no-session) query for the public website.",
+        "The existing admin banner configuration behavior for the Home CTA banner remains supported.",
+        "Public access returns stable values (does not always return null/defaults) so the Home page can render the configured banner images."
+      ]
+    },
+    {
+      "id": "REQ-144",
+      "text": "Update the public React Query hook used by the Home page to fetch real banner configuration from the backend (instead of returning only defaults), and wire it into the Home page banner rendering.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "tambahkan 1 gambar lagi agar gambar bisa bergantian tampil dengan cara slide keatas"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The public hook currently named useGetPublicSiteBanners returns real backend values for main banner image URLs and CTA banner URL when configured.",
+        "HomePage uses the returned values to render the configured main banner slider and CTA banner.",
+        "If the backend returns no configured URLs, the existing fallback static assets continue to be used."
+      ]
+    },
+    {
+      "id": "REQ-145",
+      "text": "Adjust the Home page CTA banner section layout so it touches the adjacent sections vertically (no top/bottom margin), is flush to the outer left/right edges on mobile (full-bleed), does not become tall like the main banner, and uses a dark gray/black background behind it.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Ubah ukuran gambar cta banner dengan menjadi atas bawah menempel langsung dengan Section lain/tanpa margin, dan kanan kiri menempel langsung kebatas margin luar, sehingga pada mobile view tampil penuh, tidak memanjang seperti main banner, warna background hitam abu."
+        ]
+      },
+      "acceptanceCriteria": [
+        "The CTA banner has no extra vertical spacing above/below it and visually touches the sections before/after it.",
+        "On mobile, the CTA banner is full-bleed (flush to the viewport edges) with no container side padding.",
+        "The CTA banner does not grow excessively tall; it renders with a controlled height appropriate for a CTA strip/banner (distinct from the main hero banner).",
+        "The CTA banner section background is dark gray/black."
+      ]
+    },
+    {
+      "id": "REQ-146",
+      "text": "Restore the Home page 'About Us / Tentang Kami' section design and colors to the previous styling used before the recent changes (including restoring the intended background color treatment).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Kembalikan desain dan warna Section Tentang Kami di halaman utama seperti sebelumnya."
+        ]
+      },
+      "acceptanceCriteria": [
+        "The Home page About section styling (layout + color treatment) matches the earlier design used before the recent changes.",
+        "The section uses the intended brand-consistent About-section color styling (no unintended gray/white card-only presentation if it was previously a colored section)."
+      ]
+    },
+    {
+      "id": "REQ-147",
+      "text": "Fix the Admin Media Library so uploaded images reliably appear in the list/grid after upload and on refresh (no error state), including ensuring the backing get/list media API returns the stored assets and the UI renders them correctly.",
       "target": "both",
       "source": {
         "messageIds": [
           "msg-6"
         ],
         "quotes": [
-          "- Tambahkan fungsi didalam menu Media pada admin panel agar membuat menu untuk mengganti gambar Main Banner dan gambar CTA Banner dihalaman utama, gambar Main Banner terletak tepat dibawah navbar yang saat ini berupa hero section berwarna merah dihalaman utama."
+          "Sekalian perbaiki Media library di admin panel karena error tidak bisa menampilkan gambar yang di upload."
         ]
       },
       "acceptanceCriteria": [
-        "In /admin/media, there is a clearly labeled admin-only section (English text) that allows selecting (and/or uploading then selecting) a Media Asset for (1) “Home Main Banner” and (2) “Home CTA Banner”, and saving those selections.",
-        "The selected banner settings persist in canister stable storage and survive refresh/redeploy/upgrade according to the project’s persistence approach.",
-        "On the public Home page (/), the “Main Banner” image renders directly below the Navbar and replaces the current red HeroSection on the Home page only (other public pages keep the existing red hero section behavior).",
-        "On the public Home page (/), the CTA banner image uses the admin-configured CTA Banner asset; if not configured, the page falls back to the current existing CTA banner behavior (e.g., the current static CTA Banner image).",
-        "No admin panel routes are changed; this is added within the existing /admin/media page and the existing public Home page route."
+        "Uploading an image in /admin/media succeeds and the image appears in the Media Library grid without requiring a hard reload.",
+        "After a browser refresh, previously uploaded media still loads and displays in the Media Library.",
+        "The Media Library does not show a persistent error state when valid admin session credentials are present.",
+        "All user-facing admin error/empty/loading messages involved in this fix remain in English."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend/src/components/ui (immutable shadcn components).",
-    "Keep the existing TanStack Router route structure intact; add functionality within existing pages/routes.",
-    "Use English for any new user-facing text added in the admin UI.",
-    "Backend must remain a single Motoko actor (backend/main.mo). Add backend state migration (backend/migration.mo) only if required for upgrade-safe state changes.",
-    "Do not remove or break existing Media Manager listing/upload/delete behavior; banner controls must be additive."
+    "Start requirement numbering at REQ-141 and increment sequentially.",
+    "Do not modify any files under frontend/src/components/ui (immutable Shadcn components).",
+    "Do not modify frontend immutable paths listed in SYSTEM_CONTEXT.",
+    "Use English for any new or changed user-facing text.",
+    "Backend must remain a single Motoko actor in backend/main.mo; only add backend/migration.mo changes if required by stable-state upgrades."
   ],
   "nonGoals": [
-    "Adding a new public page or changing public navigation structure.",
-    "Introducing third-party storage/CDNs for banner images (must use the existing canister-backed Media Manager assets).",
-    "Changing the set of visitor-stat metrics displayed on the admin stats page beyond fixing the layout.",
-    "Implementing a multi-image homepage slider/carousel (only a single Main Banner image and a single CTA Banner image are required)."
+    "No changes to public site routing or navigation structure beyond the Home page banner/sections requested.",
+    "No redesign of other Home page sections (Featured Vehicles, Latest Blog Posts) beyond spacing effects needed to make the CTA banner touch adjacent sections.",
+    "No new third-party slider libraries unless already present; keep the implementation within the existing stack.",
+    "No changes to admin authentication/session storage keys or flow unless strictly required to fix Media Library loading."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

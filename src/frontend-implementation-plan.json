@@ -1,117 +1,152 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin layout fixes, admin profile persistence, UI consistency, and homepage banner controls",
+  "title": "Home vertical main-banner slider, CTA/About layout fixes, and Admin Media banner + library reliability",
   "requirements": [
     {
-      "id": "REQ-137",
-      "summary": "Render Admin Visitor Statistics cards in a fixed 2-column grid with wrapping and no horizontal overflow at any breakpoint.",
+      "id": "REQ-141",
+      "summary": "Add a 2-image Home main banner that auto-rotates with a vertical slide-up animation while preserving the current hero footprint.",
       "acceptanceCriteria": [
-        "On /admin/stats, the statistics cards are laid out as 2 columns and wrap into rows (up to 5 rows) without requiring horizontal scrolling.",
-        "No stat cards are cut off or overflow the page horizontally at common breakpoints (mobile/tablet/desktop).",
-        "The existing metrics shown (and their values) remain unchanged; only the layout/overflow behavior is fixed."
+        "The Home page main banner displays 2 images and automatically alternates between them using a vertical slide-up animation.",
+        "The banner remains at the top of the Home page (below the navbar) and keeps the same layout footprint as the current single banner.",
+        "If only 1 image is configured, the banner renders that single image with no sliding animation."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
-          "operation": "modify",
-          "description": "Replace the current mobile horizontal-scroll container with a responsive CSS grid that is always 2 columns (and wraps into additional rows), ensuring no overflow-x on any screen size while keeping the existing statCards data and values unchanged."
-        },
-        {
-          "path": "frontend/src/admin/styles/adminTheme.css",
-          "operation": "modify",
-          "description": "Remove/avoid reliance on the mobile-only horizontal stat scroll styling for the stats page, and (if needed) add scoped utility classes to guarantee cards have min-width: 0 and the container prevents horizontal overflow. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-138",
-      "summary": "Fix Admin Profile save/load to use admin session token-based backend capabilities so updates persist and reload correctly.",
-      "acceptanceCriteria": [
-        "On /admin/profile, editing Name/Email/Phone and clicking “Save Changes” successfully persists the updated profile without errors.",
-        "After saving, reloading the page shows the newly saved profile values.",
-        "Profile save/load uses admin session-based authorization (the same session token used by other /admin CMS calls) and does not depend on caller Principal-based “user” permissions.",
-        "Any success/error messages shown to the admin remain in English (e.g., existing toasts)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-          "operation": "modify",
-          "description": "Add React Query hooks for admin-profile load/save using the existing admin session token from adminSession (similar to other CMS hooks) and the backend functions intended for admin session-based profile management. Ensure queries invalidate and refetch after save for refresh persistence."
-        },
-        {
-          "path": "frontend/src/admin/pages/AdminProfilePage.tsx",
-          "operation": "modify",
-          "description": "Switch the page to use the new admin session-based profile hooks (instead of principal-based useGetCallerUserProfile/useSaveCallerUserProfile), keep the existing form fields (Name/Email/Phone) and English toasts, and ensure the form state is populated from the loaded admin profile and persists on refresh."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Stop using the public/principal-based user-profile hooks from the admin profile page (keep the hooks available for non-admin usage if needed elsewhere). Ensure no admin flows depend on Principal-based “user” permissions. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-139",
-      "summary": "Normalize Admin panel styling for consistency and ensure active sidebar item has a clear red accent highlight across all admin routes (including query-string routes).",
-      "acceptanceCriteria": [
-        "The active sidebar item in /admin clearly displays a red accent highlight state that is visually distinct from hover and inactive states.",
-        "The active-state styling works correctly across all admin routes, including query-string routes like /admin/vehicles?category=passenger vs /admin/vehicles?category=commercial.",
-        "Admin UI changes are visual-only (no route changes, no data wiring changes)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/admin/styles/adminTheme.css",
-          "operation": "modify",
-          "description": "Introduce/adjust consistent styling rules for the sidebar nav items used by AdminLayout (e.g., .admin-nav-item and its .active state) so the active item has a clear red accent (background and/or left border) distinct from hover/inactive states, and normalize spacing/typography for a more consistent admin look. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/admin/AdminLayout.tsx",
-          "operation": "modify",
-          "description": "Align class names and active-state class application with the admin theme so the computed active item (including query-string-aware vehicle categories) reliably receives the red-accent active styling across all admin routes, without changing routes or navigation structure."
-        }
-      ]
-    },
-    {
-      "id": "REQ-140",
-      "summary": "Add banner controls in existing Admin Media page to configure Home Main Banner and Home CTA Banner from Media Assets, and render those banners on the public Home page with required fallbacks.",
-      "acceptanceCriteria": [
-        "In /admin/media, there is a clearly labeled admin-only section (English text) that allows selecting (and/or uploading then selecting) a Media Asset for (1) “Home Main Banner” and (2) “Home CTA Banner”, and saving those selections.",
-        "The selected banner settings persist in canister stable storage and survive refresh/redeploy/upgrade according to the project’s persistence approach.",
-        "On the public Home page (/), the “Main Banner” image renders directly below the Navbar and replaces the current red HeroSection on the Home page only (other public pages keep the existing red hero section behavior).",
-        "On the public Home page (/), the CTA banner image uses the admin-configured CTA Banner asset; if not configured, the page falls back to the current existing CTA banner behavior (e.g., the current static CTA Banner image).",
-        "No admin panel routes are changed; this is added within the existing /admin/media page and the existing public Home page route."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/admin/hooks/useAdminCmsQueries.ts",
-          "operation": "modify",
-          "description": "Add admin-session React Query hooks to load and update the two banner settings (Home Main Banner and Home CTA Banner) via the existing backend capabilities for site banners, invalidating relevant queries on save so admin UI reflects persisted settings."
-        },
-        {
-          "path": "frontend/src/admin/pages/MediaManagerPage.tsx",
-          "operation": "modify",
-          "description": "Add an additive, clearly labeled English section within the existing Media Manager page for configuring “Home Main Banner” and “Home CTA Banner”. Use the existing MediaPickerDialog for selecting assets and keep the existing Media Manager listing/upload/delete behavior unchanged. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/admin/components/media/MediaPickerDialog.tsx",
-          "operation": "modify",
-          "description": "If necessary, extend the dialog’s exposed API (props/callbacks) to support the banner-selection workflow (select asset + confirm) without breaking existing usages. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add public Home page query hooks to read the configured banner image URLs and provide safe fallbacks when not configured or not accessible (e.g., fall back for CTA to the existing static CTA banner). Ensure these hooks do not require admin-only UI state. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Update only the Home route’s PublicLayout usage so the Home page can replace the hero section (e.g., pass hideHero for / only), while leaving all other public routes’ hero behavior unchanged. Keep the existing TanStack Router structure intact."
+          "path": "frontend/src/components/home/HomeMainBannerSlider.tsx",
+          "operation": "create",
+          "description": "Create a lightweight, no-third-party vertical (slide-up) image slider component that accepts an ordered list of image URLs and auto-rotates; ensure it renders a single static image when only one URL is provided."
         },
         {
           "path": "frontend/src/pages/HomePage.tsx",
           "operation": "modify",
-          "description": "Render the configured “Home Main Banner” image directly below the Navbar (as the first content on the page) and remove reliance on the default red HeroSection for the Home route. Update the CTA banner section to use the configured “Home CTA Banner” image when set; otherwise fall back to the current existing CTA banner behavior. If a default main banner image is needed when not configured, use an existing generated asset at frontend/public/assets/generated/home-banner-1.dim_1920x720.png. Verify the component's usage instructions before implementing."
+          "description": "Replace the single main banner <img> with the new HomeMainBannerSlider and keep the banner section placement and dimensions consistent with the existing layout."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add global CSS (or Tailwind-compatible keyframes/classes) to support the vertical slide-up animation and an overflow-hidden banner viewport without changing the banner footprint."
+        }
+      ]
+    },
+    {
+      "id": "REQ-142",
+      "summary": "Extend /admin/media to upload and manage an ordered set of Home main banner slider images (min 2) alongside existing CTA banner configuration.",
+      "acceptanceCriteria": [
+        "/admin/media provides a clear section to manage 'Home Main Banner' images and allows uploading media directly into that banner set.",
+        "An admin can set at least two images for the Home main banner without leaving /admin/media.",
+        "All newly introduced admin UI text is in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/admin/pages/MediaManagerPage.tsx",
+          "operation": "modify",
+          "description": "Update the banner configuration card to include a dedicated 'Home Main Banner (Slider)' manager with English UI text, supporting adding multiple images, ordering, and removing; keep existing CTA banner selection intact."
+        },
+        {
+          "path": "frontend/src/admin/components/media/HomeMainBannerManager.tsx",
+          "operation": "create",
+          "description": "Create an admin-only manager component for the Home main banner image set that integrates selection (via existing MediaPickerDialog) and direct upload into a dedicated folder/set. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/components/media/MediaUploadButton.tsx",
+          "operation": "modify",
+          "description": "Extend MediaUploadButton to better support banner-specific uploads (e.g., pass folder and an onUploadComplete callback from the new HomeMainBannerManager) so admins can upload directly into the Home main banner set from /admin/media. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-144",
+      "summary": "Make useGetPublicSiteBanners return real backend banner configuration (main banner URLs + CTA URL) and wire the returned values into Home rendering with fallbacks.",
+      "acceptanceCriteria": [
+        "The public hook currently named useGetPublicSiteBanners returns real backend values for main banner image URLs and CTA banner URL when configured.",
+        "HomePage uses the returned values to render the configured main banner slider and CTA banner.",
+        "If the backend returns no configured URLs, the existing fallback static assets continue to be used."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update useGetPublicSiteBanners to fetch the ordered main banner image URL list using the backend capability already available (getMainBannerImageUrls), and to retrieve a configured CTA banner URL when available; preserve fallback behavior when no configuration exists."
+        },
+        {
+          "path": "frontend/src/pages/HomePage.tsx",
+          "operation": "modify",
+          "description": "Wire HomePage to use useGetPublicSiteBanners results for (a) main banner slider URL list and (b) CTA banner URL, falling back to existing static generated assets when values are missing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-145",
+      "summary": "Fix Home CTA banner section spacing and sizing: flush to adjacent sections, full-bleed on mobile, controlled height, and dark background.",
+      "acceptanceCriteria": [
+        "The CTA banner has no extra vertical spacing above/below it and visually touches the sections before/after it.",
+        "On mobile, the CTA banner is full-bleed (flush to the viewport edges) with no container side padding.",
+        "The CTA banner does not grow excessively tall; it renders with a controlled height appropriate for a CTA strip/banner (distinct from the main hero banner).",
+        "The CTA banner section background is dark gray/black."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/HomePage.tsx",
+          "operation": "modify",
+          "description": "Adjust Featured Vehicles bottom spacing and About section top spacing so the CTA section touches adjacent sections; render CTA inside a dark background wrapper with controlled height and object-cover behavior; ensure mobile is full-bleed with no side padding."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add/adjust any shared styles needed for a consistent full-bleed CTA banner wrapper and controlled banner heights without impacting other sections."
+        }
+      ]
+    },
+    {
+      "id": "REQ-146",
+      "summary": "Restore the Home 'About Us / Tentang Kami' section styling and background color treatment to the earlier design.",
+      "acceptanceCriteria": [
+        "The Home page About section styling (layout + color treatment) matches the earlier design used before the recent changes.",
+        "The section uses the intended brand-consistent About-section color styling (no unintended gray/white card-only presentation if it was previously a colored section)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/HomePage.tsx",
+          "operation": "modify",
+          "description": "Update the About section markup and Tailwind classes to restore the previous design and background color treatment (remove the unintended card-only/neutral presentation if applicable) while keeping the section content and placement."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "If needed, restore or reintroduce the prior About section color tokens/classes (using existing global styling entry points) to match the earlier brand-consistent design."
+        }
+      ]
+    },
+    {
+      "id": "REQ-147",
+      "summary": "Make Admin Media Library reliably render uploaded images after upload and after refresh, with stable loading/error handling in English.",
+      "acceptanceCriteria": [
+        "Uploading an image in /admin/media succeeds and the image appears in the Media Library grid without requiring a hard reload.",
+        "After a browser refresh, previously uploaded media still loads and displays in the Media Library.",
+        "The Media Library does not show a persistent error state when valid admin session credentials are present.",
+        "All user-facing admin error/empty/loading messages involved in this fix remain in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/admin/hooks/useAdminCmsQueries.ts",
+          "operation": "modify",
+          "description": "Harden media query behavior so a transient session-token resolution issue does not permanently stick the Media Library in an error state; ensure successful uploads and deletes reliably trigger media list refresh (React Query invalidation/refetch) while keeping admin messages in English."
+        },
+        {
+          "path": "frontend/src/admin/components/media/MediaManagerPanel.tsx",
+          "operation": "modify",
+          "description": "Improve Media Library rendering robustness: tolerate unexpected media types, handle broken image URLs gracefully, and ensure the grid updates immediately after uploads via query refresh; keep all admin-facing empty/loading/error strings in English."
+        },
+        {
+          "path": "frontend/src/admin/components/media/MediaUploadButton.tsx",
+          "operation": "modify",
+          "description": "Improve upload reliability by integrating the blob-storage component's ExternalBlob-based workflow for generating a stable direct URL (instead of relying on large data URLs where applicable), then create the MediaAsset using that URL and refresh the media list. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/admin/components/media/MediaPickerDialog.tsx",
+          "operation": "modify",
+          "description": "Ensure the picker dialog reflects newly uploaded assets without requiring a hard reload (e.g., by triggering/refetching the shared media query) and maintains English loading/empty/error messaging."
         }
       ]
     }

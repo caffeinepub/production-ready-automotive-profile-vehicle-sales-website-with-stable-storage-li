@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 61,
+  "projectStateVersion": 63,
   "summary": "Automotive company profile + vehicle sales website with production-ready backend/frontend separation, stable persistence (upgrade/redeploy safe), live CMS admin panel, media manager, SEO/performance, product & article interactions, and seeded content.",
   "architectural_notes": [
     "Use stable persistence only (no in-memory) and ensure upgrade/redeploy-safe data migrations with auto-restore after redeploy.",
@@ -787,6 +787,54 @@
         "REQ-140"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-implement-a-2-image-home-page-main-banner-that-alternates-automatically-using-a-vertical-slide-up-transition-while-keeping-the-current-banner-position-and-overall-size-unchanged",
+      "title": "Implement a 2-image Home page Main Banner that alternates automatically using a vertical (slide-up) transition, while keeping the current banner position and overall size unchanged.",
+      "reqIds": [
+        "REQ-141"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-the-admin-media-area-admin-media-to-support-uploading-and-managing-the-home-page-main-banner-images-minimum-2-in-addition-to-the-existing-cta-banner-selection",
+      "title": "Extend the Admin Media area (/admin/media) to support uploading and managing the Home page Main Banner images (minimum 2), in addition to the existing CTA banner selection.",
+      "reqIds": [
+        "REQ-142"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-public-react-query-hook-used-by-the-home-page-to-fetch-real-banner-configuration-from-the-backend-instead-of-returning-only-defaults-and-wire-it-into-the-home-page-banner-rendering",
+      "title": "Update the public React Query hook used by the Home page to fetch real banner configuration from the backend (instead of returning only defaults), and wire it into the Home page banner rendering.",
+      "reqIds": [
+        "REQ-144"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-adjust-the-home-page-cta-banner-section-layout-so-it-touches-the-adjacent-sections-vertically-no-top-bottom-margin-is-flush-to-the-outer-left-right-edges-on-mobile-full-bleed-does-not-become-tall-like-the-main-banner-and-uses-a-dark-gray-black-background-behind-it",
+      "title": "Adjust the Home page CTA banner section layout so it touches the adjacent sections vertically (no top/bottom margin), is flush to the outer left/right edges on mobile (full-bleed), does not become tall like the main banner, and uses a dark gray/black background behind it.",
+      "reqIds": [
+        "REQ-145"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-restore-the-home-page-about-us-tentang-kami-section-design-and-colors-to-the-previous-styling-used-before-the-recent-changes-including-restoring-the-intended-background-color-treatment",
+      "title": "Restore the Home page 'About Us / Tentang Kami' section design and colors to the previous styling used before the recent changes (including restoring the intended background color treatment).",
+      "reqIds": [
+        "REQ-146"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-admin-media-library-so-uploaded-images-reliably-appear-in-the-list-grid-after-upload-and-on-refresh-no-error-state-including-ensuring-the-backing-get-list-media-api-returns-the-stored-assets-and-the-ui-renders-them-correctly",
+      "title": "Fix the Admin Media Library so uploaded images reliably appear in the list/grid after upload and on refresh (no error state), including ensuring the backing get/list media API returns the stored assets and the UI renders them correctly.",
+      "reqIds": [
+        "REQ-147"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -1466,6 +1514,32 @@
       "id": "AR-134",
       "summary": "Admin Media enhancement: add tools/menus to replace the Home page Main Banner image (below navbar) and CTA Banner image via the Media menu, so admins can update these homepage images from the admin panel",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-135",
+      "summary": "Home page Main Banner: add a second banner image and enable an auto-rotating vertical (slide-up) slider so the two images alternate; keep current main banner position/size; add admin UI under /admin Media to upload/manage Main Banner images.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-136",
+      "summary": "Home page CTA Banner: remove vertical margins so it touches adjacent sections; make it full-width (left/right flush to outer margins) on mobile; ensure it does not become tall like the main banner; set CTA banner background color to dark gray/black.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-137",
+      "summary": "Home page 'Tentang Kami' section: restore the previous design and color styling as it was before the recent changes.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-140",
+      "summary": "Add/extend backend APIs and persistence needed to store and serve a list of Home page Main Banner image URLs (ordered), and make them publicly readable by the Home page without requiring an admin session.",
+      "reqIds": [
+        "REQ-143"
+      ],
       "status": "pending"
     }
   ],

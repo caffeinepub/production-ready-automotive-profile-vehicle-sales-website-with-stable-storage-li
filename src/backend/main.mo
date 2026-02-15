@@ -7,14 +7,13 @@ import Time "mo:core/Time";
 import Iter "mo:core/Iter";
 import Int "mo:core/Int";
 import Array "mo:core/Array";
-import Migration "migration";
 
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
+import Migration "migration";
 
-// Specify the data migration function in with-clause
 (with migration = Migration.run)
 actor {
   type AdminUserId = Nat;
@@ -237,6 +236,9 @@ actor {
   let siteBanners = Map.empty<Text, SiteBanner>();
   var nextBlogCommentId : Nat = 1;
 
+  // Backend API extension for main banner
+  var mainBannerImageUrls : [Text] = [];
+
   let nowMagicallyNeverZero = 1700000000_000_000_001;
   var visitorStats : VisitorStats = {
     totalVisitors = 1;
@@ -262,6 +264,16 @@ actor {
     monthlyTraffic : Nat;
     yearlyTraffic : Nat;
     onlineVisitors : Nat;
+  };
+
+  // Backend API extension for main banner
+  public shared ({ caller }) func getMainBannerImageUrls() : async [Text] {
+    mainBannerImageUrls;
+  };
+
+  public shared ({ caller }) func updateMainBannerImageUrls(sessionToken : Text, newUrls : [Text]) : async () {
+    let _session = requireAdminSession(sessionToken);
+    mainBannerImageUrls := newUrls;
   };
 
   public shared ({ caller }) func adminLogin(email : Text, password : Text) : async ?{ token : Text; role : Text } {
@@ -682,6 +694,11 @@ actor {
     let _session = requireAdminSession(sessionToken);
     mediaAssets.remove(id);
     true;
+  };
+
+  public query ({ caller }) func getAllMediaAssets() : async [MediaAsset] {
+    let mediaAssetsArray = mediaAssets.values().toArray();
+    mediaAssetsArray;
   };
 
   public shared ({ caller }) func getMediaAssets(sessionToken : Text) : async ?[MediaAsset] {

@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { MessageSquare, Search } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import SectionTitle from '../components/public/SectionTitle';
+import HomeMainBannerSlider from '../components/home/HomeMainBannerSlider';
 
 export default function HomePage() {
   const { data: vehicles = [], isLoading: vehiclesLoading } = useGetVehicles();
@@ -16,21 +17,22 @@ export default function HomePage() {
   const publishedBlogPosts = blogPosts.filter((p) => p.published);
   const latestBlogPosts = publishedBlogPosts.slice(0, 3);
 
-  // Use configured main banner or fallback to default
-  const mainBannerUrl = banners?.mainBanner || '/assets/generated/home-banner-1.dim_1920x720.png';
+  // Use configured main banner URLs or fallback to defaults
+  const mainBannerUrls = banners?.mainBannerUrls && banners.mainBannerUrls.length > 0
+    ? banners.mainBannerUrls
+    : [
+        '/assets/generated/home-banner-1.dim_1920x720.png',
+        '/assets/generated/home-banner-2.dim_1920x720.png',
+      ];
   
   // Use configured CTA banner or fallback to default
   const ctaBannerUrl = banners?.ctaBanner || '/assets/generated/home-cta-banner.dim_1920x400.png';
 
   return (
     <div className="w-full">
-      {/* Main Banner - replaces hero section on home page */}
+      {/* Main Banner Slider - replaces hero section on home page */}
       <section className="w-full">
-        <img
-          src={mainBannerUrl}
-          alt="Mitsubishi Motors Banner"
-          className="w-full h-auto object-cover"
-        />
+        <HomeMainBannerSlider imageUrls={mainBannerUrls} />
       </section>
 
       {/* Featured Vehicles Section */}
@@ -50,35 +52,39 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* CTA Banner Section - full bleed */}
-      <section className="w-full">
-        <img
-          src={ctaBannerUrl}
-          alt="Mitsubishi CTA Banner"
-          className="w-full h-auto object-cover"
-        />
+      {/* CTA Banner Section - full bleed with dark background */}
+      <section className="w-full bg-gray-900 cta-banner-section">
+        <div className="w-full">
+          <img
+            src={ctaBannerUrl}
+            alt="Mitsubishi CTA Banner"
+            className="w-full h-[200px] md:h-[300px] lg:h-[400px] object-cover"
+          />
+        </div>
       </section>
 
-      {/* About Section */}
-      <section className="container mx-auto px-4 py-16">
-        <SectionTitle icon={MessageSquare}>Tentang Kami</SectionTitle>
+      {/* About Section - restored previous design */}
+      <section className="py-16 bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="container mx-auto px-4">
+          <SectionTitle icon={MessageSquare}>Tentang Kami</SectionTitle>
 
-        <Card className="max-w-4xl mx-auto mt-8">
-          <CardContent className="p-8">
-            <p className="text-gray-700 leading-relaxed mb-4">
-              Selamat datang di dealer resmi Mitsubishi Motors. Kami berkomitmen untuk memberikan
-              layanan terbaik dan kendaraan berkualitas tinggi untuk memenuhi kebutuhan mobilitas Anda.
-            </p>
-            <p className="text-gray-700 leading-relaxed">
-              Dengan berbagai pilihan kendaraan keluarga dan niaga, kami siap membantu Anda menemukan
-              kendaraan yang sempurna untuk gaya hidup dan bisnis Anda.
-            </p>
-          </CardContent>
-        </Card>
+          <div className="max-w-4xl mx-auto mt-8">
+            <div className="bg-white rounded-xl shadow-lg p-8 md:p-12">
+              <p className="text-gray-700 leading-relaxed mb-6 text-lg">
+                Selamat datang di dealer resmi Mitsubishi Motors. Kami berkomitmen untuk memberikan
+                layanan terbaik dan kendaraan berkualitas tinggi untuk memenuhi kebutuhan mobilitas Anda.
+              </p>
+              <p className="text-gray-700 leading-relaxed text-lg">
+                Dengan berbagai pilihan kendaraan keluarga dan niaga, kami siap membantu Anda menemukan
+                kendaraan yang sempurna untuk gaya hidup dan bisnis Anda.
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Latest Blog Posts Section */}
-      <section className="container mx-auto px-4 py-16 bg-gray-50">
+      <section className="container mx-auto px-4 py-16">
         <SectionTitle icon={MessageSquare}>Artikel Terbaru</SectionTitle>
 
         {blogLoading ? (

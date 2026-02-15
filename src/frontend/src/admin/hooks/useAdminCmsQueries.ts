@@ -1,21 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from '../../hooks/useActor';
 import { getAdminSession } from '../auth/adminSession';
-import type { 
-  Vehicle, 
-  Promotion, 
-  Testimonial, 
-  BlogPost, 
-  Contact, 
-  CreditSimulation, 
+import type {
+  Vehicle,
+  Promotion,
+  Testimonial,
+  BlogPost,
+  Contact,
+  CreditSimulation,
   MediaAsset,
   ExtendedVisitorStats,
-  BlogComment,
   UserProfile,
-  SiteBanner
+  SiteBanner,
+  BlogComment,
 } from '../../backend';
 
-function useAdminSessionToken() {
+function getSessionToken(): string {
   const session = getAdminSession();
   if (!session?.token) {
     throw new Error('No admin session found');
@@ -23,45 +23,16 @@ function useAdminSessionToken() {
   return session.token;
 }
 
-// Visitor Stats
-export function useGetExtendedVisitorStats() {
-  const { actor, isFetching } = useActor();
-  const sessionToken = useAdminSessionToken();
-
-  return useQuery<ExtendedVisitorStats>({
-    queryKey: ['extendedVisitorStats'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getExtendedVisitorStats(sessionToken);
-    },
-    enabled: !!actor && !isFetching && !!sessionToken,
-    refetchInterval: 10000,
-  });
-}
-
 // Vehicles
-export function useGetVehicles() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<Vehicle[]>({
-    queryKey: ['vehicles'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getVehicles();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
 export function useCreateVehicle() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
     mutationFn: async (vehicle: Vehicle) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.createVehicle(sessionToken, vehicle);
+      const token = getSessionToken();
+      return actor.createVehicle(token, vehicle);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
@@ -72,12 +43,12 @@ export function useCreateVehicle() {
 export function useUpdateVehicle() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
     mutationFn: async (vehicle: Vehicle) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateVehicle(sessionToken, vehicle);
+      const token = getSessionToken();
+      return actor.updateVehicle(token, vehicle);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
@@ -88,12 +59,12 @@ export function useUpdateVehicle() {
 export function useDeleteVehicle() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
     mutationFn: async (id: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.deleteVehicle(sessionToken, id);
+      const token = getSessionToken();
+      return actor.deleteVehicle(token, id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
@@ -102,28 +73,15 @@ export function useDeleteVehicle() {
 }
 
 // Promotions
-export function useGetPromotions() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<Promotion[]>({
-    queryKey: ['promotions'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getPromotions();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
 export function useCreatePromotion() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
     mutationFn: async (promotion: Promotion) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.createPromotion(sessionToken, promotion);
+      const token = getSessionToken();
+      return actor.createPromotion(token, promotion);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['promotions'] });
@@ -134,12 +92,12 @@ export function useCreatePromotion() {
 export function useUpdatePromotion() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
     mutationFn: async (promotion: Promotion) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updatePromotion(sessionToken, promotion);
+      const token = getSessionToken();
+      return actor.updatePromotion(token, promotion);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['promotions'] });
@@ -150,12 +108,12 @@ export function useUpdatePromotion() {
 export function useDeletePromotion() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
     mutationFn: async (id: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.deletePromotion(sessionToken, id);
+      const token = getSessionToken();
+      return actor.deletePromotion(token, id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['promotions'] });
@@ -164,28 +122,15 @@ export function useDeletePromotion() {
 }
 
 // Testimonials
-export function useGetTestimonials() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<Testimonial[]>({
-    queryKey: ['testimonials'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getTestimonials();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
 export function useCreateTestimonial() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
     mutationFn: async (testimonial: Testimonial) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.createTestimonial(sessionToken, testimonial);
+      const token = getSessionToken();
+      return actor.createTestimonial(token, testimonial);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['testimonials'] });
@@ -196,12 +141,12 @@ export function useCreateTestimonial() {
 export function useUpdateTestimonial() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
     mutationFn: async (testimonial: Testimonial) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateTestimonial(sessionToken, testimonial);
+      const token = getSessionToken();
+      return actor.updateTestimonial(token, testimonial);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['testimonials'] });
@@ -212,12 +157,12 @@ export function useUpdateTestimonial() {
 export function useDeleteTestimonial() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
     mutationFn: async (id: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.deleteTestimonial(sessionToken, id);
+      const token = getSessionToken();
+      return actor.deleteTestimonial(token, id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['testimonials'] });
@@ -226,28 +171,15 @@ export function useDeleteTestimonial() {
 }
 
 // Blog Posts
-export function useGetBlogPosts() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<BlogPost[]>({
-    queryKey: ['blogPosts'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getBlogPosts();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
 export function useCreateBlogPost() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
     mutationFn: async (post: BlogPost) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.createBlogPost(sessionToken, post);
+      const token = getSessionToken();
+      return actor.createBlogPost(token, post);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
@@ -258,12 +190,12 @@ export function useCreateBlogPost() {
 export function useUpdateBlogPost() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
     mutationFn: async (post: BlogPost) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateBlogPost(sessionToken, post);
+      const token = getSessionToken();
+      return actor.updateBlogPost(token, post);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
@@ -274,12 +206,12 @@ export function useUpdateBlogPost() {
 export function useDeleteBlogPost() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
     mutationFn: async (id: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.deleteBlogPost(sessionToken, id);
+      const token = getSessionToken();
+      return actor.deleteBlogPost(token, id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blogPosts'] });
@@ -287,78 +219,31 @@ export function useDeleteBlogPost() {
   });
 }
 
-// Blog Comments (Admin)
-export function useGetBlogCommentsAdmin(blogPostId: bigint) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<BlogComment[]>({
-    queryKey: ['blogComments', blogPostId.toString()],
-    queryFn: async () => {
-      if (!actor) return [];
-      const allComments = await actor.getBlogComments(blogPostId);
-      return allComments.filter(comment => comment.blogPostId === blogPostId);
-    },
-    enabled: !!actor && !isFetching && blogPostId > 0n,
-  });
-}
-
-export function useDeleteBlogComment() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
-
-  return useMutation({
-    mutationFn: async ({ blogPostId, commentId }: { blogPostId: bigint; commentId: bigint }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.deleteBlogComment(sessionToken, blogPostId, commentId);
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['blogComments', variables.blogPostId.toString()] });
-    },
-  });
-}
-
-export function useUpdateBlogComment() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
-
-  return useMutation({
-    mutationFn: async ({ blogPostId, commentId, content }: { blogPostId: bigint; commentId: bigint; content: string }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.updateBlogComment(sessionToken, blogPostId, commentId, content);
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['blogComments', variables.blogPostId.toString()] });
-    },
-  });
-}
-
 // Contacts
 export function useGetContacts() {
   const { actor, isFetching } = useActor();
-  const sessionToken = useAdminSessionToken();
 
   return useQuery<Contact[]>({
     queryKey: ['contacts'],
     queryFn: async () => {
-      if (!actor) return [];
-      const result = await actor.getContacts(sessionToken);
+      if (!actor) throw new Error('Actor not available');
+      const token = getSessionToken();
+      const result = await actor.getContacts(token);
       return result || [];
     },
-    enabled: !!actor && !isFetching && !!sessionToken,
+    enabled: !!actor && !isFetching,
   });
 }
 
 export function useDeleteContact() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
     mutationFn: async (id: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.deleteContact(sessionToken, id);
+      const token = getSessionToken();
+      return actor.deleteContact(token, id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
@@ -369,28 +254,28 @@ export function useDeleteContact() {
 // Credit Simulations
 export function useGetCreditSimulations() {
   const { actor, isFetching } = useActor();
-  const sessionToken = useAdminSessionToken();
 
   return useQuery<CreditSimulation[]>({
     queryKey: ['creditSimulations'],
     queryFn: async () => {
-      if (!actor) return [];
-      const result = await actor.getCreditSimulations(sessionToken);
+      if (!actor) throw new Error('Actor not available');
+      const token = getSessionToken();
+      const result = await actor.getCreditSimulations(token);
       return result || [];
     },
-    enabled: !!actor && !isFetching && !!sessionToken,
+    enabled: !!actor && !isFetching,
   });
 }
 
 export function useDeleteCreditSimulation() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
     mutationFn: async (id: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.deleteCreditSimulation(sessionToken, id);
+      const token = getSessionToken();
+      return actor.deleteCreditSimulation(token, id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['creditSimulations'] });
@@ -401,28 +286,29 @@ export function useDeleteCreditSimulation() {
 // Media Assets
 export function useGetMediaAssets() {
   const { actor, isFetching } = useActor();
-  const sessionToken = useAdminSessionToken();
 
   return useQuery<MediaAsset[]>({
     queryKey: ['mediaAssets'],
     queryFn: async () => {
-      if (!actor) return [];
-      const result = await actor.getMediaAssets(sessionToken);
+      if (!actor) throw new Error('Actor not available');
+      const token = getSessionToken();
+      const result = await actor.getMediaAssets(token);
       return result || [];
     },
-    enabled: !!actor && !isFetching && !!sessionToken,
+    enabled: !!actor && !isFetching,
+    retry: 1,
   });
 }
 
 export function useCreateMediaAsset() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
     mutationFn: async (asset: MediaAsset) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.createMediaAsset(sessionToken, asset);
+      const token = getSessionToken();
+      return actor.createMediaAsset(token, asset);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mediaAssets'] });
@@ -433,12 +319,12 @@ export function useCreateMediaAsset() {
 export function useDeleteMediaAsset() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
     mutationFn: async (id: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.deleteMediaAsset(sessionToken, id);
+      const token = getSessionToken();
+      return actor.deleteMediaAsset(token, id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mediaAssets'] });
@@ -446,34 +332,49 @@ export function useDeleteMediaAsset() {
   });
 }
 
-// Admin User Profile
-export function useGetAdminUserProfile(adminUserId: number) {
+// Visitor Stats
+export function useGetExtendedVisitorStats() {
   const { actor, isFetching } = useActor();
-  const sessionToken = useAdminSessionToken();
 
-  return useQuery<UserProfile | null>({
-    queryKey: ['adminUserProfile', adminUserId],
+  return useQuery<ExtendedVisitorStats>({
+    queryKey: ['extendedVisitorStats'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      return actor.getAdminUserProfile(sessionToken, BigInt(adminUserId));
+      const token = getSessionToken();
+      return actor.getExtendedVisitorStats(token);
     },
-    enabled: !!actor && !isFetching && !!sessionToken && adminUserId > 0,
-    retry: false,
+    enabled: !!actor && !isFetching,
+    refetchInterval: 10000,
+  });
+}
+
+// Admin User Profile
+export function useGetAdminUserProfile(adminUserId: bigint) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<UserProfile | null>({
+    queryKey: ['adminUserProfile', adminUserId.toString()],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      const token = getSessionToken();
+      return actor.getAdminUserProfile(token, adminUserId);
+    },
+    enabled: !!actor && !isFetching && adminUserId > 0n,
   });
 }
 
 export function useSaveAdminUserProfile() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
-    mutationFn: async ({ adminUserId, profile }: { adminUserId: number; profile: UserProfile }) => {
+    mutationFn: async ({ adminUserId, profile }: { adminUserId: bigint; profile: UserProfile }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.saveAdminUserProfile(sessionToken, BigInt(adminUserId), profile);
+      const token = getSessionToken();
+      return actor.saveAdminUserProfile(token, adminUserId, profile);
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['adminUserProfile', variables.adminUserId] });
+    onSuccess: (_, { adminUserId }) => {
+      queryClient.invalidateQueries({ queryKey: ['adminUserProfile', adminUserId.toString()] });
     },
   });
 }
@@ -481,46 +382,134 @@ export function useSaveAdminUserProfile() {
 // Site Banners
 export function useGetAllSiteBanners() {
   const { actor, isFetching } = useActor();
-  const sessionToken = useAdminSessionToken();
 
   return useQuery<SiteBanner[]>({
     queryKey: ['siteBanners'],
     queryFn: async () => {
-      if (!actor) return [];
-      return actor.getAllSiteBanners(sessionToken);
+      if (!actor) throw new Error('Actor not available');
+      const token = getSessionToken();
+      return actor.getAllSiteBanners(token);
     },
-    enabled: !!actor && !isFetching && !!sessionToken,
+    enabled: !!actor && !isFetching,
   });
 }
 
 export function useGetSiteBanner(id: string) {
   const { actor, isFetching } = useActor();
-  const sessionToken = useAdminSessionToken();
 
   return useQuery<SiteBanner | null>({
     queryKey: ['siteBanner', id],
     queryFn: async () => {
-      if (!actor) return null;
-      return actor.getSiteBanner(sessionToken, id);
+      if (!actor) throw new Error('Actor not available');
+      const token = getSessionToken();
+      return actor.getSiteBanner(token, id);
     },
-    enabled: !!actor && !isFetching && !!sessionToken && !!id,
+    enabled: !!actor && !isFetching && !!id,
   });
 }
 
 export function useUpdateSiteBanner() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const sessionToken = useAdminSessionToken();
 
   return useMutation({
     mutationFn: async ({ id, imageUrl }: { id: string; imageUrl: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateSiteBanner(sessionToken, id, imageUrl);
+      const token = getSessionToken();
+      return actor.updateSiteBanner(token, id, imageUrl);
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['siteBanner', id] });
       queryClient.invalidateQueries({ queryKey: ['siteBanners'] });
-      queryClient.invalidateQueries({ queryKey: ['siteBanner', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['publicSiteBanners'] });
+    },
+  });
+}
+
+// Main Banner Image URLs
+export function useGetMainBannerImageUrls() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<string[]>({
+    queryKey: ['mainBannerImageUrls'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      const token = getSessionToken();
+      return actor.getMainBannerImageUrls();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useUpdateMainBannerImageUrls() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (urls: string[]) => {
+      if (!actor) throw new Error('Actor not available');
+      const token = getSessionToken();
+      return actor.updateMainBannerImageUrls(token, urls);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mainBannerImageUrls'] });
+      queryClient.invalidateQueries({ queryKey: ['publicSiteBanners'] });
+    },
+  });
+}
+
+// Blog Comments Admin
+export function useGetBlogCommentsAdmin(blogPostId: bigint) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<BlogComment[]>({
+    queryKey: ['blogCommentsAdmin', blogPostId.toString()],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getBlogComments(blogPostId);
+    },
+    enabled: !!actor && !isFetching && blogPostId > 0n,
+  });
+}
+
+export function useDeleteBlogComment() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ blogPostId, commentId }: { blogPostId: bigint; commentId: bigint }) => {
+      if (!actor) throw new Error('Actor not available');
+      const token = getSessionToken();
+      return actor.deleteBlogComment(token, blogPostId, commentId);
+    },
+    onSuccess: (_, { blogPostId }) => {
+      queryClient.invalidateQueries({ queryKey: ['blogCommentsAdmin', blogPostId.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['blogComments', blogPostId.toString()] });
+    },
+  });
+}
+
+export function useUpdateBlogComment() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      blogPostId,
+      commentId,
+      content,
+    }: {
+      blogPostId: bigint;
+      commentId: bigint;
+      content: string;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      const token = getSessionToken();
+      return actor.updateBlogComment(token, blogPostId, commentId, content);
+    },
+    onSuccess: (_, { blogPostId }) => {
+      queryClient.invalidateQueries({ queryKey: ['blogCommentsAdmin', blogPostId.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['blogComments', blogPostId.toString()] });
     },
   });
 }

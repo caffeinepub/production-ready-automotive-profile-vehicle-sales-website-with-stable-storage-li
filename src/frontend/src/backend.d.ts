@@ -192,6 +192,7 @@ export interface backendInterface {
     deleteVehicle(sessionToken: string, id: bigint): Promise<boolean>;
     getAdminUserProfile(sessionToken: string, adminUserId: bigint): Promise<UserProfile | null>;
     getAdminUserProfileByIdToken(sessionToken: string, adminUserId: bigint): Promise<UserProfile | null>;
+    getAllMediaAssets(): Promise<Array<MediaAsset>>;
     getAllSiteBanners(sessionToken: string): Promise<Array<SiteBanner>>;
     getAndIncrementBlogPostViews(blogPostId: bigint): Promise<BlogPost | null>;
     getBlogComment(sessionToken: string, blogPostId: bigint, commentId: bigint): Promise<BlogComment | null>;
@@ -205,6 +206,7 @@ export interface backendInterface {
     getCreditSimulations(sessionToken: string): Promise<Array<CreditSimulation> | null>;
     getExtendedVisitorStats(sessionToken: string): Promise<ExtendedVisitorStats>;
     getFooterVisitorStats(): Promise<ExtendedVisitorStats>;
+    getMainBannerImageUrls(): Promise<Array<string>>;
     getMediaAssets(sessionToken: string): Promise<Array<MediaAsset> | null>;
     getProductInteraction(itemId: bigint): Promise<Interaction | null>;
     getPromotion(id: bigint): Promise<Promotion | null>;
@@ -225,6 +227,7 @@ export interface backendInterface {
     shareProduct(itemId: bigint, platform: string): Promise<void>;
     updateBlogComment(sessionToken: string, blogPostId: bigint, commentId: bigint, content: string): Promise<void>;
     updateBlogPost(sessionToken: string, post: BlogPost): Promise<boolean>;
+    updateMainBannerImageUrls(sessionToken: string, newUrls: Array<string>): Promise<void>;
     updatePromotion(sessionToken: string, promotion: Promotion): Promise<boolean>;
     updateSiteBanner(sessionToken: string, id: string, imageUrl: string): Promise<boolean>;
     updateTestimonial(sessionToken: string, testimonial: Testimonial): Promise<boolean>;

@@ -1,12 +1,12 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, Loader2 } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { useCreateMediaAsset } from '../../hooks/useAdminCmsQueries';
 import { toast } from 'sonner';
 
 interface MediaUploadButtonProps {
   folder?: string;
-  onUploadComplete?: () => void;
+  onUploadComplete?: (url: string) => void;
 }
 
 export default function MediaUploadButton({ folder = 'general', onUploadComplete }: MediaUploadButtonProps) {
@@ -14,32 +14,41 @@ export default function MediaUploadButton({ folder = 'general', onUploadComplete
   const fileInputRef = useRef<HTMLInputElement>(null);
   const createMediaAsset = useCreateMediaAsset();
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
-    try {
-      setUploading(true);
+    setUploading(true);
 
-      // Create a data URL for the file
+    try {
+      // Convert file to data URL for storage
       const reader = new FileReader();
+      
       const dataUrl = await new Promise<string>((resolve, reject) => {
         reader.onload = () => resolve(reader.result as string);
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
 
-      await createMediaAsset.mutateAsync({
+      // Create media asset record in backend
+      const newAsset = {
         id: BigInt(Date.now()),
         url: dataUrl,
         typ: file.type,
         size: BigInt(file.size),
-        folder
-      });
+        folder: folder,
+      };
 
-      toast.success('Media uploaded successfully');
-      onUploadComplete?.();
+      await createMediaAsset.mutateAsync(newAsset);
       
+      toast.success('Media uploaded successfully');
+      
+      // Call the callback if provided
+      if (onUploadComplete) {
+        onUploadComplete(dataUrl);
+      }
+      
+      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -63,19 +72,10 @@ export default function MediaUploadButton({ folder = 'general', onUploadComplete
       <Button
         onClick={() => fileInputRef.current?.click()}
         disabled={uploading}
-        className="bg-[#C90010] hover:bg-[#a00010]"
+        className="admin-btn-primary"
       >
-        {uploading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Uploading...
-          </>
-        ) : (
-          <>
-            <Upload className="mr-2 h-4 w-4" />
-            Upload Media
-          </>
-        )}
+        <Upload className="w-4 h-4 mr-2" />
+        {uploading ? 'Uploading...' : 'Upload Media'}
       </Button>
     </>
   );

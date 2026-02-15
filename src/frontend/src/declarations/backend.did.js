@@ -245,6 +245,7 @@ export const idlService = IDL.Service({
       [IDL.Opt(UserProfile)],
       [],
     ),
+  'getAllMediaAssets' : IDL.Func([], [IDL.Vec(MediaAsset)], ['query']),
   'getAllSiteBanners' : IDL.Func([IDL.Text], [IDL.Vec(SiteBanner)], []),
   'getAndIncrementBlogPostViews' : IDL.Func([IDL.Nat], [IDL.Opt(BlogPost)], []),
   'getBlogComment' : IDL.Func(
@@ -270,6 +271,7 @@ export const idlService = IDL.Service({
     ),
   'getExtendedVisitorStats' : IDL.Func([IDL.Text], [ExtendedVisitorStats], []),
   'getFooterVisitorStats' : IDL.Func([], [ExtendedVisitorStats], []),
+  'getMainBannerImageUrls' : IDL.Func([], [IDL.Vec(IDL.Text)], []),
   'getMediaAssets' : IDL.Func([IDL.Text], [IDL.Opt(IDL.Vec(MediaAsset))], []),
   'getProductInteraction' : IDL.Func(
       [IDL.Nat],
@@ -302,6 +304,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'updateBlogPost' : IDL.Func([IDL.Text, BlogPost], [IDL.Bool], []),
+  'updateMainBannerImageUrls' : IDL.Func([IDL.Text, IDL.Vec(IDL.Text)], [], []),
   'updatePromotion' : IDL.Func([IDL.Text, Promotion], [IDL.Bool], []),
   'updateSiteBanner' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Bool], []),
   'updateTestimonial' : IDL.Func([IDL.Text, Testimonial], [IDL.Bool], []),
@@ -549,6 +552,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(UserProfile)],
         [],
       ),
+    'getAllMediaAssets' : IDL.Func([], [IDL.Vec(MediaAsset)], ['query']),
     'getAllSiteBanners' : IDL.Func([IDL.Text], [IDL.Vec(SiteBanner)], []),
     'getAndIncrementBlogPostViews' : IDL.Func(
         [IDL.Nat],
@@ -586,6 +590,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'getFooterVisitorStats' : IDL.Func([], [ExtendedVisitorStats], []),
+    'getMainBannerImageUrls' : IDL.Func([], [IDL.Vec(IDL.Text)], []),
     'getMediaAssets' : IDL.Func([IDL.Text], [IDL.Opt(IDL.Vec(MediaAsset))], []),
     'getProductInteraction' : IDL.Func(
         [IDL.Nat],
@@ -618,6 +623,11 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'updateBlogPost' : IDL.Func([IDL.Text, BlogPost], [IDL.Bool], []),
+    'updateMainBannerImageUrls' : IDL.Func(
+        [IDL.Text, IDL.Vec(IDL.Text)],
+        [],
+        [],
+      ),
     'updatePromotion' : IDL.Func([IDL.Text, Promotion], [IDL.Bool], []),
     'updateSiteBanner' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text],

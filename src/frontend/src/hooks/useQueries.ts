@@ -306,15 +306,25 @@ export function useSaveCallerUserProfile() {
 export function useGetPublicSiteBanners() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<{ mainBanner: string | null; ctaBanner: string | null }>({
+  return useQuery<{ mainBannerUrls: string[]; ctaBanner: string | null }>({
     queryKey: ['publicSiteBanners'],
     queryFn: async () => {
-      if (!actor) return { mainBanner: null, ctaBanner: null };
+      if (!actor) return { mainBannerUrls: [], ctaBanner: null };
       
-      // For public access, we'll try to fetch via a public method
-      // Since the backend doesn't have a public method, we'll return defaults
-      // The actual banners will be fetched by admin and stored
-      return { mainBanner: null, ctaBanner: null };
+      try {
+        // Fetch main banner URLs
+        const mainBannerUrls = await actor.getMainBannerImageUrls();
+        
+        // For CTA banner, we'll need to fetch via the site banner method
+        // Since there's no public method, we return null and use fallback
+        return { 
+          mainBannerUrls: mainBannerUrls || [], 
+          ctaBanner: null 
+        };
+      } catch (error) {
+        console.error('Error fetching banners:', error);
+        return { mainBannerUrls: [], ctaBanner: null };
+      }
     },
     enabled: !!actor && !isFetching,
   });

@@ -1,55 +1,101 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T04:43:30.800Z",
-  "summary": "Most requested admin UI/layout changes and new homepage banner management appear implemented (new admin theme + active nav styling, visitor stats 2-column grid, media banner configuration UI, public Home page renders configurable banners with fallbacks, backend migration wiring). The main risk is REQ-138: the Admin Profile page uses a hardcoded adminUserId=1, which may prevent reliable per-session profile persistence for the logged-in admin.",
+  "generatedAt": "2026-02-15T05:31:17.140Z",
+  "summary": "Diff adds a Home main banner slider component with vertical slide-up animation, adds admin UI to manage ordered Home Main Banner images, updates the Media Manager page layout, and adds a backend migration stub for a new mainBannerImageUrls field. However, the diff summary does not provide clear evidence that the backend APIs/persistence and the public banner-fetching hook were fully implemented, and several unrelated admin/UI enhancements appear that were not requested.",
   "missing_requirements": [
     {
-      "id": "REQ-138",
-      "requirement": "Admin User Profile save/load must be reliably tied to the logged-in admin via session-based authorization (not Principal-based), persist correctly, and reload correctly on refresh.",
-      "reason": "The profile page uses a hardcoded `adminUserId = 1` (and notes it as a temporary workaround). This likely breaks “reliably save/update profile information” for the actual logged-in admin and may not reload the correct profile after refresh for other accounts.",
+      "id": "REQ-143",
+      "requirement": "Add/extend backend APIs and persistence needed to store and serve a list of Home page Main Banner image URLs (ordered), and make them publicly readable by the Home page without requiring an admin session.",
+      "reason": "While a migration file introduces a new stable field placeholder (mainBannerImageUrls), the diff summary for backend/main.mo is truncated and does not show the actual stable variable, admin update methods, or a public (no-session) query that returns stable configured values for the homepage. The required guarantee that public access returns stable configured values cannot be confirmed from the provided backend diff snippet.",
       "evidence": [
-        "frontend/src/admin/pages/AdminProfilePage.tsx"
+        "backend/migration.mo",
+        "backend/main.mo (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-144",
+      "requirement": "Update the public React Query hook useGetPublicSiteBanners to fetch real banner configuration from the backend (instead of returning only defaults), and wire it into the Home page banner rendering.",
+      "reason": "HomePage.tsx now consumes banners.mainBannerUrls and banners.ctaBanner, but the diff summary for frontend/src/hooks/useQueries.ts is truncated and does not show changes to useGetPublicSiteBanners to actually call backend APIs and return configured values (vs defaults). Therefore implementation of the hook change cannot be verified from the provided diff summary.",
+      "evidence": [
+        "frontend/src/pages/HomePage.tsx",
+        "frontend/src/hooks/useQueries.ts (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-146",
+      "requirement": "Restore the Home page 'About Us / Tentang Kami' section design and colors to the previous styling used before the recent changes (including restoring the intended background color treatment).",
+      "reason": "HomePage.tsx changes the About section to a gray gradient background with a white card. Without prior-state reference in the diff summary, it is not verifiable that this matches the \"previous styling\" and intended brand-consistent color treatment; it may still reflect the \"gray/white card-only presentation\" the requirement warns against.",
+      "evidence": [
+        "frontend/src/pages/HomePage.tsx"
+      ]
+    },
+    {
+      "id": "REQ-147",
+      "requirement": "Fix the Admin Media Library so uploaded images reliably appear in the list/grid after upload and on refresh (no error state), including ensuring the backing get/list media API returns the stored assets and the UI renders them correctly.",
+      "reason": "Frontend admin media components were updated (upload button, picker, panel), but the diff summary does not show backend changes to the media list/get APIs or stable storage behavior. Additionally, the upload flow stores a data URL as the asset URL in the frontend, which does not by itself demonstrate that assets persist and reload correctly after refresh via a backing API. From the truncated hooks/backend snippets, reliable refresh behavior cannot be confirmed.",
+      "evidence": [
+        "frontend/src/admin/components/media/MediaUploadButton.tsx",
+        "frontend/src/admin/components/media/MediaManagerPanel.tsx",
+        "frontend/src/admin/components/media/MediaPickerDialog.tsx",
+        "frontend/src/admin/hooks/useAdminCmsQueries.ts (truncated)",
+        "backend/main.mo (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added an \"Auth Debug Test\" admin navigation item/page.",
-      "reason": "Not requested in the BuildRequest requirements (REQ-137..REQ-140).",
+      "description": "Admin Profile page changed to use a hard-coded adminUserId (1n) and a \"temporary workaround\" comment about parsing tokens.",
+      "reason": "BuildRequest does not mention Admin Profile changes; non-goals/constraints focus on homepage banners, about section, and media manager reliability.",
       "evidence": [
-        "frontend/src/admin/AdminLayout.tsx",
-        "frontend/src/App.tsx"
+        "frontend/src/admin/pages/AdminProfilePage.tsx"
       ]
     },
     {
-      "description": "Admin blog comment moderation/edit/delete features inside the blog form dialog.",
-      "reason": "Not requested as part of the stated requirements; the request focuses on stats layout, profile saving, admin UI consistency, and homepage banners.",
+      "description": "Global public error boundary component added/modified (per file summaries).",
+      "reason": "Not requested by any REQ; unrelated to homepage banners/about or admin media fixes.",
       "evidence": [
-        "frontend/src/admin/components/BlogFormDialog.tsx"
+        "frontend-file-summaries.txt (GlobalErrorBoundary entry)"
+      ]
+    },
+    {
+      "description": "Admin layout sidebar navigation styling refinements and query-string-aware active menu behavior (per file summaries).",
+      "reason": "Not requested; scope was limited to /admin/media banner management and media library rendering reliability.",
+      "evidence": [
+        "frontend-file-summaries.txt (AdminLayout entry)"
+      ]
+    },
+    {
+      "description": "Multiple admin CRUD UI styling enhancements (CrudTable, ConfirmDeleteDialog, Vehicles/Promotions/Testimonials/Blog admin pages) mentioned in summaries.",
+      "reason": "Not requested; BuildRequest is narrowly scoped to homepage banners/about and admin media library rendering.",
+      "evidence": [
+        "frontend-file-summaries.txt (CrudTable, ConfirmDeleteDialog, VehiclesAdminPage, PromotionsAdminPage, TestimonialsAdminPage, BlogAdminPage entries)"
+      ]
+    },
+    {
+      "description": "App route/layout behavior changed to pass hideHero prop for home route only (per file summaries).",
+      "reason": "BuildRequest explicitly states no changes to public site routing/navigation structure beyond the Home page banner/sections requested; this could be an unrelated structural/layout behavior change not specified.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/App.tsx entry)"
       ]
     }
   ],
-  "confidence": 0.74,
+  "confidence": 0.62,
   "changed_files": [
     "backend/main.mo",
     "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/admin/AdminLayout.tsx",
-    "frontend/src/admin/components/BlogFormDialog.tsx",
+    "frontend/src/admin/components/media/HomeMainBannerManager.tsx",
+    "frontend/src/admin/components/media/MediaManagerPanel.tsx",
+    "frontend/src/admin/components/media/MediaPickerDialog.tsx",
+    "frontend/src/admin/components/media/MediaUploadButton.tsx",
     "frontend/src/admin/hooks/useAdminCmsQueries.ts",
     "frontend/src/admin/pages/AdminProfilePage.tsx",
     "frontend/src/admin/pages/MediaManagerPage.tsx",
-    "frontend/src/admin/pages/VisitorStatsAdminPage.tsx",
-    "frontend/src/admin/styles/adminTheme.css",
-    "frontend/src/components/layout/Footer.tsx",
-    "frontend/src/components/public/SectionTitle.tsx",
+    "frontend/src/components/home/HomeMainBannerSlider.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/BlogDetailPage.tsx",
-    "frontend/src/pages/CommercialVehicleDetailPage.tsx",
+    "frontend/src/index.css",
     "frontend/src/pages/HomePage.tsx",
-    "frontend/src/pages/PassengerVehicleDetailPage.tsx",
     "project_state.json"
   ]
 }

@@ -226,6 +226,7 @@ export interface _SERVICE {
     [string, bigint],
     [] | [UserProfile]
   >,
+  'getAllMediaAssets' : ActorMethod<[], Array<MediaAsset>>,
   'getAllSiteBanners' : ActorMethod<[string], Array<SiteBanner>>,
   'getAndIncrementBlogPostViews' : ActorMethod<[bigint], [] | [BlogPost]>,
   'getBlogComment' : ActorMethod<[string, bigint, bigint], [] | [BlogComment]>,
@@ -242,6 +243,7 @@ export interface _SERVICE {
   >,
   'getExtendedVisitorStats' : ActorMethod<[string], ExtendedVisitorStats>,
   'getFooterVisitorStats' : ActorMethod<[], ExtendedVisitorStats>,
+  'getMainBannerImageUrls' : ActorMethod<[], Array<string>>,
   'getMediaAssets' : ActorMethod<[string], [] | [Array<MediaAsset>]>,
   'getProductInteraction' : ActorMethod<[bigint], [] | [Interaction]>,
   'getPromotion' : ActorMethod<[bigint], [] | [Promotion]>,
@@ -268,6 +270,7 @@ export interface _SERVICE {
     undefined
   >,
   'updateBlogPost' : ActorMethod<[string, BlogPost], boolean>,
+  'updateMainBannerImageUrls' : ActorMethod<[string, Array<string>], undefined>,
   'updatePromotion' : ActorMethod<[string, Promotion], boolean>,
   'updateSiteBanner' : ActorMethod<[string, string, string], boolean>,
   'updateTestimonial' : ActorMethod<[string, Testimonial], boolean>,
